@@ -63,8 +63,8 @@ flowchart LR
 
 - [x] Choix de l'hébergement (dev en conteneurs locaux, prod sur Autonomous Database) et de l'outil de migration (SQLcl)
 - [ ] Environnement de dev local (conteneurs Oracle Database Free et ORDS, APEX inclus)
-- [ ] Projet SQLcl initialisé
 - [ ] Amorçage du dev documenté (`SYS`), avec installation de Logger et d'utPLSQL
+- [ ] Projet SQLcl initialisé
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)

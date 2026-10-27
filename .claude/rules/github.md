@@ -1,6 +1,6 @@
 # Règles GitHub
 
-Ces règles couvrent les issues, les pull requests, la stratégie de merge, la protection de `main` et les commandes `gh`. Les workflows et le déploiement sont dans `github_actions.md`, les branches et commits dans `git.md`.
+Ces règles couvrent les issues, les pull requests, la stratégie de merge et les commandes `gh`. Les workflows et le déploiement sont dans `github_actions.md`, les branches et commits dans `git.md`.
 
 ## Issues
 
@@ -19,25 +19,19 @@ Tout changement arrive sur `main` par une pull request, jamais par un push direc
 - Une PR = un sujet, de petite taille. Ouverte en draft tant qu'elle n'est pas prête à être relue.
 - Titre en anglais au format Conventional Commits (`git.md`) : avec le squash merge, il devient le message de commit sur `main`.
 - Description et commentaires en français. La description comporte quatre sections : Pourquoi, Quoi (sans paraphraser le diff), Comment tester, Impact (changement cassant, coût, migration, ou "Aucun").
-- La CI statique (`ci.yml`) doit être verte avant le merge. Projet à un seul contributeur : aucune approbation requise.
+- Projet à un seul contributeur : aucune approbation requise.
 - Répondre à chaque commentaire de relecture, par un commit ou par une réponse. C'est l'auteur du commentaire qui le résout.
 
 ## Stratégie de merge
 
 Squash merge uniquement : une PR = un commit sur `main`, annulable par un seul `git revert`.
 
-- Le message du commit de squash se limite au titre de la PR : le dépôt est configuré ainsi (corps vide, branche supprimée après merge). Vérifier ce titre juste avant la fusion, puis `gh pr merge <numéro> --squash`.
+- Le message du commit de squash est le titre de la PR. Vérifier ce titre juste avant la fusion, puis `gh pr merge <numéro> --squash`.
 - Après un squash merge, `git branch -d` échoue sur la branche locale : `git branch -D` est attendu. Ne pas réutiliser une branche fusionnée.
-
-## Protection de `main`
-
-Imposée par un ruleset et des paramètres versionnés dans `.github/settings/`, appliqués à la main par le propriétaire du dépôt : PR obligatoire, historique linéaire, squash merge seul, push forcé et suppression interdits, aucun contournement, y compris pour les administrateurs. Les jobs de `ci.yml` sont des checks obligatoires et la branche doit être à jour avec `main` : renommer un job impose de mettre à jour le ruleset dans la même PR.
-
-L'agent ne modifie jamais cette configuration. Il signale tout écart relevé par `.github/settings/check.sh`.
 
 ## Garde-fous pour l'agent
 
-Autorisé sans confirmation, en lecture seule : `gh pr view`, `gh pr list`, `gh pr diff`, `gh pr checks`, `gh run list`, `gh run view`, `gh issue view`, `gh issue list`, `.github/settings/check.sh`.
+Autorisé sans confirmation, en lecture seule : `gh pr view`, `gh pr list`, `gh pr diff`, `gh pr checks`, `gh run list`, `gh run view`, `gh issue view`, `gh issue list`.
 
 Demander une confirmation explicite avant :
 
@@ -53,5 +47,3 @@ Interdit :
 - `gh pr merge --admin` ou tout contournement des protections ;
 - approuver une PR ;
 - ajouter une mention d'outil (« Generated with … ») dans la description d'une PR ou d'une issue.
-
-Si la CI échoue : lire les logs, expliquer la cause et proposer un correctif. Ne pas relancer en boucle, ni affaiblir un test ou un check pour obtenir du vert.

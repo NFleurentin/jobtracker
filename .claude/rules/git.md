@@ -19,7 +19,7 @@ Format Conventional Commits : `<type>(<scope>): <sujet>`, une ligne vide, puis u
   - `collect` : chaîne de collecte France Travail (OAuth2, appel REST, staging, contrôles, `MERGE`, garde-fou de volume, job `DBMS_SCHEDULER`, ACL réseau, credential).
   - `apex` : application APEX et son export.
   - `sqlcl` : outillage de migration (configuration SQLcl Projects et Liquibase, version figée).
-  - `github` : `.github/settings/`, `dependabot.yml`, modèles d'issue et de PR ; les workflows relèvent du type `ci`.
+  - `github` : configuration GitHub versionnée (`dependabot.yml`, modèles d'issue et de PR) ; les workflows relèvent du type `ci`.
   - `claude` : `CLAUDE.md` et `.claude/rules/`.
 - Sujet en anglais, à l'impératif présent, 72 caractères maximum, sans majuscule initiale ni point final. Il décrit l'effet du changement, pas l'activité (`fix null handling in customer join`, pas `update model`).
 - `!` avant les deux-points si le changement casse un contrat pour un consommateur (signature d'un package public modifiée, colonne d'une vue utilisée par APEX renommée ou supprimée). Le corps décrit alors l'impact.

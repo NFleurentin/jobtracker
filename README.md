@@ -62,6 +62,7 @@ flowchart LR
 ## Avancement
 
 - [x] Choix de l'hébergement (dev en conteneurs locaux, prod sur Autonomous Database) et de l'outil de migration (SQLcl)
+- [x] Dépôt GitHub configuré (protection de `main`, squash merge, push protection des secrets, modèles d'issue et de PR)
 - [ ] Environnement de dev local (conteneurs Oracle Database Free et ORDS, APEX inclus)
 - [ ] Amorçage du dev documenté (`SYS`), avec installation de Logger et d'utPLSQL
 - [ ] Projet SQLcl initialisé
@@ -87,7 +88,7 @@ db/             Migrations : tables, vues, packages PL/SQL, jobs
 db/tests/       Tests utPLSQL
 apex/           Export de l'application APEX
 data/           Données fictives de démonstration
-.github/        Workflows CI
+.github/        Workflows CI, modèles d'issue et de PR
 ```
 
 ## Choix techniques et compromis

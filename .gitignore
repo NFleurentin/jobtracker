@@ -1,0 +1,26 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Wallet Autonomous Database (archive ou dossier extrait)
+Wallet_*.zip
+wallet/
+cwallet.sso
+ewallet.p12
+ewallet.pem
+keystore.jks
+truststore.jks
+ojdbc.properties
+tnsnames.ora
+sqlnet.ora
+
+# Artefacts générés par SQLcl Projects
+artifact/
+
+# Logs
+*.log
+logs/
+
+# Paramètres personnels de Claude Code
+.claude/settings.local.json

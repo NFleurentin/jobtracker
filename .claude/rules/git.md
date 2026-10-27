@@ -7,7 +7,7 @@ Ces règles couvrent Git : branches, commits, historique et commandes à risque.
 Modèle trunk-based : `main` toujours stable, branches de travail courtes (quelques jours) créées depuis un `main` à jour (`git switch main && git pull --rebase`).
 
 - Ne jamais committer directement sur `main`. Une branche = un sujet : si le travail déborde, créer une autre branche.
-- Nom : `<type>/<description>`, avec un type de commit ci-dessous et 2 à 5 mots en anglais, en kebab-case (`feat/orders-incremental`, `fix/null-customer-id`).
+- Nom : `<type>/<description>`, avec un type de commit ci-dessous et 2 à 5 mots en anglais, en kebab-case (`feat/collect-pagination`, `fix/followed-offers-reload`).
 
 ## Messages de commit
 
@@ -21,7 +21,7 @@ Format Conventional Commits : `<type>(<scope>): <sujet>`, une ligne vide, puis u
   - `sqlcl` : outillage de migration (configuration SQLcl Projects et Liquibase, version figée).
   - `github` : configuration GitHub versionnée (`dependabot.yml`, modèles d'issue et de PR) ; les workflows relèvent du type `ci`.
   - `claude` : `CLAUDE.md` et `.claude/rules/`.
-- Sujet en anglais, à l'impératif présent, 72 caractères maximum, sans majuscule initiale ni point final. Il décrit l'effet du changement, pas l'activité (`fix null handling in customer join`, pas `update model`).
+- Sujet en anglais, à l'impératif présent, 72 caractères maximum, sans majuscule initiale ni point final. Il décrit l'effet du changement, pas l'activité (`keep followed offers on reload`, pas `update package`).
 - `!` avant les deux-points si le changement casse un contrat pour un consommateur (signature d'un package public modifiée, colonne d'une vue utilisée par APEX renommée ou supprimée). Le corps décrit alors l'impact.
 - Corps obligatoire dès que le pourquoi n'est pas évident à la lecture du diff : la raison et le contexte, pas le détail du code. Lignes de 72 caractères maximum.
 
@@ -29,7 +29,7 @@ Format Conventional Commits : `<type>(<scope>): <sujet>`, une ligne vide, puis u
 
 - Un commit = un changement logique, qui laisse le projet dans un état cohérent. Ne pas mélanger refactoring et changement fonctionnel.
 - Ajouter les fichiers explicitement (`git add <chemin>`), jamais `git add .` ni `git add -A`. Relire `git status` et `git diff --staged` avant chaque commit.
-- Ne jamais committer : secrets (`.env`, identifiants de l'API France Travail), wallet Autonomous Database (`Wallet_*.zip`, `cwallet.sso`, `ewallet.p12`, `tnsnames.ora`, `sqlnet.ora`), artefacts générés (`artifact/` de SQLcl Projects, rapports utPLSQL, logs), données réelles (offres, contacts, notes).
+- Ne jamais committer : secrets (`.env`, identifiants de l'API France Travail), wallet Autonomous Database (fichiers listés dans `.gitignore`), artefacts générés (`artifact/` de SQLcl Projects, rapports utPLSQL, logs), données réelles (offres, contacts, notes).
 - La version de SQLcl est figée dans le dépôt : une montée de version fait l'objet d'un commit dédié.
 
 ## Historique

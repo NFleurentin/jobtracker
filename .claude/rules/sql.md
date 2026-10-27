@@ -9,8 +9,9 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 
 ## Migrations
 
-- Tout objet est créé ou modifié par une migration du projet SQLcl. Un DDL joué à la main en dev est recapturé dans le dépôt avant le commit.
-- Un changeset déployé n'est jamais modifié : Liquibase contrôle son checksum et le déploiement échouerait. Écrire un nouveau changeset.
+- Tout objet du schéma applicatif est créé ou modifié par une migration du projet SQLcl. Un DDL joué à la main en dev est recapturé dans le dépôt avant le commit.
+- Les prérequis qui demandent `ADMIN` (schéma, droits, ACL réseau, credential) relèvent de l'amorçage manuel décrit dans le README, pas des migrations.
+- Une release déployée n'est jamais modifiée : Liquibase contrôle le checksum de ses changesets et le déploiement échouerait. Toute évolution passe par la release suivante.
 
 ## Modèle de données
 

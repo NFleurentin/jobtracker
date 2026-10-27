@@ -8,6 +8,8 @@ paths:
 
 Ces règles couvrent l'écriture des workflows et le déploiement par la CI. Les pull requests et les garde-fous `gh` sont dans `github.md`.
 
+Règle à venir : aucun workflow n'existe encore. Deux environnements sont prévus, dev et prod.
+
 Un workflow exécute du code avec accès aux secrets et au cloud. Il se traite comme du code de production.
 
 ## Épingler les actions par SHA
@@ -39,7 +41,7 @@ Ne jamais interpoler une donnée contrôlée par un tiers (titre de PR, nom de b
 
 ## Secrets et environnements
 
-- Les secrets de production sont rattachés à des environments restreints à `main`
+- Les secrets de production sont rattachés à des environments restreints à `main`.
 - Ne jamais afficher un secret dans les logs (`echo`, `set -x`, mode debug), ni le passer en argument de ligne de commande.
 
 ## Hygiène des workflows

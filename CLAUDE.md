@@ -8,5 +8,5 @@
 
 ## Conventions
 
-- Documentation, commentaires de code, docstrings et README **en français** ; identifiants (variables, fonctions, colonnes) en anglais.
+- Documentation, commentaires de code et README **en français** ; identifiants (variables, fonctions, colonnes) en anglais.
 - Une décision de conception nouvelle ou modifiée se reporte dans la table « Choix techniques et compromis » du README, et la liste « Avancement » se met à jour en même temps que le code.

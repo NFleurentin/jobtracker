@@ -21,7 +21,7 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 
 ## Erreurs et journalisation
 
-- Journalisation avec Logger (OraOpenSource). Pas de `DBMS_OUTPUT` dans le code livré.
+- Journalisation avec Logger (OraOpenSource), installé dans un schéma dédié et appelé par synonymes. Pas de `DBMS_OUTPUT` dans le code livré.
 - Pas de `WHEN OTHERS` sans journalisation et relance.
 - Codes `RAISE_APPLICATION_ERROR` attribués par plage, une plage par package, déclarée en constantes dans sa spec.
 
@@ -33,4 +33,5 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 
 ## Tests
 
-Chaque package public a son package de test utPLSQL `test_<package>`.
+- Chaque package public a son package de test utPLSQL `test_<package>`.
+- utPLSQL n'existe qu'en dev et en CI : les packages de test ne sont jamais déployés en prod.

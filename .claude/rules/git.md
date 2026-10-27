@@ -16,7 +16,7 @@ Format Conventional Commits : `<type>(<scope>): <sujet>`, une ligne vide, puis u
 - Types : `feat`, `fix`, `refactor` (sans changement de comportement), `perf`, `test`, `docs`, `ci`, `chore` (dépendances, configuration, outillage), `revert`.
 - Scopes : la partie du système touchée, jamais une répétition du type (`ci`, `test`, `docs` restent des types). Optionnel si le changement est transverse.
   - `db` : modèle de données et logique métier en base (tables, vues, contraintes, packages hors collecte, tests utPLSQL associés).
-  - `collect` : chaîne de collecte France Travail (OAuth2, appel REST, staging, contrôles, `MERGE`, garde-fou de volume, job `DBMS_SCHEDULER`, ACL réseau, credential).
+  - `collect` : chaîne de collecte des offres (OAuth2, appel REST, staging, contrôles, `MERGE`, garde-fou de volume, job `DBMS_SCHEDULER`, ACL réseau, credential).
   - `apex` : application APEX et son export.
   - `sqlcl` : outillage de migration (configuration SQLcl Projects et Liquibase, version figée).
   - `github` : configuration GitHub versionnée (`dependabot.yml`, modèles d'issue et de PR) ; les workflows relèvent du type `ci`.
@@ -29,7 +29,7 @@ Format Conventional Commits : `<type>(<scope>): <sujet>`, une ligne vide, puis u
 
 - Un commit = un changement logique, qui laisse le projet dans un état cohérent. Ne pas mélanger refactoring et changement fonctionnel.
 - Ajouter les fichiers explicitement (`git add <chemin>`), jamais `git add .` ni `git add -A`. Relire `git status` et `git diff --staged` avant chaque commit.
-- Ne jamais committer : secrets (`.env`, identifiants de l'API France Travail), wallet Autonomous Database (fichiers listés dans `.gitignore`), artefacts générés (`artifact/` de SQLcl Projects, rapports utPLSQL, logs), données réelles (offres, contacts, notes).
+- Ne jamais committer : secrets (`.env`, identifiants d'API), wallet Autonomous Database (fichiers listés dans `.gitignore`), artefacts générés (`artifact/` de SQLcl Projects, rapports utPLSQL, logs), données réelles (offres, contacts, notes).
 - La version de SQLcl est figée dans le dépôt : une montée de version fait l'objet d'un commit dédié.
 
 ## Historique

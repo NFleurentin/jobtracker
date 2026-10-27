@@ -1,5 +1,10 @@
 # CLAUDE.md
 
+## Environnements
+
+- **dev** : conteneurs locaux (Oracle Database Free, ORDS avec APEX). L'agent ne travaille que sur cet environnement.
+- **prod** : Oracle Autonomous Database. L'agent ne la vise jamais depuis le poste (ni connexion, ni wallet, ni déploiement) : la prod passe par la CI, à venir. D'ici là, le propriétaire du dépôt déploie à la main.
+
 ## Règles par outil
 
 - Les règles sont dans [.claude/rules/](.claude/rules/)

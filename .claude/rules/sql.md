@@ -10,7 +10,7 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 ## Migrations
 
 - Tout objet du schéma applicatif est créé ou modifié par une migration du projet SQLcl. Un DDL joué à la main en dev est recapturé dans le dépôt avant le commit.
-- Les prérequis qui demandent `ADMIN` (schéma, droits, ACL réseau, credential) relèvent de l'amorçage manuel décrit dans le README, pas des migrations.
+- Les prérequis qui demandent le compte d'administration (`SYS` en local, `ADMIN` sur ADB) relèvent des deux amorçages manuels décrits dans le README, pas des migrations : schémas (applicatif, Logger, utPLSQL), droits, ACL réseau, workspace APEX, secret du credential.
 - Une release déployée n'est jamais modifiée : Liquibase contrôle le checksum de ses changesets et le déploiement échouerait. Toute évolution passe par la release suivante.
 
 ## Modèle de données
@@ -25,4 +25,4 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 
 Demander une confirmation explicite avant tout DDL ou DML sur une base, et produire d'abord l'aperçu du déploiement (`liquibase update-sql`).
 
-Interdit : se connecter en `ADMIN`, modifier des grants, des ACL réseau ou des credentials.
+Interdit : se connecter en `SYS` ou en `ADMIN`, modifier des grants, des ACL réseau ou des credentials.

@@ -29,7 +29,7 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 
 - Appels HTTP par `APEX_WEB_SERVICE`, uniquement dans les packages de collecte.
 - Les identifiants de l'API sont référencés par le nom d'un credential, jamais écrits dans le code.
-- Un job `DBMS_SCHEDULER` s'exécute hors session APEX : établir le contexte du workspace (`APEX_SESSION.CREATE_SESSION`) avant d'utiliser un Web Credential APEX.
+- Un job `DBMS_SCHEDULER` s'exécute hors session APEX : établir le contexte du workspace avant d'utiliser un Web Credential APEX.
 
 ## Tests
 

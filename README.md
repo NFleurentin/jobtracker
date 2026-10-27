@@ -53,7 +53,8 @@ flowchart LR
 | Couche | Outil |
 |---|---|
 | Base de données | Oracle Autonomous Database (offre Always Free) |
-| Collecte | PL/SQL : `APEX_WEB_SERVICE` ou `UTL_HTTP`, `JSON_TABLE`, `DBMS_SCHEDULER` |
+| Collecte | PL/SQL : `APEX_WEB_SERVICE`, `JSON_TABLE`, `DBMS_SCHEDULER` |
+| Journalisation | Logger (OraOpenSource) |
 | Application | Oracle APEX |
 | Migrations | SQLcl : Liquibase intégré et SQLcl Projects, pour la base et l'application APEX |
 | Tests | utPLSQL |
@@ -91,6 +92,10 @@ data/           Données fictives de démonstration
 | Oracle Autonomous Database, offre Always Free | gratuit sans limite de durée, APEX et ORDS inclus et administrés, accessible en ligne pour une démonstration. Limites : ressources plafonnées, instance arrêtée après une période d'inactivité, connexion par wallet (un secret à protéger) | conteneur local Oracle Database Free (APEX et ORDS à installer et maintenir, application non accessible en ligne) |
 | Migrations avec SQLcl (Liquibase intégré, SQLcl Projects), version figée dans le dépôt | gratuit, un seul outil pour les objets de la base et l'application APEX (export découpé en fichiers versionnables), changesets générés depuis le schéma. Limites : SQLcl Projects est récent et ses commandes évoluent, Java 17 ou plus requis | Flyway Community (gratuit, plus simple, mais ne gère pas APEX : il faudrait SQLcl en plus), scripts SQL joués à la main (aucun suivi de ce qui est déployé) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
+| Appels HTTP par `APEX_WEB_SERVICE` | inclus dans ADB, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
+| Journalisation avec Logger (OraOpenSource 3.1.1), installé par migration | outil de référence de la communauté APEX, traces conservées malgré un `ROLLBACK`. Limite : projet peu maintenu | package maison (niveaux, contexte et purge à réécrire), fork récent non officiel (provenance non établie) |
+| Clé primaire en `GENERATED ALWAYS AS IDENTITY` | séquence gérée par Oracle, sans trigger ni séquence à versionner | séquence et trigger |
+| Nommage selon les Trivadis PL/SQL & SQL Coding Guidelines | convention publiée la plus citée, vérifiable par des validators | convention maison |
 | Stock d'offres remplacé à chaque chargement, sauf offres suivies | les offres en cours suffisent pour le suivi : pas d'historique à gérer ni de fermeture à déduire | historisation de toutes les versions (rôle de jobboard) |
 
 ## Données et conformité

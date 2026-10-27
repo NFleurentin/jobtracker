@@ -51,7 +51,7 @@ flowchart LR
 
 | Couche | Outil |
 |---|---|
-| Base de données | Oracle Autonomous Database (offre Always Free) |
+| Base de données | prod : Oracle Autonomous Database (offre Always Free) ; dev : Oracle Database Free et ORDS (APEX inclus) en conteneurs Podman |
 | Collecte | PL/SQL : `APEX_WEB_SERVICE`, `JSON_TABLE`, `DBMS_SCHEDULER` |
 | Journalisation | Logger (OraOpenSource) |
 | Application | Oracle APEX |
@@ -62,7 +62,8 @@ flowchart LR
 ## Avancement
 
 - [x] Choix de l'hébergement (Autonomous Database) et de l'outil de migration (SQLcl)
-- [ ] Instance Autonomous Database et projet SQLcl initialisé
+- [ ] Environnement de dev local (conteneurs Oracle Database Free et ORDS, APEX inclus)
+- [ ] Instance Autonomous Database de prod et projet SQLcl initialisé
 - [ ] Amorçage manuel par `ADMIN` documenté (schéma, droits, ACL réseau, credential)
 - [ ] Installation de Logger et d'utPLSQL
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
@@ -91,7 +92,8 @@ data/           Données fictives de démonstration
 | Choix | Raison | Alternative écartée |
 |---|---|---|
 | Projet séparé de jobboard, qui collecte lui-même ses offres | deux finalités et deux publics distincts, aucun couplage entre les dépôts : pas de compte cloud ni de clé d'accès pour Oracle, les coordonnées de contact restent dans cette base. Limite : la collecte et le parsing des offres existent dans les deux projets | application APEX dans jobboard, alimentée par BigQuery ou par le brut stocké dans GCS |
-| Oracle Autonomous Database, offre Always Free | gratuit sans limite de durée, APEX et ORDS inclus et administrés, accessible en ligne pour une démonstration. Limites : ressources fixes (20 Go, 30 sessions, 3 à 6 utilisateurs simultanés sur APEX), deux instances par compte (dev et prod), aucune sauvegarde restaurable (export des données de suivi à prévoir), instance arrêtée après 7 jours d'inactivité puis supprimée après 90 jours d'arrêt (à vérifier : le job de collecte quotidien suffit-il à la garder active ?), instances créées dans la région d'origine du compte et 26ai (requis pour le type `JSON` natif) disponible dans certaines régions seulement, dont Paris, base exposée sur Internet et connexion par wallet (un secret à protéger ; une connexion TLS sans wallet, limitée par une liste d'accès réseau, est à étudier) | conteneur local Oracle Database Free (APEX et ORDS à installer et maintenir, application non accessible en ligne) |
+| Prod sur Oracle Autonomous Database, offre Always Free | gratuit sans limite de durée, APEX et ORDS inclus et administrés, accessible en ligne pour une démonstration. Limites : ressources fixes (20 Go, 30 sessions, 3 à 6 utilisateurs simultanés sur APEX), deux instances par compte (une seule utilisée), aucune sauvegarde restaurable (export des données de suivi à prévoir), instance arrêtée après 7 jours d'inactivité puis supprimée après 90 jours d'arrêt (à vérifier : le job de collecte quotidien suffit-il à la garder active ?), instances créées dans la région d'origine du compte et 26ai (requis pour le type `JSON` natif) disponible dans certaines régions seulement, dont Paris, base exposée sur Internet et connexion par wallet (un secret à protéger ; une connexion TLS sans wallet exigerait une liste d'accès réseau, impraticable avec les adresses IP dynamiques des runners GitHub qui déploient la prod) | conteneur local seul (application non accessible en ligne pour une démonstration) |
+| Dev en conteneurs locaux (Oracle Database Free et image ORDS developer, qui installe APEX) | même moteur que la CI, aucune limite cloud en dev (veille, utilisateurs, wallet), données fictives uniquement, instance Always Free libérée. Limites : versions d'APEX et de la base à aligner sur la prod (un export APEX ne s'importe pas dans une version plus ancienne), deux amorçages à maintenir (`SYS` en local, `ADMIN` sur ADB), certificats HTTPS à fournir en local, ressources du poste | dev sur une seconde instance ADB (pas de maintenance locale, mais limites cloud en dev et CI sans base identique), APEX seulement sur ADB (impossible : l'application se développe en dev) |
 | Migrations avec SQLcl (Liquibase intégré, SQLcl Projects), version figée dans le dépôt | gratuit, un seul outil pour les objets de la base et l'application APEX (export découpé en fichiers versionnables), changesets générés depuis le schéma. Limites : SQLcl Projects est récent et ses commandes évoluent, Java 17 ou plus requis | Flyway Community (gratuit, plus simple, mais ne gère pas APEX : il faudrait SQLcl en plus), scripts SQL joués à la main (aucun suivi de ce qui est déployé) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans ADB, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |

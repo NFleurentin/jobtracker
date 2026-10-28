@@ -98,7 +98,7 @@ La dernière grande étape de l'installation d'APEX, « Applications install if 
 | APEX | <http://localhost:8080/ords/apex> |
 | Conteneurs | pod `jobtracker` : `jobtracker-db`, `jobtracker-ords` |
 | Données | volumes `jobtracker_oradata` (datafiles) et `jobtracker_ords_config` (configuration ORDS) |
-| Mots de passe | secrets Podman `jobtracker_sys_pwd` (saisi) et `jobtracker_ords_pwd` (généré, pour `ORDS_PUBLIC_USER`) |
+| Mots de passe | secrets Podman `jobtracker_sys_pwd` (saisi), `jobtracker_ords_pwd` (généré, pour `ORDS_PUBLIC_USER`) et `jobtracker_deploy_pwd` (généré à l'amorçage, pour `JOBTRACKER_DEPLOY`) |
 | Fichiers d'installation d'APEX | `~/.cache/jobtracker/apex_26.1`, hors du dépôt |
 
 Points d'attention :
@@ -122,8 +122,9 @@ Il se connecte en `SYS` par l'authentification de l'OS du conteneur (sans mot de
 
 1. verrouille `APEX_LISTENER` et `APEX_REST_PUBLIC_USER`, que l'image ORDS crée avec des mots de passe écrits en dur dans son script d'entrée et qui ne servent pas, ainsi que `PDBADMIN`, créé par l'image Free avec le mot de passe `SYS` ;
 2. crée les schémas `JOBTRACKER` (applicatif) et `LOGGER`, sans mot de passe ([`env/bootstrap/common/`](env/bootstrap/common/)) ;
-3. télécharge, vérifie et installe Logger 3.1.1 et utPLSQL 3.2.3 (schéma `UT3`, droits et synonymes publics) ;
-4. accorde au schéma applicatif l'exécution de Logger, puis contrôle les comptes, les objets invalides et les versions installées.
+3. crée le compte de déploiement `JOBTRACKER_DEPLOY`, qui se connecte par proxy en tant que `JOBTRACKER` (`jobtracker_deploy[jobtracker]`), avec le mot de passe du secret Podman `jobtracker_deploy_pwd` ;
+4. télécharge, vérifie et installe Logger 3.1.1 et utPLSQL 3.2.3 (schéma `UT3`, droits et synonymes publics) ;
+5. accorde au schéma applicatif l'exécution de Logger, puis contrôle les comptes, les objets invalides, les versions installées et la connexion proxy.
 
 Reste une étape manuelle, interactive : changer le mot de passe `ADMIN` d'APEX, lui aussi écrit en dur dans l'image ORDS. Le conserver dans un gestionnaire de mots de passe.
 
@@ -135,8 +136,8 @@ Elle joue `apxchpwd.sql` en SQL*Plus dans le conteneur de la base, sans mot de p
 
 Points d'attention :
 
-- `JOBTRACKER`, `LOGGER` et `UT3` n'ont pas de mot de passe : il n'y a rien à conserver. Pour s'y connecter exceptionnellement, l'administrateur en fixe un (`alter user … identified by …`), puis revient à `alter user … no authentication`. Logger s'installe ainsi, avec un mot de passe aléatoire jamais stocké.
-- Le profil `DEFAULT` reste tel que l'image ORDS l'a réglé (`PASSWORD_LIFE_TIME UNLIMITED`), différent de celui d'ADB : aucun compte du projet n'en dépend, puisqu'aucun n'a de mot de passe.
+- `JOBTRACKER`, `LOGGER` et `UT3` n'ont pas de mot de passe : il n'y a rien à conserver. Le déploiement passe par `JOBTRACKER_DEPLOY`, seul compte du projet avec un mot de passe, généré et relu par `podman secret inspect --showsecret --format '{{.SecretData}}' jobtracker_deploy_pwd`. Pour s'y connecter exceptionnellement, l'administrateur en fixe un (`alter user … identified by …`), puis revient à `alter user … no authentication`. Logger s'installe ainsi, avec un mot de passe aléatoire jamais stocké.
+- Le profil `DEFAULT` reste tel que l'image ORDS l'a réglé (`PASSWORD_LIFE_TIME UNLIMITED`), différent de celui d'ADB : seul `JOBTRACKER_DEPLOY` en dépend, puisque c'est le seul compte du projet avec un mot de passe.
 - Archives de Logger et d'utPLSQL dans `~/.cache/jobtracker/`, journaux d'installation dans `~/.cache/jobtracker/logs/`.
 
 ## Avancement
@@ -145,6 +146,7 @@ Points d'attention :
 - [x] Dépôt GitHub configuré (protection de `main`, squash merge, push protection des secrets, modèles d'issue et de PR)
 - [x] Environnement de dev local (conteneurs Oracle Database Free et ORDS, APEX inclus)
 - [x] Amorçage du dev documenté (`SYS`) : comptes, schémas, Logger et utPLSQL
+- [x] Compte de déploiement connecté par proxy au schéma applicatif
 - [ ] Amorçage du dev : workspace APEX, ACL réseau et credential de l'API
 - [ ] Projet SQLcl initialisé
 - [ ] Instance Autonomous Database de prod
@@ -186,7 +188,8 @@ data/           Données fictives de démonstration
 | Journalisation avec Logger (OraOpenSource 3.1.1), dans un schéma dédié installé à l'amorçage et appelé par des synonymes privés créés par migration (objets du schéma applicatif) | outil de référence de la communauté APEX, traces conservées malgré un `ROLLBACK` ; ses objets restent hors des exports du projet SQLcl. Limite : projet peu maintenu | Logger dans le schéma applicatif (ses objets se mêleraient aux exports SQLcl), package maison (niveaux, contexte et purge à réécrire), fork récent non officiel (provenance non établie) |
 | utPLSQL en dev et en CI uniquement | ni framework ni code de test en prod : les packages de test sont exclus du déploiement en prod (mécanisme à définir avec SQLcl Projects) | utPLSQL installé en prod (code inutile et surface d'attaque en plus) |
 | utPLSQL installé en mode headless (schéma `UT3`, droits et synonymes publics), sans le trigger DDL | installation standard en CI, appelable par tout schéma de test sans grant dédié. Limite : droits accordés à `PUBLIC`, acceptable hors prod | droits accordés au seul schéma applicatif (un grant à maintenir par schéma de test), variante avec trigger DDL (cache des annotations plus rapide, inutile sur une base de CI éphémère) |
-| Schémas du projet sans mot de passe (`NO AUTHENTICATION`) : applicatif, Logger, `UT3` | aucun mot de passe à stocker, à faire fuiter ni à faire expirer ; APEX et `DBMS_SCHEDULER` n'ont pas besoin de connexion ; indépendant du profil `DEFAULT`, qui diffère entre le dev et ADB. Limites : déploiement par un utilisateur proxy (à mettre en place avec SQLcl), installation de Logger avec un mot de passe jetable | mots de passe stockés pour chaque schéma, avec un profil dédié (secrets à gérer et à renouveler), comptes verrouillés (bloquent aussi les connexions proxy) |
+| Schémas du projet sans mot de passe (`NO AUTHENTICATION`) : applicatif, Logger, `UT3` | aucun mot de passe à stocker, à faire fuiter ni à faire expirer ; APEX et `DBMS_SCHEDULER` n'ont pas besoin de connexion ; indépendant du profil `DEFAULT`, qui diffère entre le dev et ADB. Limites : déploiement par un compte proxy (ligne suivante), installation de Logger avec un mot de passe jetable | mots de passe stockés pour chaque schéma, avec un profil dédié (secrets à gérer et à renouveler), comptes verrouillés (bloquent aussi les connexions proxy) |
+| Déploiement par un compte proxy, `JOBTRACKER_DEPLOY` (`CREATE SESSION` et `GRANT CONNECT THROUGH` seulement), qui ouvre des sessions en tant que `JOBTRACKER` | les objets sont créés par leur propriétaire, sans privilège `ANY` ; personne ne se connecte directement au schéma applicatif ; l'audit garde le compte réel (`PROXY_USER`) ; un seul secret, révocable sans toucher au schéma. Schéma prévu par Oracle pour les comptes `NO AUTHENTICATION`. Limites : `JOBTRACKER` reçoit `CREATE SESSION`, exigé dans une session proxy (sans mot de passe, il ne permet aucune connexion directe) ; le compte de déploiement dépend du profil `DEFAULT`, dont les mots de passe expirent sur ADB (à traiter avec l'amorçage `ADMIN`) | mot de passe sur le schéma applicatif (connexion directe au propriétaire des objets), compte avec privilèges `ANY` et `CURRENT_SCHEMA` (droits sur toute la base, Liquibase fragile hors du schéma de connexion) |
 | Amorçage du dev scripté (`dev.sh bootstrap`), avec des scripts SQL communs au dev et à la prod dans `env/bootstrap/common/` | rejouable, sans mot de passe `SYS` (authentification de l'OS du conteneur), archives de Logger et d'utPLSQL vérifiées par SHA-256. Limites : l'enchaînement est propre au dev (connexions, installation d'utPLSQL), l'amorçage `ADMIN` aura le sien ; `CREATE USER IF NOT EXISTS` impose une prod en 23ai ou plus | scripts SQL joués à la main dans l'ordre (oublis possibles), Liquibase pour l'amorçage (exige un compte d'administration dans la configuration des migrations) |
 | Mot de passe `ADMIN` d'APEX changé à la main en dev (`apxchpwd.sql`) | seul moyen documenté, à faire une fois par base | appel des packages internes d'APEX (non documentés, peuvent changer à chaque version) |
 | Clé primaire en `GENERATED ALWAYS AS IDENTITY` | séquence gérée par Oracle, sans trigger ni séquence à versionner ; aucun identifiant saisi à la main. Les données fictives et les tests récupèrent l'identifiant par `RETURNING` | séquence et trigger (pratique d'avant 12c), `GENERATED BY DEFAULT ON NULL` (identifiant explicite possible, utile pour copier des données entre bases) |

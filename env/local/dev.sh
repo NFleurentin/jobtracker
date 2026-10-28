@@ -4,7 +4,7 @@
 #   - jobtracker-db   : Oracle Database Free (PDB FREEPDB1)
 #   - jobtracker-ords : ORDS, qui installe APEX dans la base au premier démarrage
 # bootstrap  : amorçage SYS (comptes, schémas, compte de déploiement, Logger,
-#              utPLSQL), rejouable
+#              utPLSQL, workspace APEX et son développeur, ACL réseau), rejouable
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
 #              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
@@ -28,6 +28,7 @@ readonly ORDS_VOLUME=jobtracker_ords_config
 readonly SYS_SECRET=jobtracker_sys_pwd
 readonly ORDS_SECRET=jobtracker_ords_pwd
 readonly DEPLOY_SECRET=jobtracker_deploy_pwd
+readonly APEX_DEV_SECRET=jobtracker_apex_dev_pwd
 # Ports de l'hôte, surchargeables (HTTP_PORT=8081 env/local/dev.sh up).
 # Lus uniquement à la création du pod : pour les changer, destroy puis up.
 readonly DB_PORT="${DB_PORT:-1521}"
@@ -102,6 +103,11 @@ create_ords_secret() {
 # Mot de passe de JOBTRACKER_DEPLOY : lu par SQLcl, généré lui aussi
 create_deploy_secret() {
   printf 'Dep_%s' "$(openssl rand -hex 12)" | podman secret create "$DEPLOY_SECRET" - >/dev/null
+}
+
+# Mot de passe du développeur APEX (DEV) : généré, relu pour se connecter au Builder
+create_apex_dev_secret() {
+  printf 'Dev_%s' "$(openssl rand -hex 12)" | podman secret create "$APEX_DEV_SECRET" - >/dev/null
 }
 
 secret_value() { podman secret inspect --showsecret --format '{{.SecretData}}' "$1"; }
@@ -289,6 +295,41 @@ exit
 EOF
 }
 
+# Développeur du workspace (dev uniquement), administrateur du workspace.
+# Supprimé puis recréé à chaque amorçage : son mot de passe suit le secret sans
+# dépendre de l'ancien, que reset_password exige d'un appelant sans
+# APEX_ADMINISTRATOR_ROLE. Les applications appartiennent au workspace, pas
+# au développeur : elles ne sont pas touchées.
+setup_apex_developer() {
+  podman secret exists "$APEX_DEV_SECRET" || create_apex_dev_secret
+  sysdba <<EOF
+begin
+   apex_util.set_workspace(p_workspace => 'JOBTRACKER');
+
+   <<remove_developer>>
+   for r_user in (
+      select user_name
+        from apex_workspace_apex_users
+       where workspace_name = 'JOBTRACKER'
+         and user_name = 'DEV'
+   )
+   loop
+      apex_util.remove_user(p_user_name => r_user.user_name);
+   end loop remove_developer;
+
+   apex_util.create_user(
+      p_user_name                    => 'DEV',
+      p_web_password                 => '$(secret_value "$APEX_DEV_SECRET")',
+      p_developer_privs              => 'ADMIN:CREATE:DATA_LOADER:EDIT:HELP:MONITOR:SQL',
+      p_default_schema               => 'JOBTRACKER',
+      p_change_password_on_first_use => 'N'
+   );
+end;
+/
+commit;
+EOF
+}
+
 cmd_bootstrap() {
   if ! running "$DB_CTR" || ! db_ready >/dev/null 2>&1; then
     die "La base n'est pas prête : env/local/dev.sh up"
@@ -335,6 +376,13 @@ EOF
   info "Droits du schéma applicatif"
   sysdba <<<"@$CTR_BOOT_DIR/sql/common/grants.sql"
 
+  info "Workspace APEX JOBTRACKER et son développeur DEV"
+  sysdba <<<"@$CTR_BOOT_DIR/sql/common/create_workspace.sql"
+  setup_apex_developer
+
+  info "ACL réseau vers l'API France Travail"
+  sysdba <<<"@$CTR_BOOT_DIR/sql/common/network_acl.sql"
+
   podman exec -u 0 "$DB_CTR" rm -rf "$CTR_BOOT_DIR"
 
   local invalid
@@ -360,9 +408,27 @@ select owner, count(*) as objects
  where owner in ('LOGGER', 'UT3')
  group by owner
  order by owner;
+column workspace_name format a14
+column schema format a12
+select workspace_name, schema
+  from apex_workspace_schemas
+ where workspace_name = 'JOBTRACKER';
+column user_name format a10
+column is_admin format a8
+select workspace_name, user_name, is_admin
+  from apex_workspace_apex_users
+ where workspace_name = 'JOBTRACKER';
+column host format a28
+column principal format a12
+column privilege format a10
+select host, lower_port, upper_port, principal, privilege
+  from dba_host_aces
+ where host in ('entreprise.francetravail.fr', 'api.francetravail.io')
+ order by host, principal;
 EOF
   check_deployer || die "Connexion proxy jobtracker_deploy[jobtracker] en échec"
-  info "Amorçage terminé. Reste à changer le mot de passe ADMIN d'APEX : env/local/dev.sh apex-admin"
+  info "Amorçage terminé. Builder : workspace JOBTRACKER, utilisateur DEV, mot de passe dans le secret $APEX_DEV_SECRET"
+  info "Reste à changer le mot de passe ADMIN d'APEX : env/local/dev.sh apex-admin"
 }
 
 # Mot de passe ADMIN d'APEX, écrit en dur par l'image ORDS : apxchpwd.sql est
@@ -417,7 +483,7 @@ cmd_status() {
 
 Base   : localhost:$db_port/$PDB   (sql sys@localhost:$db_port/$PDB as sysdba)
 Déploiement : env/local/dev.sh sql   (jobtracker_deploy[jobtracker]@localhost:$db_port/$PDB, mot de passe : secret $DEPLOY_SECRET)
-APEX   : http://localhost:$http_port/ords/apex
+APEX   : http://localhost:$http_port/ords/apex   (workspace JOBTRACKER, utilisateur DEV, mot de passe : secret $APEX_DEV_SECRET)
 SQL Developer Web : http://localhost:$http_port/ords/sql-developer
 EOF
 }
@@ -433,7 +499,7 @@ cmd_destroy() {
     podman volume rm -f "$DB_VOLUME" "$ORDS_VOLUME" >/dev/null
     # --ignore : un secret absent (base amorcée avant le compte de déploiement)
     # n'empêche pas la suppression des autres
-    podman secret rm --ignore "$SYS_SECRET" "$ORDS_SECRET" "$DEPLOY_SECRET" >/dev/null 2>&1 || true
+    podman secret rm --ignore "$SYS_SECRET" "$ORDS_SECRET" "$DEPLOY_SECRET" "$APEX_DEV_SECRET" >/dev/null 2>&1 || true
     info "Volumes et secrets supprimés. Fichiers APEX conservés dans $APEX_DIR"
   else
     info "Volumes et secrets conservés : le prochain 'up' retrouve la base."

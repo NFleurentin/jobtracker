@@ -1,8 +1,10 @@
 ---
 paths:
-  - "**/*.sql"
-  - "**/*.pks"
-  - "**/*.pkb"
+  - "**/package_specs/**"
+  - "**/package_bodies/**"
+  - "**/triggers/**"
+  - "**/type_specs/**"
+  - "**/type_bodies/**"
 ---
 
 # Règles PL/SQL

@@ -6,8 +6,10 @@
 # bootstrap  : amorçage SYS (comptes, schémas, compte de déploiement, Logger,
 #              utPLSQL), rejouable
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
+# sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
+#              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
 #
-# Usage : env/local/dev.sh up | bootstrap | apex-admin | down | status | destroy
+# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | down | status | destroy
 # =============================================================================
 set -euo pipefail
 
@@ -48,11 +50,20 @@ readonly UTPLSQL_VERSION=3.2.3
 readonly UTPLSQL_URL="https://github.com/utPLSQL/utPLSQL/releases/download/v.$UTPLSQL_VERSION/utPLSQL.zip"
 readonly UTPLSQL_SHA256=6e650fc497bce02ae611e185e66c72204f0b984a024a41733b5452e7fb6db47a
 readonly UTPLSQL_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/utplsql_$UTPLSQL_VERSION"
+# Client de migration, lancé sur l'hôte (Java 17 ou plus). Oracle ne publie pas
+# d'empreinte : celle-ci a été relevée au premier téléchargement.
+readonly SQLCL_VERSION=26.3.0.260.1620
+readonly SQLCL_URL="https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-$SQLCL_VERSION.zip"
+readonly SQLCL_SHA256=eb0dca2becc30e9aa1c700ae71e5df6efde8a33d098d7d23405b6558bbb81a81
+readonly SQLCL_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/sqlcl_$SQLCL_VERSION"
 
 # Scripts d'amorçage du dépôt, copiés dans le conteneur le temps de l'amorçage
 BOOTSTRAP_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../bootstrap" && pwd)"
 readonly BOOTSTRAP_DIR
 readonly CTR_BOOT_DIR=/tmp/jobtracker_bootstrap
+# Racine du dépôt : répertoire de travail de SQLcl Projects
+REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+readonly REPO_DIR
 # Journaux d'installation de Logger et d'utPLSQL
 readonly LOG_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/logs"
 
@@ -372,6 +383,24 @@ cmd_apex_admin() {
   (( rc == 0 )) || die "apxchpwd.sql en échec"
 }
 
+# Session SQLcl en proxy (jobtracker_deploy[jobtracker]), depuis la racine du
+# dépôt. Le CONNECT passe par un script lu sur le descripteur 3 : le mot de
+# passe n'apparaît ni dans la ligne de commande ni sur disque, et l'entrée
+# standard reste libre (session interactive, ou commandes passées par un pipe).
+cmd_sql() {
+  if ! running "$DB_CTR" || ! db_ready >/dev/null 2>&1; then
+    die "La base n'est pas prête : env/local/dev.sh up"
+  fi
+  local java_major
+  java_major="$(java -XshowSettings:properties -version 2>&1 | sed -n 's/^ *java.specification.version = //p')"
+  [[ "${java_major:-0}" -ge 17 ]] 2>/dev/null || die "SQLcl demande Java 17 ou plus : sudo dnf install java-21-openjdk"
+  fetch_zip "$SQLCL_DIR" "$SQLCL_URL" "$SQLCL_SHA256"
+  cd "$REPO_DIR"
+  exec "$SQLCL_DIR/sqlcl/bin/sql" "$@" -L /nolog @/dev/fd/3 \
+    3< <(printf 'connect jobtracker_deploy[jobtracker]/"%s"@//localhost:%s/%s\n' \
+           "$(secret_value "$DEPLOY_SECRET")" "$(pod_port 1521)" "$PDB")
+}
+
 cmd_down() {
   podman pod exists "$POD" || { info "Le pod $POD n'existe pas."; return; }
   info "Arrêt du pod $POD (base, configuration et secrets conservés)"
@@ -387,7 +416,7 @@ cmd_status() {
   cat <<EOF
 
 Base   : localhost:$db_port/$PDB   (sql sys@localhost:$db_port/$PDB as sysdba)
-Déploiement : sql jobtracker_deploy[jobtracker]@localhost:$db_port/$PDB   (mot de passe : secret $DEPLOY_SECRET)
+Déploiement : env/local/dev.sh sql   (jobtracker_deploy[jobtracker]@localhost:$db_port/$PDB, mot de passe : secret $DEPLOY_SECRET)
 APEX   : http://localhost:$http_port/ords/apex
 SQL Developer Web : http://localhost:$http_port/ords/sql-developer
 EOF
@@ -415,8 +444,9 @@ case "${1:-}" in
   up)        cmd_up ;;
   bootstrap)  cmd_bootstrap ;;
   apex-admin) cmd_apex_admin ;;
+  sql)        shift; cmd_sql "$@" ;;
   down)       cmd_down ;;
   status)     cmd_status ;;
   destroy)    cmd_destroy ;;
-  *)          echo "Usage : $0 up | bootstrap | apex-admin | down | status | destroy" >&2; exit 2 ;;
+  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | down | status | destroy" >&2; exit 2 ;;
 esac

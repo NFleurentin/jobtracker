@@ -13,7 +13,8 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 ## Migrations
 
 - Tout objet du schéma applicatif est créé ou modifié par une migration du projet SQLcl. Un DDL joué à la main en dev est recapturé dans le dépôt avant le commit.
-- Les prérequis qui demandent le compte d'administration (`SYS` en local, `ADMIN` sur ADB) relèvent des deux amorçages manuels décrits dans `env/bootstrap/`, pas des migrations : schémas (applicatif, Logger, et utPLSQL hors prod), droits, ACL réseau, workspace APEX, secret du credential.
+- Les prérequis qui demandent le compte d'administration (`SYS` en local, `ADMIN` sur ADB) relèvent des deux amorçages manuels décrits dans `env/bootstrap/`, pas des migrations : schémas (applicatif, Logger, et utPLSQL hors prod), droits, ACL réseau, workspace APEX.
+- Le Web Credential de l'API se crée à la main dans le Builder, identifiants compris (`apex_credential` refuse le schéma applicatif et `SYS`) ; l'amorçage ne fait que le contrôler. Aucun script ne le crée ni ne contient ses identifiants.
 - Une release déployée n'est jamais modifiée : Liquibase contrôle le checksum de ses changesets et le déploiement échouerait. Toute évolution passe par la release suivante.
 
 ## Modèle de données

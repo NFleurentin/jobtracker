@@ -4,7 +4,8 @@
 #   - jobtracker-db   : Oracle Database Free (PDB FREEPDB1)
 #   - jobtracker-ords : ORDS, qui installe APEX dans la base au premier démarrage
 # bootstrap  : amorçage SYS (comptes, schémas, compte de déploiement, Logger,
-#              utPLSQL, workspace APEX et son développeur, ACL réseau), rejouable
+#              utPLSQL, workspace APEX et son développeur, ACL réseau,
+#              contrôle du credential de l'API), rejouable
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
 #              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
@@ -383,6 +384,12 @@ EOF
   info "ACL réseau vers l'API France Travail"
   sysdba <<<"@$CTR_BOOT_DIR/sql/common/network_acl.sql"
 
+  # Créé à la main dans le Builder : absent au premier amorçage, d'où un
+  # avertissement et non un arrêt
+  info "Contrôle du credential de l'API France Travail"
+  local credential_status
+  credential_status="$(sysdba <<<"@$CTR_BOOT_DIR/sql/common/check_credential.sql" | tr -d '[:space:]')"
+
   podman exec -u 0 "$DB_CTR" rm -rf "$CTR_BOOT_DIR"
 
   local invalid
@@ -429,6 +436,12 @@ EOF
   check_deployer || die "Connexion proxy jobtracker_deploy[jobtracker] en échec"
   info "Amorçage terminé. Builder : workspace JOBTRACKER, utilisateur DEV, mot de passe dans le secret $APEX_DEV_SECRET"
   info "Reste à changer le mot de passe ADMIN d'APEX : env/local/dev.sh apex-admin"
+  case "$credential_status" in
+    OK)        info "Credential FRANCE_TRAVAIL_API conforme (identifiants non contrôlés)" ;;
+    ABSENT)    warn "Credential FRANCE_TRAVAIL_API absent : le créer dans le Builder (README, Identifiants de l'API France Travail)" ;;
+    DIVERGENT) warn "Credential FRANCE_TRAVAIL_API différent des valeurs attendues (env/bootstrap/common/check_credential.sql) : le corriger dans le Builder" ;;
+    *)         die "Contrôle du credential en échec : $credential_status" ;;
+  esac
 }
 
 # Mot de passe ADMIN d'APEX, écrit en dur par l'image ORDS : apxchpwd.sql est

@@ -15,8 +15,11 @@ ojdbc.properties
 tnsnames.ora
 sqlnet.ora
 
-# Artefacts générés par SQLcl Projects
+# Artefacts et répertoire de travail de SQLcl Projects
 artifact/
+var/
+*.zip
+*.tar.gz
 
 # Logs
 *.log

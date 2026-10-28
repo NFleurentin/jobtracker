@@ -1,6 +1,9 @@
 ---
 paths:
-  - "**/*.sql"
+  - "src/database/**"
+  - "dist/**"
+  - ".dbtools/**"
+  - "env/bootstrap/**/*.sql"
 ---
 
 # Règles SQL

@@ -159,7 +159,7 @@ Le mot de passe est lu dans le secret Podman `jobtracker_deploy_pwd` à chaque a
 - [x] Amorçage du dev documenté (`SYS`) : comptes, schémas, Logger et utPLSQL
 - [x] Compte de déploiement connecté par proxy au schéma applicatif
 - [ ] Amorçage du dev : workspace APEX, ACL réseau et credential de l'API
-- [ ] Projet SQLcl initialisé
+- [x] Projet SQLcl initialisé
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
@@ -173,17 +173,18 @@ Le mot de passe est lu dans le secret Podman `jobtracker_deploy_pwd` à chaque a
 - [ ] Indicateurs de suivi (funnel personnel)
 - [ ] CI (migrations et tests sur une base éphémère)
 
-## Structure du dépôt (prévue, à confirmer à l'initialisation de SQLcl Projects)
+## Structure du dépôt
 
 ```
 env/local/      Conteneurs du dev (Oracle Database Free, ORDS)
 env/bootstrap/  Amorçages manuels (SYS en local, ADMIN sur ADB)
-db/             Migrations : tables, vues, packages PL/SQL, jobs
-db/tests/       Tests utPLSQL
-apex/           Export de l'application APEX
-data/           Données fictives de démonstration
+.dbtools/       Configuration du projet SQLcl (schéma exporté, filtres, format)
+src/database/   Objets du schéma exportés par SQLcl (project export), un dossier par type
+dist/           Changesets Liquibase générés par project stage, regroupés par release
 .github/        Workflows CI, modèles d'issue et de PR
 ```
+
+À venir : export de l'application APEX (`project export`, dossier créé par SQLcl), tests utPLSQL (emplacement à définir avec leur exclusion de la prod), données fictives de démonstration. Les artefacts de déploiement (`artifact/`) et le répertoire de travail de SQLcl (`var/`) ne sont pas versionnés.
 
 ## Choix techniques et compromis
 
@@ -195,6 +196,7 @@ data/           Données fictives de démonstration
 | Conteneurs du dev pilotés par un script Bash (`env/local/dev.sh`) : un pod Podman rootless, deux conteneurs, deux volumes, deux secrets Podman, versions figées (APEX 26.1, une version de marge sous la plus récente pour rester inférieure ou égale à celle d'ADB) | chaque conteneur peut être recréé sans perte (données et configuration dans des volumes), mots de passe hors du dépôt, absents des lignes de commande et de `podman inspect`, arrêt propre de la base (`SHUTDOWN IMMEDIATE` avec 120 s de délai au lieu des 10 s de Podman, qui finissent en `SIGKILL`), ports limités à `127.0.0.1` et surchargeables en cas de conflit. Limites : script à maintenir ; les secrets Podman ne sont pas chiffrés (protégés par les droits du compte Linux), suffisant pour un dev à données fictives | `podman kube play` (déclaratif, mais secrets moins directs), Quadlet (adapté à un service permanent, pas à un environnement de dev), conteneur unique avec ORDS installé à la main (installation perdue à la recréation du conteneur, versions non maîtrisées) |
 | Migrations avec SQLcl (Liquibase intégré, SQLcl Projects), version figée dans le dépôt | gratuit, un seul outil pour les objets de la base et l'application APEX (export découpé en fichiers versionnables), changesets générés depuis le schéma. Limites : SQLcl Projects est récent et ses commandes évoluent, Java 17 ou plus requis | Flyway Community (gratuit, plus simple, mais ne gère pas APEX : il faudrait SQLcl en plus), scripts SQL joués à la main (aucun suivi de ce qui est déployé) |
 | SQLcl figé par version et empreinte SHA-256 dans `env/local/dev.sh`, lancé sur le poste avec le Java de l'hôte | même schéma que Logger et utPLSQL (téléchargement vérifié, hors du dépôt), aucune dépendance au cycle de l'image ORDS, transposable en CI (Java et archive). Limites : Java 17 ou plus à installer sur le poste ; Oracle ne publie pas d'empreinte (relevée au premier téléchargement) | image conteneur SQLcl (Java inclus, mais montage du dépôt et droits de fichiers en rootless), SQLcl du conteneur ORDS (version liée à celle d'ORDS, change sans commit dédié) |
+| Droits reçus d'autres schémas exclus de l'export SQLcl (filtre `ALL_TAB_PRIVS` dans `.dbtools/filters/ddl.filters`) : seuls les droits accordés par `JOBTRACKER` sont versionnés | ces droits (Logger vers `JOBTRACKER`) sont accordés par l'amorçage ; rejoués par le déploiement en tant que `JOBTRACKER`, ils échouent (ORA-01749). Limite : un droit reçu manquant n'est détecté qu'au contrôle de l'amorçage | les garder dans les migrations (le déploiement proxy ne peut pas les accorder), déployer avec un compte doté de `GRANT ANY OBJECT PRIVILEGE` (contraire au compte proxy sans privilège) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
 | Journalisation avec Logger (OraOpenSource 3.1.1), dans un schéma dédié installé à l'amorçage et appelé par des synonymes privés créés par migration (objets du schéma applicatif) | outil de référence de la communauté APEX, traces conservées malgré un `ROLLBACK` ; ses objets restent hors des exports du projet SQLcl. Limite : projet peu maintenu | Logger dans le schéma applicatif (ses objets se mêleraient aux exports SQLcl), package maison (niveaux, contexte et purge à réécrire), fork récent non officiel (provenance non établie) |

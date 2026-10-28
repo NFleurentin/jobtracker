@@ -68,6 +68,10 @@ export_type != 'ALL_TAB_PRIVS' or grantor = 'JOBTRACKER',
 
 export_type not in ('USER_SYS_PRIVS','USER_ROLE_PRIVS','USER','ALL_USERS','DBA_ROLES'),
 
+-- Packages de test utPLSQL : versionnés dans test/, compilés en dev et en
+-- CI seulement, jamais exportés donc jamais déployés en prod
+object_name not like 'TEST\_%' escape '\',
+
 -- Exclude certain database object types:
 -- object_type not in ('CONTEXT', 'SCHEDULE'),         
 

@@ -43,7 +43,7 @@ flowchart LR
 - **Collecte autonome** : la base appelle elle-même l'API France Travail. Aucune dépendance au projet jobboard ni à un autre cloud qu'Oracle.
 - **Stock d'offres limité à l'utile** : les offres du dernier chargement, plus celles que je suis. Une offre suivie n'est jamais supprimée : quand elle disparaît de l'API, elle passe au statut « n'est plus publiée » et garde sa dernière version connue.
 - **Garde-fou avant remplacement** : un chargement vide ou anormalement petit est refusé, pour ne pas masquer les offres en cours.
-- **Base versionnée et reproductible** : chaque objet du schéma applicatif (table, package, vue, job) est créé par une migration du dépôt. Seuls deux amorçages, joués à la main avec le compte d'administration (`SYS` en local, `ADMIN` sur ADB) et décrits dans le dépôt, les précèdent : création des schémas (applicatif, Logger, et utPLSQL hors prod), droits, ACL réseau, workspace APEX et secret du credential de l'API. Une base vide se reconstruit à l'identique.
+- **Base versionnée et reproductible** : chaque objet du schéma applicatif (table, package, vue, job) est créé par une migration du dépôt. Seuls deux amorçages, joués à la main avec le compte d'administration (`SYS` en local, `ADMIN` sur ADB) et décrits dans le dépôt, les précèdent : création des schémas (applicatif, Logger, et utPLSQL hors prod), droits, ACL réseau et workspace APEX. Seul le credential de l'API se crée ensuite à la main dans le Builder, d'après une procédure du README, et l'amorçage le contrôle. Une base vide se reconstruit à l'identique.
 - **Logique dans la base** : la collecte, les contrôles et les règles métier sont dans des packages PL/SQL testés. L'application APEX ne fait qu'afficher et saisir.
 - **Données personnelles cantonnées** : les coordonnées des recruteurs et mes notes restent dans la base, jamais dans le dépôt. Le dépôt ne contient que des données fictives, pour la démonstration et les tests.
 
@@ -127,9 +127,10 @@ Il se connecte en `SYS` par l'authentification de l'OS du conteneur (sans mot de
 5. accorde au schéma applicatif l'exécution de Logger ;
 6. crée le workspace APEX `JOBTRACKER`, de schéma `JOBTRACKER` ([`create_workspace.sql`](env/bootstrap/common/create_workspace.sql)), et son développeur `DEV`, administrateur du workspace, avec le mot de passe du secret Podman `jobtracker_apex_dev_pwd` ;
 7. ouvre au schéma d'APEX (`APEX_260100`) l'accès HTTPS vers les deux hôtes de l'API France Travail ([`network_acl.sql`](env/bootstrap/common/network_acl.sql)) ;
-8. contrôle les comptes, les objets invalides, les versions installées, la connexion proxy, le workspace et les ACL.
+8. contrôle les comptes, les objets invalides, les versions installées, la connexion proxy, le workspace et les ACL ;
+9. contrôle le Web Credential de l'API ([`check_credential.sql`](env/bootstrap/common/check_credential.sql)) : un avertissement s'il est absent ou différent des valeurs attendues, sans arrêter l'amorçage.
 
-Reste une étape manuelle, interactive : changer le mot de passe `ADMIN` d'APEX, lui aussi écrit en dur dans l'image ORDS. Le conserver dans un gestionnaire de mots de passe.
+Restent deux étapes manuelles : changer le mot de passe `ADMIN` d'APEX, lui aussi écrit en dur dans l'image ORDS (le conserver dans un gestionnaire de mots de passe), et créer le credential de l'API (voir [plus bas](#credential-de-lapi-france-travail)).
 
 ```bash
 env/local/dev.sh apex-admin
@@ -157,6 +158,29 @@ printf 'project export\nexit\n' | env/local/dev.sh sql -S   # commandes par un p
 
 Le mot de passe est lu dans le secret Podman `jobtracker_deploy_pwd` à chaque appel. Il passe à SQLcl par un descripteur de fichier : il n'apparaît ni dans la ligne de commande ni sur disque. Le SQLcl du conteneur ORDS n'est pas utilisé : sa version suit celle de l'image ORDS.
 
+### Credential de l'API France Travail
+
+Les packages de collecte appellent l'API avec le Web Credential `FRANCE_TRAVAIL_API`. Il se crée à la main, une fois par base, après l'amorçage : Builder, Workspace Utilities > Web Credentials > Create.
+
+| Champ | Valeur |
+|---|---|
+| Name | `France Travail API` |
+| Static Identifier | `FRANCE_TRAVAIL_API` |
+| Authentication Type | OAuth2 Client Credentials |
+| Use Database Credential | désactivé |
+| Client ID or Username, Client Secret or Password | identifiants de l'application déclarée sur le portail France Travail |
+| Scope | `api_offresdemploiv2 o2dsoffre` |
+| Token Authentication Method | Client ID and Client Secret in Body |
+| Valid for URLs | `https://entreprise.francetravail.fr/` et `https://api.francetravail.io/`, une par ligne |
+| Prompt on Install | oui, imposé par APEX dès qu'un Client ID est saisi (ne joue qu'à l'import d'une application qui embarquerait le credential) |
+
+Quand les identifiants changent, les ressaisir sur le même écran. Rejouer `dev.sh bootstrap` vérifie ensuite le type, le scope et les URL. Même procédure en prod.
+
+Points d'attention :
+
+- Les identifiants ne sont ni dans le dépôt ni dans un script. Une base reconstruite les demande de nouveau ; rejouer l'amorçage les conserve.
+- Les valeurs attendues sont dans [`check_credential.sql`](env/bootstrap/common/check_credential.sql) : une modification passe par ce script et par le Builder, et les URL en même temps que l'ACL réseau.
+
 ## Avancement
 
 - [x] Choix de l'hébergement (dev en conteneurs locaux, prod sur Autonomous Database) et de l'outil de migration (SQLcl)
@@ -165,7 +189,7 @@ Le mot de passe est lu dans le secret Podman `jobtracker_deploy_pwd` à chaque a
 - [x] Amorçage du dev documenté (`SYS`) : comptes, schémas, Logger et utPLSQL
 - [x] Compte de déploiement connecté par proxy au schéma applicatif
 - [x] Amorçage du dev : workspace APEX et ACL réseau
-- [ ] Amorçage du dev : credential de l'API France Travail
+- [x] Credential de l'API France Travail (créé dans le Builder, contrôlé par l'amorçage)
 - [x] Projet SQLcl initialisé
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
@@ -205,6 +229,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | SQLcl figé par version et empreinte SHA-256 dans `env/local/dev.sh`, lancé sur le poste avec le Java de l'hôte | même schéma que Logger et utPLSQL (téléchargement vérifié, hors du dépôt), aucune dépendance au cycle de l'image ORDS, transposable en CI (Java et archive). Limites : Java 17 ou plus à installer sur le poste ; Oracle ne publie pas d'empreinte (relevée au premier téléchargement) | image conteneur SQLcl (Java inclus, mais montage du dépôt et droits de fichiers en rootless), SQLcl du conteneur ORDS (version liée à celle d'ORDS, change sans commit dédié) |
 | Droits reçus d'autres schémas exclus de l'export SQLcl (filtre `ALL_TAB_PRIVS` dans `.dbtools/filters/ddl.filters`) : seuls les droits accordés par `JOBTRACKER` sont versionnés | ces droits (Logger vers `JOBTRACKER`) sont accordés par l'amorçage ; rejoués par le déploiement en tant que `JOBTRACKER`, ils échouent (ORA-01749). Limite : un droit reçu manquant n'est détecté qu'au contrôle de l'amorçage | les garder dans les migrations (le déploiement proxy ne peut pas les accorder), déployer avec un compte doté de `GRANT ANY OBJECT PRIVILEGE` (contraire au compte proxy sans privilège) |
 | ACL réseau vers l'API France Travail accordée au seul schéma d'APEX (`APEX_260100`), en HTTPS sur le port 443, pour les deux hôtes du jeton et de l'API | `APEX_WEB_SERVICE` appelle `UTL_HTTP` avec les droits du schéma d'APEX, en session APEX comme dans un job : le schéma applicatif n'a aucun accès réseau direct (moindre privilège). Limite : le schéma d'APEX change à chaque version, l'ACL est à rejouer après une montée de version | ACE au schéma applicatif (accès réseau direct par `UTL_HTTP`, inutile puisque les appels passent par `APEX_WEB_SERVICE`), ACE sur `*` (tout Internet) |
+| Web Credential de l'API (static id `FRANCE_TRAVAIL_API`, URL autorisées limitées aux deux hôtes de l'ACL) créé à la main dans le Builder, avec ses identifiants, d'après une procédure du README ; valeurs attendues contrôlées en lecture seule par l'amorçage (script commun) | `apex_credential` refuse le schéma applicatif, qui n'est pas administrateur du workspace (ORA-20987), et `SYS`, qui n'accorde pas `INHERIT PRIVILEGES` au schéma d'APEX (ORA-06598) : un script devrait affaiblir l'une de ces protections. Le secret reste hors du dépôt, chiffré par APEX, et se met à jour sans code. Limites : création manuelle à chaque reconstruction de base ; le contrôle signale un oubli ou un écart sans le corriger | migration ou script d'amorçage (refusés, voir ci-contre), `INHERIT PRIVILEGES` de `SYS` accordé le temps du script ou `APEX_ADMINISTRATOR_ROLE` au schéma applicatif (protections levées), composant de l'application APEX (à réévaluer quand l'application existera : export d'un credential qu'elle n'utilise pas incertain), page de paramétrage (code et autorisations à maintenir), préférence APEX (stockée en clair) |
 | Workspace APEX créé par l'amorçage (script commun), son développeur par `dev.sh` seulement | le workspace ne contient aucun secret, son script sert au dev et à la prod ; le mot de passe du développeur reste hors du dépôt, dans un secret Podman généré. Limite : sur ADB, le développeur se crée à la main | workspace et développeur créés à la main dans l'administration d'APEX (non reproductible), développeur dans le script commun (mot de passe en paramètre) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |

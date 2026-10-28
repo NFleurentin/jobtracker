@@ -9,8 +9,9 @@
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
 #              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
+# migrate    : changesets de dist/ en attente ; --apply les joue
 #
-# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | down | status | destroy
+# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | down | status | destroy
 # =============================================================================
 set -euo pipefail
 
@@ -480,6 +481,37 @@ cmd_sql() {
            "$(secret_value "$DEPLOY_SECRET")" "$(pod_port 1521)" "$PDB")
 }
 
+# Migrations de dist/ sur la base de dev, pour une base vide (autre poste, ou
+# après un destroy qui supprime les données) ou en retard sur main. Sans
+# option : changesets en attente, sans rien écrire ; --apply les joue par
+# dist/install.sql, le point d'entrée de la CI et de la prod.
+# Une base où les objets ont été créés à la main, sans journal Liquibase, se
+# met à niveau par lb changelog-sync (README) : --apply la refuse, un update y
+# échouerait sur des objets existants.
+cmd_migrate() {
+  local lb_args='-changelog-file releases/main.changelog.xml -search-path "." -def env/default.properties'
+  case "${1:-}" in
+    "")
+      printf 'cd dist\nlb status %s\nexit\n' "$lb_args" | cmd_sql -S ;;
+    --apply)
+      local unlogged
+      unlogged="$(printf "set heading off feedback off pagesize 0
+select case when exists (select 1 from user_tables where table_name = 'DATABASECHANGELOG') then 0
+            else (select count(*) from user_objects
+                  where object_name not like 'DATABASECHANGELOG%%' and object_name not like 'BIN\$%%')
+       end from dual;
+exit\n" | cmd_sql -S | tr -d '[:space:]')"
+      [[ "$unlogged" =~ ^[0-9]+$ ]] || die "Contrôle du journal Liquibase impossible : $unlogged"
+      (( unlogged == 0 )) || die "Le schéma contient $unlogged objets sans journal Liquibase : lb changelog-sync (README), pas migrate"
+      info "Application des migrations (dist/install.sql)"
+      printf 'cd dist\n@install.sql\nexit\n' | cmd_sql -S
+      info "Changesets restant en attente (aucun attendu)"
+      printf 'cd dist\nlb status %s\nexit\n' "$lb_args" | cmd_sql -S ;;
+    *)
+      die "Usage : $0 migrate [--apply]" ;;
+  esac
+}
+
 cmd_down() {
   podman pod exists "$POD" || { info "Le pod $POD n'existe pas."; return; }
   info "Arrêt du pod $POD (base, configuration et secrets conservés)"
@@ -524,8 +556,9 @@ case "${1:-}" in
   bootstrap)  cmd_bootstrap ;;
   apex-admin) cmd_apex_admin ;;
   sql)        shift; cmd_sql "$@" ;;
+  migrate)    shift; cmd_migrate "$@" ;;
   down)       cmd_down ;;
   status)     cmd_status ;;
   destroy)    cmd_destroy ;;
-  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | down | status | destroy" >&2; exit 2 ;;
+  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | down | status | destroy" >&2; exit 2 ;;
 esac

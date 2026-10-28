@@ -3,7 +3,8 @@
 # dev.sh : environnement de dev local, dans un pod Podman rootless
 #   - jobtracker-db   : Oracle Database Free (PDB FREEPDB1)
 #   - jobtracker-ords : ORDS, qui installe APEX dans la base au premier démarrage
-# bootstrap  : amorçage SYS (comptes, schémas, Logger, utPLSQL), rejouable
+# bootstrap  : amorçage SYS (comptes, schémas, compte de déploiement, Logger,
+#              utPLSQL), rejouable
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
 #
 # Usage : env/local/dev.sh up | bootstrap | apex-admin | down | status | destroy
@@ -24,6 +25,7 @@ readonly DB_VOLUME=jobtracker_oradata
 readonly ORDS_VOLUME=jobtracker_ords_config
 readonly SYS_SECRET=jobtracker_sys_pwd
 readonly ORDS_SECRET=jobtracker_ords_pwd
+readonly DEPLOY_SECRET=jobtracker_deploy_pwd
 # Ports de l'hôte, surchargeables (HTTP_PORT=8081 env/local/dev.sh up).
 # Lus uniquement à la création du pod : pour les changer, destroy puis up.
 readonly DB_PORT="${DB_PORT:-1521}"
@@ -85,6 +87,13 @@ create_sys_secret() {
 create_ords_secret() {
   printf 'Ords_%s' "$(openssl rand -hex 12)" | podman secret create "$ORDS_SECRET" - >/dev/null
 }
+
+# Mot de passe de JOBTRACKER_DEPLOY : lu par SQLcl, généré lui aussi
+create_deploy_secret() {
+  printf 'Dep_%s' "$(openssl rand -hex 12)" | podman secret create "$DEPLOY_SECRET" - >/dev/null
+}
+
+secret_value() { podman secret inspect --showsecret --format '{{.SecretData}}' "$1"; }
 
 fetch_apex() {
   [[ -f "$APEX_DIR/apxsilentins.sql" ]] && return
@@ -248,6 +257,27 @@ EOF
   (( rc == 0 )) || die "Installation d'utPLSQL en échec : voir $LOG_DIR/utplsql_install.log"
 }
 
+# Compte de déploiement : le script commun le crée sans mot de passe, celui
+# du secret est fixé ici. Le rejouer resynchronise la base avec le secret.
+# Le mot de passe passe par l'entrée standard, jamais par la ligne de commande.
+setup_deployer() {
+  podman secret exists "$DEPLOY_SECRET" || create_deploy_secret
+  sysdba <<<"@$CTR_BOOT_DIR/sql/common/create_deployer.sql"
+  sysdba <<<"alter user jobtracker_deploy identified by \"$(secret_value "$DEPLOY_SECRET")\";"
+}
+
+# Connexion proxy de bout en bout, comme la fera SQLcl
+check_deployer() {
+  podman exec -i "$DB_CTR" sqlplus -s -L /nolog <<EOF
+whenever sqlerror exit failure
+set feedback off heading off
+connect jobtracker_deploy[jobtracker]/"$(secret_value "$DEPLOY_SECRET")"@//localhost:1521/$PDB
+select 'Proxy : ' || sys_context('userenv', 'proxy_user') || ' -> ' || user
+  from dual;
+exit
+EOF
+}
+
 cmd_bootstrap() {
   if ! running "$DB_CTR" || ! db_ready >/dev/null 2>&1; then
     die "La base n'est pas prête : env/local/dev.sh up"
@@ -269,6 +299,9 @@ cmd_bootstrap() {
 @$CTR_BOOT_DIR/sql/local/harden_apex.sql
 @$CTR_BOOT_DIR/sql/common/create_schemas.sql USERS
 EOF
+
+  info "Compte de déploiement (proxy vers JOBTRACKER)"
+  setup_deployer
 
   if [[ "$(sysdba_value "select count(*) from dba_objects where owner = 'LOGGER' and object_name = 'LOGGER' and object_type = 'PACKAGE';")" == 0 ]]; then
     info "Installation de Logger $LOGGER_VERSION"
@@ -304,7 +337,7 @@ column account_status format a16
 column authentication_type format a14
 select username, account_status, authentication_type
   from dba_users
- where username in ('JOBTRACKER', 'LOGGER', 'UT3', 'APEX_LISTENER', 'APEX_REST_PUBLIC_USER', 'PDBADMIN')
+ where username in ('JOBTRACKER', 'JOBTRACKER_DEPLOY', 'LOGGER', 'UT3', 'APEX_LISTENER', 'APEX_REST_PUBLIC_USER', 'PDBADMIN')
  order by username;
 select 'Logger ' || logger.logger.get_pref('LOGGER_VERSION') as logger_version
   from dual;
@@ -317,6 +350,7 @@ select owner, count(*) as objects
  group by owner
  order by owner;
 EOF
+  check_deployer || die "Connexion proxy jobtracker_deploy[jobtracker] en échec"
   info "Amorçage terminé. Reste à changer le mot de passe ADMIN d'APEX : env/local/dev.sh apex-admin"
 }
 
@@ -353,6 +387,7 @@ cmd_status() {
   cat <<EOF
 
 Base   : localhost:$db_port/$PDB   (sql sys@localhost:$db_port/$PDB as sysdba)
+Déploiement : sql jobtracker_deploy[jobtracker]@localhost:$db_port/$PDB   (mot de passe : secret $DEPLOY_SECRET)
 APEX   : http://localhost:$http_port/ords/apex
 SQL Developer Web : http://localhost:$http_port/ords/sql-developer
 EOF
@@ -367,7 +402,9 @@ cmd_destroy() {
   read -r -p "Supprimer aussi les données (volumes) et les mots de passe (secrets) ? Saisir 'oui' : " answer
   if [[ "$answer" == "oui" ]]; then
     podman volume rm -f "$DB_VOLUME" "$ORDS_VOLUME" >/dev/null
-    podman secret rm "$SYS_SECRET" "$ORDS_SECRET" >/dev/null 2>&1 || true
+    # --ignore : un secret absent (base amorcée avant le compte de déploiement)
+    # n'empêche pas la suppression des autres
+    podman secret rm --ignore "$SYS_SECRET" "$ORDS_SECRET" "$DEPLOY_SECRET" >/dev/null 2>&1 || true
     info "Volumes et secrets supprimés. Fichiers APEX conservés dans $APEX_DIR"
   else
     info "Volumes et secrets conservés : le prochain 'up' retrouve la base."

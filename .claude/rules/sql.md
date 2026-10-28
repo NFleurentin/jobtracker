@@ -21,7 +21,8 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 
 - Nommage selon les Trivadis PL/SQL & SQL Coding Guidelines : tables et vues au pluriel, colonnes au singulier.
 - Clé primaire technique en `GENERATED ALWAYS AS IDENTITY`.
-- Contraintes toujours nommées (`<table>_pk`, `<table>_<cible>_fk`, `<table>_<colonnes>_uk`, `<table>_<objet>_ck`) : les noms générés (`SYS_C…`) diffèrent d'une base à l'autre et polluent les diffs SQLcl.
+- Contraintes toujours nommées (`<table>_pk`, `<table>_<cible>_fk`, `<table>_<colonnes>_uk`, `<table>_<objet>_ck`) : les noms générés (`SYS_C…`) diffèrent d'une base à l'autre et polluent les diffs SQLcl. Index nommés `<table>_<colonnes>_i`.
+- Toute clé étrangère est indexée (index dédié, ou colonnes en tête d'une clé unique) : sans index, un `DELETE` sur la table parente verrouille la table enfant.
 - Staging : réponse de l'API stockée brute dans une colonne de type `JSON`, sans transformation.
 - Fichiers de données du dépôt : données fictives uniquement.
 

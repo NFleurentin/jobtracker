@@ -158,6 +158,23 @@ printf 'project export\nexit\n' | env/local/dev.sh sql -S   # commandes par un p
 
 Le mot de passe est lu dans le secret Podman `jobtracker_deploy_pwd` à chaque appel. Il passe à SQLcl par un descripteur de fichier : il n'apparaît ni dans la ligne de commande ni sur disque. Le SQLcl du conteneur ORDS n'est pas utilisé : sa version suit celle de l'image ORDS.
 
+Un script SQL contenant des accents se joue par `@fichier`, jamais par le pipe : SQLcl décode mal l'entrée standard et stocke les caractères accentués en double encodage UTF-8 (constaté sur des commentaires de table).
+
+### Faire évoluer le schéma
+
+La base de dev est la source : on y crée les objets, puis SQLcl en tire les fichiers versionnés et les migrations.
+
+1. Écrire le DDL et le jouer en dev par `@fichier` (`env/local/dev.sh sql`).
+2. `project export` : écrit l'état des objets dans `src/database/jobtracker/`, un fichier par objet. Relire le diff, puis committer `src/` : l'étape suivante compare les commits de la branche à `main`.
+3. `project stage` : génère dans `dist/releases/next/changes/<branche>/` les changesets qui font passer `main` à la branche. Une donnée de référence passe par un changeset écrit à la main : `project stage add-custom -file-name <nom>.sql`, avec un SQL rejouable (`dml` est désactivé dans le projet).
+4. Aligner le journal Liquibase du dev, dont les objets existent déjà : jouer les changesets écrits à la main (données), puis `lb changelog-sync` depuis `dist/` (aperçu par `lb changelog-sync-sql`). Un `lb update-sql` ne doit alors plus rien proposer.
+
+```bash
+printf 'cd dist\nlb changelog-sync -changelog-file releases/main.changelog.xml -search-path "."\nexit\n' | env/local/dev.sh sql -S
+```
+
+Les migrations ne s'exécutent donc pas en dev : la première base qui les joue est une base vide (CI ou prod).
+
 ### Credential de l'API France Travail
 
 Les packages de collecte appellent l'API avec le Web Credential `FRANCE_TRAVAIL_API`. Il se crée à la main, une fois par base, après l'amorçage : Builder, Workspace Utilities > Web Credentials > Create.
@@ -194,6 +211,7 @@ Points d'attention :
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
+- [x] Tables de staging de la collecte (runs, requêtes) et référentiel des sources
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [ ] Collecte France Travail en PL/SQL (authentification OAuth2, pagination, gestion des erreurs et des quotas)
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)
@@ -231,6 +249,8 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | ACL réseau vers l'API France Travail accordée au seul schéma d'APEX (`APEX_260100`), en HTTPS sur le port 443, pour les deux hôtes du jeton et de l'API | `APEX_WEB_SERVICE` appelle `UTL_HTTP` avec les droits du schéma d'APEX, en session APEX comme dans un job : le schéma applicatif n'a aucun accès réseau direct (moindre privilège). Limite : le schéma d'APEX change à chaque version, l'ACL est à rejouer après une montée de version | ACE au schéma applicatif (accès réseau direct par `UTL_HTTP`, inutile puisque les appels passent par `APEX_WEB_SERVICE`), ACE sur `*` (tout Internet) |
 | Web Credential de l'API (static id `FRANCE_TRAVAIL_API`, URL autorisées limitées aux deux hôtes de l'ACL) créé à la main dans le Builder, avec ses identifiants, d'après une procédure du README ; valeurs attendues contrôlées en lecture seule par l'amorçage (script commun) | `apex_credential` refuse le schéma applicatif, qui n'est pas administrateur du workspace (ORA-20987), et `SYS`, qui n'accorde pas `INHERIT PRIVILEGES` au schéma d'APEX (ORA-06598) : un script devrait affaiblir l'une de ces protections. Le secret reste hors du dépôt, chiffré par APEX, et se met à jour sans code. Limites : création manuelle à chaque reconstruction de base ; le contrôle signale un oubli ou un écart sans le corriger | migration ou script d'amorçage (refusés, voir ci-contre), `INHERIT PRIVILEGES` de `SYS` accordé le temps du script ou `APEX_ADMINISTRATOR_ROLE` au schéma applicatif (protections levées), composant de l'application APEX (à réévaluer quand l'application existera : export d'un credential qu'elle n'utilise pas incertain), page de paramétrage (code et autorisations à maintenir), préférence APEX (stockée en clair) |
 | Workspace APEX créé par l'amorçage (script commun), son développeur par `dev.sh` seulement | le workspace ne contient aucun secret, son script sert au dev et à la prod ; le mot de passe du développeur reste hors du dépôt, dans un secret Podman généré. Limite : sur ADB, le développeur se crée à la main | workspace et développeur créés à la main dans l'administration d'APEX (non reproductible), développeur dans le script commun (mot de passe en paramètre) |
+| Staging de la collecte en deux tables : `collect_runs` (une ligne par exécution et par source, statut, nombre d'offres reçues, erreur) et `collect_requests` (une ligne par requête HTTP, réponse brute en type `JSON`, en-têtes de réponse, code HTTP ou erreur) ; sources dans un référentiel `offer_sources` | le brut gardé permet le garde-fou avant remplacement et le rejeu sans rappeler l'API ; le run trace les échecs survenus avant toute requête ; une table commune à toutes les sources, le JSON ne dépendant pas de la source ; référentiel partagé avec les futures offres saisies à la main. En-têtes de requête jamais stockés (jeton OAuth2). Limites : une réponse non JSON n'est pas conservée (payload null, code HTTP et erreur seulement) ; purge à définir | une table de staging par source (une DDL par source ajoutée), payload en `CLOB` (réanalysé à chaque lecture, non validé), métadonnées en JSON (ni contraintes ni jointures), identifiant de run sans table (runs en échec invisibles) |
+| Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync` | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées en dev, la première exécution a lieu sur une base vide (CI ou prod) | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
 | Journalisation avec Logger (OraOpenSource 3.1.1), dans un schéma dédié installé à l'amorçage et appelé par des synonymes privés créés par migration (objets du schéma applicatif) | outil de référence de la communauté APEX, traces conservées malgré un `ROLLBACK` ; ses objets restent hors des exports du projet SQLcl. Limite : projet peu maintenu | Logger dans le schéma applicatif (ses objets se mêleraient aux exports SQLcl), package maison (niveaux, contexte et purge à réécrire), fork récent non officiel (provenance non établie) |

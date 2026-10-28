@@ -197,6 +197,23 @@ Points d'attention :
 
 - Les identifiants ne sont ni dans le dépôt ni dans un script. Une base reconstruite les demande de nouveau ; rejouer l'amorçage les conserve.
 - Les valeurs attendues sont dans [`check_credential.sql`](env/bootstrap/common/check_credential.sql) : une modification passe par ce script et par le Builder, et les URL en même temps que l'ACL réseau.
+- Pour forcer l'obtention d'un nouveau jeton (diagnostic), SQL Workshop > SQL Commands, en `DEV` : `apex_credential.clear_tokens(p_credential_static_id => 'FRANCE_TRAVAIL_API')`.
+
+### Collecte et tests
+
+Collecte manuelle en dev (appels réels à l'API, résultat validé en base) :
+
+```bash
+printf 'exec collect_france_travail.run\nexit\n' | env/local/dev.sh sql -S
+```
+
+Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. Ils se compilent en dev par `@fichier` (spec puis body), puis :
+
+```bash
+printf "set serveroutput on\nexec ut.run(ut_varchar2_list('test_http_util', 'test_collect_staging', 'test_collect_france_travail'))\nexit\n" | env/local/dev.sh sql -S
+```
+
+Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du staging sont testées, utPLSQL annulant les écritures à la fin de chaque test.
 
 ## Avancement
 
@@ -213,9 +230,10 @@ Points d'attention :
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
 - [x] Tables de staging de la collecte (runs, requêtes) et référentiel des sources
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
-- [ ] Collecte France Travail en PL/SQL (authentification OAuth2, pagination, gestion des erreurs et des quotas)
+- [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)
-- [ ] Tests utPLSQL
+- [ ] Tests utPLSQL (en place pour la collecte, à étendre à chaque package)
+- [ ] Job `DBMS_SCHEDULER` de collecte quotidienne
 - [ ] Application APEX v1 (offres en cours, fiche d'offre, suivi des candidatures)
 - [ ] Score de pertinence par règles
 - [ ] Enrichissement des offres
@@ -229,11 +247,12 @@ env/local/      Conteneurs du dev (Oracle Database Free, ORDS)
 env/bootstrap/  Amorçages manuels (SYS en local, ADMIN sur ADB)
 .dbtools/       Configuration du projet SQLcl (schéma exporté, filtres, format)
 src/database/   Objets du schéma exportés par SQLcl (project export), un dossier par type
+test/           Packages de test utPLSQL, même découpage que src/, jamais exportés ni déployés en prod
 dist/           Changesets Liquibase générés par project stage, regroupés par release
 .github/        Workflows CI, modèles d'issue et de PR
 ```
 
-À venir : export de l'application APEX (`project export`, dossier créé par SQLcl), tests utPLSQL (emplacement à définir avec leur exclusion de la prod), données fictives de démonstration. Les artefacts de déploiement (`artifact/`) et le répertoire de travail de SQLcl (`var/`) ne sont pas versionnés.
+À venir : export de l'application APEX (`project export`, dossier créé par SQLcl), données fictives de démonstration. Les artefacts de déploiement (`artifact/`) et le répertoire de travail de SQLcl (`var/`) ne sont pas versionnés.
 
 ## Choix techniques et compromis
 
@@ -253,8 +272,12 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync` | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées en dev, la première exécution a lieu sur une base vide (CI ou prod) | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
+| Un seul point d'appel HTTP, `http_util.make_rest_request`, en transaction autonome | obtenir un jeton OAuth2 par un Web Credential fait un `ROLLBACK` de la transaction en cours (constaté avec APEX 26.1, non documenté) : sans isolement, un job ou une page APEX perdrait ses écritures non validées. L'appel n'a pas besoin des données de l'appelant ; code et en-têtes de réponse restent lisibles (variables de package). Limite : seule exception à la règle des `COMMIT` dans les points d'entrée | staging en transaction autonome (protège le staging seulement, pas les autres appelants), jeton obtenu avant toute écriture (un jeton peut expirer en cours d'exécution) |
+| Collecte : un run par recherche, arrêt à la première erreur, `COMMIT` par le seul point d'entrée, y compris en échec avant de relancer l'erreur | un résultat partiel n'est pas exploitable pour remplacer le stock d'offres ; la trace de l'échec (run `FAILED`, requêtes) est conservée. Avancement visible sans commit dans `v$session` et `v$session_longops` (`DBMS_APPLICATION_INFO`). Limite : runs et requêtes visibles par les autres sessions en fin d'exécution seulement | poursuite des recherches suivantes (travail inutile), écritures en transaction autonome (contraire à la règle des `COMMIT`) |
+| Erreurs applicatives dans un seul package, `app_errors` : une erreur par nature (introuvable, état invalide, erreur HTTP...), plages par thème (génériques, intégration, métier), code et exception nommée pour chacune | tous les codes au même endroit, sans plage à réserver par package ; interception par nom ; la plage métier pourra être affichée telle quelle par APEX. Limites : unicité des numéros vérifiée à la relecture ; deux erreurs de même nature ne se distinguent que par le message | une plage par package (plages à réserver, épuisement des 1000 codes), un seul code générique (erreurs indistinguables sans lire le message) |
+| Style PL/SQL imposé par le formateur de SQLcl (`project.sqlformat.xml`, appliqué par `project export`) | un seul style, sans débat, et un export stable d'une exécution à l'autre. Limites : coupures parfois maladroites ; le code s'écrit dans le style du formateur pour que les commentaires, qu'il ne déplace pas, restent alignés | formatage désactivé à l'export (style propre à chaque auteur, DDL des tables brut de `DBMS_METADATA`) |
 | Journalisation avec Logger (OraOpenSource 3.1.1), dans un schéma dédié installé à l'amorçage et appelé par des synonymes privés créés par migration (objets du schéma applicatif) | outil de référence de la communauté APEX, traces conservées malgré un `ROLLBACK` ; ses objets restent hors des exports du projet SQLcl. Limite : projet peu maintenu | Logger dans le schéma applicatif (ses objets se mêleraient aux exports SQLcl), package maison (niveaux, contexte et purge à réécrire), fork récent non officiel (provenance non établie) |
-| utPLSQL en dev et en CI uniquement | ni framework ni code de test en prod : les packages de test sont exclus du déploiement en prod (mécanisme à définir avec SQLcl Projects) | utPLSQL installé en prod (code inutile et surface d'attaque en plus) |
+| utPLSQL en dev et en CI uniquement, packages de test dans `test/`, préfixés `test_` et écartés de `project export` par un filtre | ni framework ni code de test en prod : hors de `src/`, les tests n'entrent jamais dans `dist/`. Limite : ils se compilent à la main en dev (la CI les compilera) | utPLSQL installé en prod (code inutile et surface d'attaque en plus), tests dans `src/` exclus au déploiement (filtrage par environnement de SQLcl Projects non établi) |
 | utPLSQL installé en mode headless (schéma `UT3`, droits et synonymes publics), sans le trigger DDL | installation standard en CI, appelable par tout schéma de test sans grant dédié. Limite : droits accordés à `PUBLIC`, acceptable hors prod | droits accordés au seul schéma applicatif (un grant à maintenir par schéma de test), variante avec trigger DDL (cache des annotations plus rapide, inutile sur une base de CI éphémère) |
 | Schémas du projet sans mot de passe (`NO AUTHENTICATION`) : applicatif, Logger, `UT3` | aucun mot de passe à stocker, à faire fuiter ni à faire expirer ; APEX et `DBMS_SCHEDULER` n'ont pas besoin de connexion ; indépendant du profil `DEFAULT`, qui diffère entre le dev et ADB. Limites : déploiement par un compte proxy (ligne suivante), installation de Logger avec un mot de passe jetable | mots de passe stockés pour chaque schéma, avec un profil dédié (secrets à gérer et à renouveler), comptes verrouillés (bloquent aussi les connexions proxy) |
 | Déploiement par un compte proxy, `JOBTRACKER_DEPLOY` (`CREATE SESSION` et `GRANT CONNECT THROUGH` seulement), qui ouvre des sessions en tant que `JOBTRACKER` | les objets sont créés par leur propriétaire, sans privilège `ANY` ; personne ne se connecte directement au schéma applicatif ; l'audit garde le compte réel (`PROXY_USER`) ; un seul secret, révocable sans toucher au schéma. Schéma prévu par Oracle pour les comptes `NO AUTHENTICATION`. Limites : `JOBTRACKER` reçoit `CREATE SESSION`, exigé dans une session proxy (sans mot de passe, il ne permet aucune connexion directe) ; le compte de déploiement dépend du profil `DEFAULT`, dont les mots de passe expirent sur ADB (à traiter avec l'amorçage `ADMIN`) | mot de passe sur le schéma applicatif (connexion directe au propriétaire des objets), compte avec privilèges `ANY` et `CURRENT_SCHEMA` (droits sur toute la base, Liquibase fragile hors du schéma de connexion) |

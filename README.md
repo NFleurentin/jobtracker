@@ -162,16 +162,20 @@ Un script SQL contenant des accents se joue par `@fichier`, jamais par le pipe :
 
 ### Faire évoluer le schéma
 
-La base de dev est la source : on y crée les objets, puis SQLcl en tire les fichiers versionnés et les migrations.
+La base de dev est la source : on y crée les objets, puis SQLcl en tire les fichiers versionnés et les migrations. Depuis une branche de travail :
 
 1. Écrire le DDL et le jouer en dev par `@fichier` (`env/local/dev.sh sql`).
-2. `project export` : écrit l'état des objets dans `src/database/jobtracker/`, un fichier par objet. Relire le diff, puis committer `src/` : l'étape suivante compare les commits de la branche à `main`.
-3. `project stage` : génère dans `dist/releases/next/changes/<branche>/` les changesets qui font passer `main` à la branche. Une donnée de référence passe par un changeset écrit à la main : `project stage add-custom -file-name <nom>.sql`, avec un SQL rejouable (`dml` est désactivé dans le projet).
-4. Aligner le journal Liquibase du dev, dont les objets existent déjà : jouer les changesets écrits à la main (données), puis `lb changelog-sync` depuis `dist/` (aperçu par `lb changelog-sync-sql`). Un `lb update-sql` ne doit alors plus rien proposer.
+2. `env/local/dev.sh stage` : `project export` écrit l'état des objets dans `src/database/jobtracker/`, un fichier par objet. Si `src/` a changé, la commande s'arrête : relire le diff et committer `src/`, car `project stage` compare les commits de la branche à `main`.
+3. Une donnée de référence passe par un changeset écrit à la main : `project stage add-custom -file-name <nom>.sql` (`env/local/dev.sh sql`), avec un SQL rejouable (`dml` est désactivé dans le projet), à jouer en dev par `@fichier` avant l'alignement de l'étape suivante.
+4. `env/local/dev.sh stage` de nouveau : l'export ne change plus rien, `project stage` génère dans `dist/releases/next/changes/<branche>/` les changesets qui font passer `main` à la branche, puis la commande affiche l'aperçu de l'alignement du journal Liquibase (`lb changelog-sync-sql`). Après saisie de `oui`, `lb changelog-sync` marque ces changesets comme joués sur le dev, dont les objets existent déjà, et `lb status` vérifie qu'il n'en reste aucun.
+5. Relire puis committer `dist/`.
 
-```bash
-printf 'cd dist\nlb changelog-sync -changelog-file releases/main.changelog.xml -search-path "."\nexit\n' | env/local/dev.sh sql -S
-```
+Points d'attention :
+
+- La commande ne committe rien : la relecture de `src/` et de `dist/` reste manuelle.
+- `lb changelog-sync` marque les changesets sans les exécuter : un changeset écrit à la main et non joué en dev n'y arriverait jamais. La commande liste ceux de la branche avant la confirmation.
+- Les commandes `project` de SQLcl rendent un code de sortie nul même en échec : la commande en contrôle l'effet (`src/` après l'export, changelog de la branche après le stage), sans détecter un export en échec qui laisse `src/` intact.
+- Un diff de `src/` limité au commentaire `sqlcl_snapshot`, à empreinte identique, est restauré par la commande (voir [plus bas](#mettre-à-niveau-une-autre-base-de-dev)).
 
 Les migrations ne s'exécutent donc pas sur la base où le DDL a été écrit.
 
@@ -187,9 +191,9 @@ env/local/dev.sh migrate --apply  # les joue par dist/install.sql, puis vérifie
 Points d'attention :
 
 - `--apply` passe par [`dist/install.sql`](dist/install.sql), le point d'entrée prévu pour la CI et la prod : c'est le même chemin qui est éprouvé.
-- Il refuse un schéma qui contient des objets sans journal Liquibase (base où le DDL a été joué à la main) : un `update` y échouerait sur des objets existants. Cette base s'aligne par `lb changelog-sync` (étape 4 ci-dessus).
+- Il refuse un schéma qui contient des objets sans journal Liquibase (base où le DDL a été joué à la main) : un `update` y échouerait sur des objets existants. Cette base s'aligne par `lb changelog-sync` (`dev.sh stage`, ci-dessus).
 - Le credential de l'API n'est pas une migration : il se crée à la main sur chaque base (voir [plus bas](#credential-de-lapi-france-travail)).
-- Un `project export` juste après peut réécrire le commentaire `sqlcl_snapshot` des tables qui ont des contraintes `CHECK` : le texte de la condition revient sous sa forme formatée, celle des changesets, alors que l'empreinte (`hash`) ne change pas. Ce diff de pure forme ne se committe pas.
+- Un `project export` juste après peut réécrire le commentaire `sqlcl_snapshot` des tables qui ont des contraintes `CHECK` : le texte de la condition revient sous sa forme formatée, celle des changesets, alors que l'empreinte (`hash`) ne change pas. Ce diff de pure forme ne se committe pas : `project stage` compare le texte des snapshots, il générerait un `DROP` puis un `ADD` des contraintes, en échec sur une base où elles existent. `dev.sh stage` le restaure.
 
 ### Credential de l'API France Travail
 
@@ -242,6 +246,7 @@ Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du s
 - [x] Credential de l'API France Travail (créé dans le Builder, contrôlé par l'amorçage)
 - [x] Projet SQLcl initialisé
 - [x] Mise à niveau d'une base de dev vide ou en retard par les migrations (`dev.sh migrate`)
+- [x] Évolution du schéma en une commande (`dev.sh stage`) : export, changesets, alignement du journal Liquibase du dev sur confirmation
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
@@ -286,7 +291,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Web Credential de l'API (static id `FRANCE_TRAVAIL_API`, URL autorisées limitées aux deux hôtes de l'ACL) créé à la main dans le Builder, avec ses identifiants, d'après une procédure du README ; valeurs attendues contrôlées en lecture seule par l'amorçage (script commun) | `apex_credential` refuse le schéma applicatif, qui n'est pas administrateur du workspace (ORA-20987), et `SYS`, qui n'accorde pas `INHERIT PRIVILEGES` au schéma d'APEX (ORA-06598) : un script devrait affaiblir l'une de ces protections. Le secret reste hors du dépôt, chiffré par APEX, et se met à jour sans code. Limites : création manuelle à chaque reconstruction de base ; le contrôle signale un oubli ou un écart sans le corriger | migration ou script d'amorçage (refusés, voir ci-contre), `INHERIT PRIVILEGES` de `SYS` accordé le temps du script ou `APEX_ADMINISTRATOR_ROLE` au schéma applicatif (protections levées), composant de l'application APEX (à réévaluer quand l'application existera : export d'un credential qu'elle n'utilise pas incertain), page de paramétrage (code et autorisations à maintenir), préférence APEX (stockée en clair) |
 | Workspace APEX créé par l'amorçage (script commun), son développeur par `dev.sh` seulement | le workspace ne contient aucun secret, son script sert au dev et à la prod ; le mot de passe du développeur reste hors du dépôt, dans un secret Podman généré. Limite : sur ADB, le développeur se crée à la main | workspace et développeur créés à la main dans l'administration d'APEX (non reproductible), développeur dans le script commun (mot de passe en paramètre) |
 | Staging de la collecte en deux tables : `collect_runs` (une ligne par exécution et par source, statut, nombre d'offres reçues, erreur) et `collect_requests` (une ligne par requête HTTP, réponse brute en type `JSON`, en-têtes de réponse, code HTTP ou erreur) ; sources dans un référentiel `offer_sources` | le brut gardé permet le garde-fou avant remplacement et le rejeu sans rappeler l'API ; le run trace les échecs survenus avant toute requête ; une table commune à toutes les sources, le JSON ne dépendant pas de la source ; référentiel partagé avec les futures offres saisies à la main. En-têtes de requête jamais stockés (jeton OAuth2). Limites : une réponse non JSON n'est pas conservée (payload null, code HTTP et erreur seulement) ; purge à définir | une table de staging par source (une DDL par source ajoutée), payload en `CLOB` (réanalysé à chaque lecture, non validé), métadonnées en JSON (ni contraintes ni jointures), identifiant de run sans table (runs en échec invisibles) |
-| Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync` | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées sur la base où le DDL est écrit ; les autres bases de dev les jouent (`dev.sh migrate --apply`), ce qui éprouve `dist/` sur une base vide avant la CI | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
+| Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync`, le tout enchaîné par `dev.sh stage` (confirmation avant l'écriture du journal, aucun commit) | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées sur la base où le DDL est écrit ; les autres bases de dev les jouent (`dev.sh migrate --apply`), ce qui éprouve `dist/` sur une base vide avant la CI | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
 | Un seul point d'appel HTTP, `http_util.make_rest_request`, en transaction autonome | obtenir un jeton OAuth2 par un Web Credential fait un `ROLLBACK` de la transaction en cours (constaté avec APEX 26.1, non documenté) : sans isolement, un job ou une page APEX perdrait ses écritures non validées. L'appel n'a pas besoin des données de l'appelant ; code et en-têtes de réponse restent lisibles (variables de package). Limite : seule exception à la règle des `COMMIT` dans les points d'entrée | staging en transaction autonome (protège le staging seulement, pas les autres appelants), jeton obtenu avant toute écriture (un jeton peut expirer en cours d'exécution) |

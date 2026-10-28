@@ -10,8 +10,10 @@
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
 #              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
 # migrate    : changesets de dist/ en attente ; --apply les joue
+# stage      : évolution du schéma (project export et stage, alignement du
+#              journal Liquibase du dev après confirmation)
 #
-# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | down | status | destroy
+# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage | down | status | destroy
 # =============================================================================
 set -euo pipefail
 
@@ -512,6 +514,81 @@ exit\n" | cmd_sql -S | tr -d '[:space:]')"
   esac
 }
 
+# Fichiers de src/database/ dont seul le commentaire sqlcl_snapshot a changé, à
+# empreinte identique : la condition des contraintes CHECK revient formatée
+# d'une base construite par les migrations. Committé, ce diff ferait générer
+# par project stage un DROP puis un ADD des contraintes (en échec en prod) :
+# il est restauré.
+restore_snapshot_only_diffs() {
+  local f lines old new
+  while IFS= read -r f; do
+    lines="$(git -C "$REPO_DIR" diff -U0 -- "$f" | grep -v -e '^--- a/' -e '^+++ b/' | grep '^[-+]')" || continue
+    [[ "$(wc -l <<<"$lines")" -eq 2 ]] || continue
+    old="$(sed -n 's/^--- sqlcl_snapshot {"hash":"\([0-9a-f]*\)".*/\1/p' <<<"$lines")"
+    new="$(sed -n 's/^+-- sqlcl_snapshot {"hash":"\([0-9a-f]*\)".*/\1/p' <<<"$lines")"
+    if [[ -n "$old" && "$old" == "$new" ]]; then
+      git -C "$REPO_DIR" restore -- "$f"
+      info "Diff de pure forme restauré (sqlcl_snapshot) : $f"
+    fi
+  done < <(git -C "$REPO_DIR" diff --name-only -- src/database)
+}
+
+# Évolution du schéma sur la base de dev, où le DDL a été joué à la main :
+# project export, project stage, puis alignement du journal Liquibase par
+# lb changelog-sync, après confirmation. Ne committe rien : src/ doit l'être
+# avant (project stage compare les commits), dist/ se relit et se committe
+# après. Les commandes project rendent 0 même en échec : leur effet est
+# contrôlé (fichiers de src/, changelog de la branche dans dist/).
+cmd_stage() {
+  local lb_args='-changelog-file releases/main.changelog.xml -search-path "." -def env/default.properties'
+  local branch changes_dir dirty answer
+  branch="$(git -C "$REPO_DIR" branch --show-current)"
+  [[ -n "$branch" && "$branch" != main ]] || die "stage se lance depuis une branche de travail, pas depuis main"
+  changes_dir="$REPO_DIR/dist/releases/next/changes/$branch"
+
+  info "Export des objets du schéma (project export)"
+  printf 'whenever sqlerror exit failure\nproject export\nexit\n' | cmd_sql -S
+  restore_snapshot_only_diffs
+  dirty="$(git -C "$REPO_DIR" status --porcelain -- src/database)"
+  if [[ -n "$dirty" ]]; then
+    printf '%s\n' "$dirty"
+    die "src/database/ diffère du dernier commit : relire le diff (git diff), committer src/ puis relancer stage"
+  fi
+
+  info "Génération des changesets de la branche (project stage)"
+  printf 'whenever sqlerror exit failure\nproject stage\nexit\n' | cmd_sql -S
+  if ! git -C "$REPO_DIR" diff --quiet main...HEAD -- src/database && [[ ! -f "$changes_dir/stage.changelog.xml" ]]; then
+    die "project stage n'a rien produit dans ${changes_dir#"$REPO_DIR"/} alors que src/database/ diffère de main"
+  fi
+
+  info "Changesets non journalisés sur la base de dev"
+  local status
+  status="$(printf 'whenever sqlerror exit failure\ncd dist\nlb status %s\nexit\n' "$lb_args" | cmd_sql -S)" \
+    || { printf '%s\n' "$status"; die "lb status en échec"; }
+  printf '%s\n' "$status"
+  if grep -q 'is up to date' <<<"$status"; then
+    info "Journal Liquibase déjà aligné : rien à synchroniser"
+    return
+  fi
+
+  info "Aperçu de l'alignement (lb changelog-sync-sql)"
+  printf 'whenever sqlerror exit failure\ncd dist\nlb changelog-sync-sql %s\nexit\n' "$lb_args" | cmd_sql -S
+  # changelog-sync marque les changesets comme joués sans les exécuter : une
+  # donnée écrite à la main qui n'a pas été jouée n'arriverait jamais en dev
+  if compgen -G "$changes_dir/_custom/*.sql" >/dev/null; then
+    warn "Changesets écrits à la main, à jouer en dev (@fichier) avant l'alignement :"
+    local f
+    for f in "$changes_dir"/_custom/*.sql; do printf '   %s\n' "${f#"$REPO_DIR"/}" >&2; done
+  fi
+  read -r -p "Marquer ces changesets comme joués sur la base de dev (lb changelog-sync) ? Saisir 'oui' : " answer || answer=""
+  [[ "$answer" == "oui" ]] || { info "Alignement annulé : rien n'a été écrit en base"; return; }
+  printf 'whenever sqlerror exit failure\ncd dist\nlb changelog-sync %s\nexit\n' "$lb_args" | cmd_sql -S
+
+  info "Changesets restant en attente (aucun attendu)"
+  printf 'whenever sqlerror exit failure\ncd dist\nlb status %s\nexit\n' "$lb_args" | cmd_sql -S
+  info "Relire puis committer dist/ (git status dist/)"
+}
+
 cmd_down() {
   podman pod exists "$POD" || { info "Le pod $POD n'existe pas."; return; }
   info "Arrêt du pod $POD (base, configuration et secrets conservés)"
@@ -557,8 +634,9 @@ case "${1:-}" in
   apex-admin) cmd_apex_admin ;;
   sql)        shift; cmd_sql "$@" ;;
   migrate)    shift; cmd_migrate "$@" ;;
+  stage)      cmd_stage ;;
   down)       cmd_down ;;
   status)     cmd_status ;;
   destroy)    cmd_destroy ;;
-  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | down | status | destroy" >&2; exit 2 ;;
+  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage | down | status | destroy" >&2; exit 2 ;;
 esac

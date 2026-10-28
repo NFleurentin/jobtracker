@@ -173,7 +173,23 @@ La base de dev est la source : on y crée les objets, puis SQLcl en tire les fic
 printf 'cd dist\nlb changelog-sync -changelog-file releases/main.changelog.xml -search-path "."\nexit\n' | env/local/dev.sh sql -S
 ```
 
-Les migrations ne s'exécutent donc pas en dev : la première base qui les joue est une base vide (CI ou prod).
+Les migrations ne s'exécutent donc pas sur la base où le DDL a été écrit.
+
+### Mettre à niveau une autre base de dev
+
+Sur un autre poste, ou après un `destroy` qui supprime les données, la base amorcée est vide : elle reçoit les migrations de `dist/`, comme le fera la CI ou la prod. Même chose pour une base de dev en retard sur `main`, après un `git pull`.
+
+```bash
+env/local/dev.sh migrate          # changesets en attente (lb status), sans rien écrire
+env/local/dev.sh migrate --apply  # les joue par dist/install.sql, puis vérifie qu'il n'en reste aucun
+```
+
+Points d'attention :
+
+- `--apply` passe par [`dist/install.sql`](dist/install.sql), le point d'entrée prévu pour la CI et la prod : c'est le même chemin qui est éprouvé.
+- Il refuse un schéma qui contient des objets sans journal Liquibase (base où le DDL a été joué à la main) : un `update` y échouerait sur des objets existants. Cette base s'aligne par `lb changelog-sync` (étape 4 ci-dessus).
+- Le credential de l'API n'est pas une migration : il se crée à la main sur chaque base (voir [plus bas](#credential-de-lapi-france-travail)).
+- Un `project export` juste après peut réécrire le commentaire `sqlcl_snapshot` des tables qui ont des contraintes `CHECK` : le texte de la condition revient sous sa forme formatée, celle des changesets, alors que l'empreinte (`hash`) ne change pas. Ce diff de pure forme ne se committe pas.
 
 ### Credential de l'API France Travail
 
@@ -225,6 +241,7 @@ Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du s
 - [x] Amorçage du dev : workspace APEX et ACL réseau
 - [x] Credential de l'API France Travail (créé dans le Builder, contrôlé par l'amorçage)
 - [x] Projet SQLcl initialisé
+- [x] Mise à niveau d'une base de dev vide ou en retard par les migrations (`dev.sh migrate`)
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
@@ -269,7 +286,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Web Credential de l'API (static id `FRANCE_TRAVAIL_API`, URL autorisées limitées aux deux hôtes de l'ACL) créé à la main dans le Builder, avec ses identifiants, d'après une procédure du README ; valeurs attendues contrôlées en lecture seule par l'amorçage (script commun) | `apex_credential` refuse le schéma applicatif, qui n'est pas administrateur du workspace (ORA-20987), et `SYS`, qui n'accorde pas `INHERIT PRIVILEGES` au schéma d'APEX (ORA-06598) : un script devrait affaiblir l'une de ces protections. Le secret reste hors du dépôt, chiffré par APEX, et se met à jour sans code. Limites : création manuelle à chaque reconstruction de base ; le contrôle signale un oubli ou un écart sans le corriger | migration ou script d'amorçage (refusés, voir ci-contre), `INHERIT PRIVILEGES` de `SYS` accordé le temps du script ou `APEX_ADMINISTRATOR_ROLE` au schéma applicatif (protections levées), composant de l'application APEX (à réévaluer quand l'application existera : export d'un credential qu'elle n'utilise pas incertain), page de paramétrage (code et autorisations à maintenir), préférence APEX (stockée en clair) |
 | Workspace APEX créé par l'amorçage (script commun), son développeur par `dev.sh` seulement | le workspace ne contient aucun secret, son script sert au dev et à la prod ; le mot de passe du développeur reste hors du dépôt, dans un secret Podman généré. Limite : sur ADB, le développeur se crée à la main | workspace et développeur créés à la main dans l'administration d'APEX (non reproductible), développeur dans le script commun (mot de passe en paramètre) |
 | Staging de la collecte en deux tables : `collect_runs` (une ligne par exécution et par source, statut, nombre d'offres reçues, erreur) et `collect_requests` (une ligne par requête HTTP, réponse brute en type `JSON`, en-têtes de réponse, code HTTP ou erreur) ; sources dans un référentiel `offer_sources` | le brut gardé permet le garde-fou avant remplacement et le rejeu sans rappeler l'API ; le run trace les échecs survenus avant toute requête ; une table commune à toutes les sources, le JSON ne dépendant pas de la source ; référentiel partagé avec les futures offres saisies à la main. En-têtes de requête jamais stockés (jeton OAuth2). Limites : une réponse non JSON n'est pas conservée (payload null, code HTTP et erreur seulement) ; purge à définir | une table de staging par source (une DDL par source ajoutée), payload en `CLOB` (réanalysé à chaque lecture, non validé), métadonnées en JSON (ni contraintes ni jointures), identifiant de run sans table (runs en échec invisibles) |
-| Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync` | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées en dev, la première exécution a lieu sur une base vide (CI ou prod) | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
+| Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync` | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées sur la base où le DDL est écrit ; les autres bases de dev les jouent (`dev.sh migrate --apply`), ce qui éprouve `dist/` sur une base vide avant la CI | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
 | Un seul point d'appel HTTP, `http_util.make_rest_request`, en transaction autonome | obtenir un jeton OAuth2 par un Web Credential fait un `ROLLBACK` de la transaction en cours (constaté avec APEX 26.1, non documenté) : sans isolement, un job ou une page APEX perdrait ses écritures non validées. L'appel n'a pas besoin des données de l'appelant ; code et en-têtes de réponse restent lisibles (variables de package). Limite : seule exception à la règle des `COMMIT` dans les points d'entrée | staging en transaction autonome (protège le staging seulement, pas les autres appelants), jeton obtenu avant toute écriture (un jeton peut expirer en cours d'exécution) |

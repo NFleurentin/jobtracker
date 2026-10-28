@@ -98,7 +98,7 @@ La dernière grande étape de l'installation d'APEX, « Applications install if 
 | APEX | <http://localhost:8080/ords/apex> |
 | Conteneurs | pod `jobtracker` : `jobtracker-db`, `jobtracker-ords` |
 | Données | volumes `jobtracker_oradata` (datafiles) et `jobtracker_ords_config` (configuration ORDS) |
-| Mots de passe | secrets Podman `jobtracker_sys_pwd` (saisi), `jobtracker_ords_pwd` (généré, pour `ORDS_PUBLIC_USER`) et `jobtracker_deploy_pwd` (généré à l'amorçage, pour `JOBTRACKER_DEPLOY`) |
+| Mots de passe | secrets Podman `jobtracker_sys_pwd` (saisi), `jobtracker_ords_pwd` (généré, pour `ORDS_PUBLIC_USER`), `jobtracker_deploy_pwd` (généré à l'amorçage, pour `JOBTRACKER_DEPLOY`) et `jobtracker_apex_dev_pwd` (généré à l'amorçage, pour le développeur APEX `DEV`) |
 | Fichiers d'installation d'APEX | `~/.cache/jobtracker/apex_26.1`, hors du dépôt |
 
 Points d'attention :
@@ -124,7 +124,10 @@ Il se connecte en `SYS` par l'authentification de l'OS du conteneur (sans mot de
 2. crée les schémas `JOBTRACKER` (applicatif) et `LOGGER`, sans mot de passe ([`env/bootstrap/common/`](env/bootstrap/common/)) ;
 3. crée le compte de déploiement `JOBTRACKER_DEPLOY`, qui se connecte par proxy en tant que `JOBTRACKER` (`jobtracker_deploy[jobtracker]`), avec le mot de passe du secret Podman `jobtracker_deploy_pwd` ;
 4. télécharge, vérifie et installe Logger 3.1.1 et utPLSQL 3.2.3 (schéma `UT3`, droits et synonymes publics) ;
-5. accorde au schéma applicatif l'exécution de Logger, puis contrôle les comptes, les objets invalides, les versions installées et la connexion proxy.
+5. accorde au schéma applicatif l'exécution de Logger ;
+6. crée le workspace APEX `JOBTRACKER`, de schéma `JOBTRACKER` ([`create_workspace.sql`](env/bootstrap/common/create_workspace.sql)), et son développeur `DEV`, administrateur du workspace, avec le mot de passe du secret Podman `jobtracker_apex_dev_pwd` ;
+7. ouvre au schéma d'APEX (`APEX_260100`) l'accès HTTPS vers les deux hôtes de l'API France Travail ([`network_acl.sql`](env/bootstrap/common/network_acl.sql)) ;
+8. contrôle les comptes, les objets invalides, les versions installées, la connexion proxy, le workspace et les ACL.
 
 Reste une étape manuelle, interactive : changer le mot de passe `ADMIN` d'APEX, lui aussi écrit en dur dans l'image ORDS. Le conserver dans un gestionnaire de mots de passe.
 
@@ -137,6 +140,9 @@ Elle joue `apxchpwd.sql` en SQL*Plus dans le conteneur de la base, sans mot de p
 Points d'attention :
 
 - `JOBTRACKER`, `LOGGER` et `UT3` n'ont pas de mot de passe : il n'y a rien à conserver. Le déploiement passe par `JOBTRACKER_DEPLOY`, seul compte du projet avec un mot de passe, généré et relu par `podman secret inspect --showsecret --format '{{.SecretData}}' jobtracker_deploy_pwd`. Pour s'y connecter exceptionnellement, l'administrateur en fixe un (`alter user … identified by …`), puis revient à `alter user … no authentication`. Logger s'installe ainsi, avec un mot de passe aléatoire jamais stocké.
+- Builder APEX : <http://localhost:8080/ords/apex>, workspace `JOBTRACKER`, utilisateur `DEV`, mot de passe relu par `podman secret inspect --showsecret --format '{{.SecretData}}' jobtracker_apex_dev_pwd`. `DEV` est supprimé puis recréé à chaque amorçage, pour réaligner son mot de passe sur le secret : ses préférences du Builder sont perdues, les applications, rattachées au workspace, sont conservées.
+- L'ACL réseau désigne le schéma d'APEX, qui change à chaque version (`APEX_260100` pour la 26.1) : rejouer l'amorçage après une montée de version d'APEX.
+- Aucun wallet n'est configuré pour HTTPS : sous Linux, la 23ai valide les certificats avec le magasin de l'OS du conteneur quand aucun wallet n'est fourni (vérifié par un appel aux deux hôtes de l'API). Une erreur `ORA-29024` signalerait un certificat que ce magasin ne reconnaît pas.
 - Le profil `DEFAULT` reste tel que l'image ORDS l'a réglé (`PASSWORD_LIFE_TIME UNLIMITED`), différent de celui d'ADB : seul `JOBTRACKER_DEPLOY` en dépend, puisque c'est le seul compte du projet avec un mot de passe.
 - Archives de Logger et d'utPLSQL dans `~/.cache/jobtracker/`, journaux d'installation dans `~/.cache/jobtracker/logs/`.
 
@@ -158,7 +164,8 @@ Le mot de passe est lu dans le secret Podman `jobtracker_deploy_pwd` à chaque a
 - [x] Environnement de dev local (conteneurs Oracle Database Free et ORDS, APEX inclus)
 - [x] Amorçage du dev documenté (`SYS`) : comptes, schémas, Logger et utPLSQL
 - [x] Compte de déploiement connecté par proxy au schéma applicatif
-- [ ] Amorçage du dev : workspace APEX, ACL réseau et credential de l'API
+- [x] Amorçage du dev : workspace APEX et ACL réseau
+- [ ] Amorçage du dev : credential de l'API France Travail
 - [x] Projet SQLcl initialisé
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
@@ -197,6 +204,8 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Migrations avec SQLcl (Liquibase intégré, SQLcl Projects), version figée dans le dépôt | gratuit, un seul outil pour les objets de la base et l'application APEX (export découpé en fichiers versionnables), changesets générés depuis le schéma. Limites : SQLcl Projects est récent et ses commandes évoluent, Java 17 ou plus requis | Flyway Community (gratuit, plus simple, mais ne gère pas APEX : il faudrait SQLcl en plus), scripts SQL joués à la main (aucun suivi de ce qui est déployé) |
 | SQLcl figé par version et empreinte SHA-256 dans `env/local/dev.sh`, lancé sur le poste avec le Java de l'hôte | même schéma que Logger et utPLSQL (téléchargement vérifié, hors du dépôt), aucune dépendance au cycle de l'image ORDS, transposable en CI (Java et archive). Limites : Java 17 ou plus à installer sur le poste ; Oracle ne publie pas d'empreinte (relevée au premier téléchargement) | image conteneur SQLcl (Java inclus, mais montage du dépôt et droits de fichiers en rootless), SQLcl du conteneur ORDS (version liée à celle d'ORDS, change sans commit dédié) |
 | Droits reçus d'autres schémas exclus de l'export SQLcl (filtre `ALL_TAB_PRIVS` dans `.dbtools/filters/ddl.filters`) : seuls les droits accordés par `JOBTRACKER` sont versionnés | ces droits (Logger vers `JOBTRACKER`) sont accordés par l'amorçage ; rejoués par le déploiement en tant que `JOBTRACKER`, ils échouent (ORA-01749). Limite : un droit reçu manquant n'est détecté qu'au contrôle de l'amorçage | les garder dans les migrations (le déploiement proxy ne peut pas les accorder), déployer avec un compte doté de `GRANT ANY OBJECT PRIVILEGE` (contraire au compte proxy sans privilège) |
+| ACL réseau vers l'API France Travail accordée au seul schéma d'APEX (`APEX_260100`), en HTTPS sur le port 443, pour les deux hôtes du jeton et de l'API | `APEX_WEB_SERVICE` appelle `UTL_HTTP` avec les droits du schéma d'APEX, en session APEX comme dans un job : le schéma applicatif n'a aucun accès réseau direct (moindre privilège). Limite : le schéma d'APEX change à chaque version, l'ACL est à rejouer après une montée de version | ACE au schéma applicatif (accès réseau direct par `UTL_HTTP`, inutile puisque les appels passent par `APEX_WEB_SERVICE`), ACE sur `*` (tout Internet) |
+| Workspace APEX créé par l'amorçage (script commun), son développeur par `dev.sh` seulement | le workspace ne contient aucun secret, son script sert au dev et à la prod ; le mot de passe du développeur reste hors du dépôt, dans un secret Podman généré. Limite : sur ADB, le développeur se crée à la main | workspace et développeur créés à la main dans l'administration d'APEX (non reproductible), développeur dans le script commun (mot de passe en paramètre) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |
 | Journalisation avec Logger (OraOpenSource 3.1.1), dans un schéma dédié installé à l'amorçage et appelé par des synonymes privés créés par migration (objets du schéma applicatif) | outil de référence de la communauté APEX, traces conservées malgré un `ROLLBACK` ; ses objets restent hors des exports du projet SQLcl. Limite : projet peu maintenu | Logger dans le schéma applicatif (ses objets se mêleraient aux exports SQLcl), package maison (niveaux, contexte et purge à réécrire), fork récent non officiel (provenance non établie) |

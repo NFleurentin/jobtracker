@@ -17,12 +17,13 @@
 # =============================================================================
 set -euo pipefail
 
-# Versions figées : toute montée de version passe par un commit.
-# APEX du dev <= APEX de la prod (Autonomous Database met APEX à jour seule),
-# sinon un export du dev ne s'importe pas en prod.
-readonly DB_IMAGE=container-registry.oracle.com/database/free:23.26.3.0
-readonly ORDS_IMAGE=container-registry.oracle.com/database/ords:26.3.0
-readonly APEX_VERSION=26.1
+# Versions figées, partagées avec la CI : voir env/versions.env
+# shellcheck source=SCRIPTDIR/../versions.env
+source "$(dirname "${BASH_SOURCE[0]}")/../versions.env"
+readonly DB_IMAGE ORDS_IMAGE APEX_VERSION APEX_URL \
+  LOGGER_VERSION LOGGER_URL LOGGER_SHA256 \
+  UTPLSQL_VERSION UTPLSQL_URL UTPLSQL_SHA256 \
+  SQLCL_VERSION SQLCL_URL SQLCL_SHA256
 
 readonly POD=jobtracker
 readonly DB_CTR=jobtracker-db
@@ -40,26 +41,12 @@ readonly HTTP_PORT="${HTTP_PORT:-8080}"
 # PDB créée par l'image Free, nom non configurable
 readonly PDB=FREEPDB1
 
-# Fichiers d'installation d'APEX : hors du dépôt, montés en lecture seule dans ORDS
+# Archives des outils : hors du dépôt, téléchargées et vérifiées (APEX est
+# monté en lecture seule dans ORDS ; Logger et utPLSQL sont installés par
+# l'amorçage ; SQLcl est lancé sur l'hôte)
 readonly APEX_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/apex_$APEX_VERSION"
-readonly APEX_URL="https://download.oracle.com/otn_software/apex/apex_$APEX_VERSION.zip"
-
-# Outils installés par l'amorçage, téléchargés hors du dépôt et vérifiés.
-# Logger ne publie pas d'empreinte : celle-ci a été relevée au premier téléchargement.
-readonly LOGGER_VERSION=3.1.1
-readonly LOGGER_URL="https://raw.githubusercontent.com/OraOpenSource/Logger/$LOGGER_VERSION/releases/logger_$LOGGER_VERSION.zip"
-readonly LOGGER_SHA256=8a83fa29a23ad7a038a46a4b0071523044d115dfc801ce5b55ac09deeb214969
 readonly LOGGER_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/logger_$LOGGER_VERSION"
-# Empreinte publiée par GitHub pour l'archive de la release (tag v.3.2.3)
-readonly UTPLSQL_VERSION=3.2.3
-readonly UTPLSQL_URL="https://github.com/utPLSQL/utPLSQL/releases/download/v.$UTPLSQL_VERSION/utPLSQL.zip"
-readonly UTPLSQL_SHA256=6e650fc497bce02ae611e185e66c72204f0b984a024a41733b5452e7fb6db47a
 readonly UTPLSQL_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/utplsql_$UTPLSQL_VERSION"
-# Client de migration, lancé sur l'hôte (Java 17 ou plus). Oracle ne publie pas
-# d'empreinte : celle-ci a été relevée au premier téléchargement.
-readonly SQLCL_VERSION=26.3.0.260.1620
-readonly SQLCL_URL="https://download.oracle.com/otn_software/java/sqldeveloper/sqlcl-$SQLCL_VERSION.zip"
-readonly SQLCL_SHA256=eb0dca2becc30e9aa1c700ae71e5df6efde8a33d098d7d23405b6558bbb81a81
 readonly SQLCL_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/jobtracker/sqlcl_$SQLCL_VERSION"
 
 # Scripts d'amorçage du dépôt, copiés dans le conteneur le temps de l'amorçage

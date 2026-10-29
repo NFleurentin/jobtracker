@@ -1,0 +1,14 @@
+# Mise à jour des actions épinglées par SHA (.github/workflows/) : sans
+# Dependabot, elles ne reçoivent plus de correctifs.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    # Une seule PR pour toutes les actions, titre au format Conventional Commits
+    groups:
+      actions:
+        patterns: ["*"]
+    commit-message:
+      prefix: ci

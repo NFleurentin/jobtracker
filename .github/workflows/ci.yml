@@ -1,5 +1,6 @@
-# CI : dist/ déployé sur une base vide comme en prod, puis tests utPLSQL,
-# par env/ci/run.sh, sur l'image de base de la CI (env/versions.env).
+# CI : dist/ déployé sur une base vide comme en prod, tests utPLSQL, puis
+# contrôle que dist/ est à jour de src/database/, par env/ci/run.sh, sur
+# l'image de base de la CI (env/versions.env).
 # Lecture seule, sans secret : les mots de passe sont générés pendant le run.
 # Pas de run sur main : la protection exige une branche à jour, le commit de
 # squash a donc le contenu déjà vérifié sur la PR.
@@ -29,9 +30,11 @@ jobs:
       # Image de base privée sur GHCR
       packages: read
     steps:
+      # Historique complet : project stage compare les commits de la branche à main
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          fetch-depth: 0
 
       # Image de 11 Go décompressée, plus l'archive pendant le pull : au-delà
       # des 14 Go garantis. L'espace n'est libéré (2 minutes) que s'il manque.
@@ -61,6 +64,18 @@ jobs:
         env:
           REPORT_DIR: ${{ runner.temp }}/reports
         run: env/ci/run.sh test
+
+      # Le checkout est le commit de merge, en HEAD détaché : project stage
+      # attend la branche de la PR, sous son nom (dossier de ses changesets),
+      # et une branche locale main. Branche à jour exigée : même comparaison.
+      - name: Check dist/ is staged
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git branch main origin/main
+          git switch -c "$HEAD_REF" "$HEAD_SHA"
+          env/ci/run.sh stage-check
 
       - name: Upload JUnit report
         if: always()

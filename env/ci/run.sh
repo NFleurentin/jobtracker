@@ -10,12 +10,15 @@
 #             changeset reste en attente ou si un objet est invalide
 # test      : compile test/, lance utPLSQL ; rapport JUnit dans REPORT_DIR,
 #             échec si un test échoue ou si aucun test ne s'exécute
+# stage-check : project stage relancé sur la branche courante, comparée à la
+#             branche locale main ; échec s'il modifie dist/ (changesets non
+#             générés ou non committés)
 # down      : supprime le conteneur et le secret
 #
 # Lancé par .github/workflows/ci.yml. Rejouable sur le poste, à côté du dev
 # (noms et port distincts), après podman login ghcr.io.
 #
-# Usage : [REPORT_DIR=...] env/ci/run.sh up | bootstrap | deploy | test | down
+# Usage : [REPORT_DIR=...] env/ci/run.sh up | bootstrap | deploy | test | stage-check | down
 # =============================================================================
 set -euo pipefail
 
@@ -292,6 +295,41 @@ exit\n' "$report" >"$script"
   info "Tests réussis. Rapport : $report"
 }
 
+# dist/ à jour de src/database/ : project stage, relancé sur une branche déjà
+# préparée, ne change rien (vérifié). Il compare la branche courante, dont le
+# nom est celui du dossier de ses changesets, à la branche locale main. Sans
+# connexion, il ne fait rien et rend 0 : la ligne de comparaison affichée
+# (refs/heads/<branche>, quelle que soit la langue) prouve qu'il a tourné.
+# Le résultat reste dans l'arbre de travail, pour être relu.
+cmd_stage_check() {
+  require_db
+  local branch dirty out
+  branch="$(git -C "$REPO_DIR" branch --show-current)"
+  [[ -n "$branch" && "$branch" != main ]] \
+    || die "stage-check se lance depuis une branche de travail, pas depuis main ni un HEAD détaché"
+  git -C "$REPO_DIR" rev-parse --verify --quiet refs/heads/main >/dev/null \
+    || die "Branche locale main absente : project stage compare la branche à main"
+  dirty="$(git -C "$REPO_DIR" status --porcelain -- src/database dist)"
+  if [[ -n "$dirty" ]]; then
+    printf '%s\n' "$dirty" >&2
+    die "src/database/ ou dist/ diffère du dernier commit"
+  fi
+
+  info "Génération des changesets de la branche $branch (project stage)"
+  out="$(printf 'whenever sqlerror exit failure\nproject stage\nexit\n' | sqlcl 2>&1)" \
+    || { printf '%s\n' "$out" >&2; die "project stage en échec"; }
+  printf '%s\n' "$out"
+  grep -qF "refs/heads/$branch" <<<"$out" || die "project stage n'a pas comparé la branche $branch à main"
+
+  dirty="$(git -C "$REPO_DIR" status --porcelain -- dist)"
+  if [[ -n "$dirty" ]]; then
+    printf '%s\n' "$dirty" >&2
+    git -C "$REPO_DIR" --no-pager diff -- dist >&2
+    die "dist/ n'est pas à jour de src/database/ : lancer env/local/dev.sh stage, puis committer dist/"
+  fi
+  info "dist/ à jour de src/database/"
+}
+
 cmd_down() {
   podman rm -f --ignore "$DB_CTR" >/dev/null
   podman secret rm --ignore "$DEPLOY_SECRET" >/dev/null
@@ -299,10 +337,11 @@ cmd_down() {
 }
 
 case "${1:-}" in
-  up)        cmd_up ;;
-  bootstrap) cmd_bootstrap ;;
-  deploy)    cmd_deploy ;;
-  test)      cmd_test ;;
-  down)      cmd_down ;;
-  *)         echo "Usage : $0 up | bootstrap | deploy | test | down" >&2; exit 2 ;;
+  up)          cmd_up ;;
+  bootstrap)   cmd_bootstrap ;;
+  deploy)      cmd_deploy ;;
+  test)        cmd_test ;;
+  stage-check) cmd_stage_check ;;
+  down)        cmd_down ;;
+  *)           echo "Usage : $0 up | bootstrap | deploy | test | stage-check | down" >&2; exit 2 ;;
 esac

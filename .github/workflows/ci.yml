@@ -1,28 +1,27 @@
 # CI : dist/ déployé sur une base vide comme en prod, puis tests utPLSQL,
 # par env/ci/run.sh, sur l'image de base de la CI (env/versions.env).
 # Lecture seule, sans secret : les mots de passe sont générés pendant le run.
+# Pas de run sur main : la protection exige une branche à jour, le commit de
+# squash a donc le contenu déjà vérifié sur la PR.
 name: CI
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
-  push:
-    branches: [main]
 
 permissions:
   contents: read
 
-# Un nouveau push sur une PR annule le run en cours ; sur main, chaque
-# commit est vérifié jusqu'au bout.
+# Un nouveau push sur une PR annule le run en cours
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
   deploy-and-test:
     name: Deploy and test
     # Une PR en draft n'est pas vérifiée : elle l'est au passage en ready_for_review.
-    if: github.event_name == 'push' || !github.event.pull_request.draft
+    if: ${{ !github.event.pull_request.draft }}
     runs-on: ubuntu-26.04
     timeout-minutes: 45
     permissions:

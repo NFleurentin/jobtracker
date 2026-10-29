@@ -1,0 +1,77 @@
+# CI : dist/ déployé sur une base vide comme en prod, puis tests utPLSQL,
+# par env/ci/run.sh, sur l'image de base de la CI (env/versions.env).
+# Lecture seule, sans secret : les mots de passe sont générés pendant le run.
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# Un nouveau push sur une PR annule le run en cours ; sur main, chaque
+# commit est vérifié jusqu'au bout.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  deploy-and-test:
+    name: Deploy and test
+    # Une PR en draft n'est pas vérifiée : elle l'est au passage en ready_for_review.
+    if: github.event_name == 'push' || !github.event.pull_request.draft
+    runs-on: ubuntu-26.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      # Image de base privée sur GHCR
+      packages: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Image de 11 Go décompressée, plus l'archive pendant le pull : au-delà
+      # des 14 Go garantis. L'espace n'est libéré (2 minutes) que s'il manque.
+      - name: Free disk space
+        run: |
+          df -h /
+          if (( $(df --output=avail -B1G / | tail -1) < 30 )); then
+            sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+            df -h /
+          fi
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$GHCR_TOKEN" | podman login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Start database
+        run: env/ci/run.sh up
+
+      - name: Bootstrap
+        run: env/ci/run.sh bootstrap
+
+      - name: Deploy dist/
+        run: env/ci/run.sh deploy
+
+      - name: Run utPLSQL tests
+        env:
+          REPORT_DIR: ${{ runner.temp }}/reports
+        run: env/ci/run.sh test
+
+      - name: Upload JUnit report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: utplsql-junit
+          path: ${{ runner.temp }}/reports/junit.xml
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Database logs
+        if: failure()
+        run: podman logs --tail 100 jobtracker-ci-db || true

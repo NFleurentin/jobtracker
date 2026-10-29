@@ -1,0 +1,88 @@
+# Image de base de la CI (Oracle Database Free, APEX, utPLSQL), construite
+# par env/ci/build_image.sh et publiée sur GHCR. Lancée à la main après une
+# montée de version : la CI la référence par digest (env/versions.env).
+name: CI image
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Deux builds simultanés publieraient le même tag
+concurrency:
+  group: ci-image
+  cancel-in-progress: false
+
+jobs:
+  build:
+    # Seul main publie : une branche non relue ne produit pas d'image.
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-26.04
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+
+      # Image de base (10 Go), conteneur et image squashée (12 Go) coexistent
+      # pendant le build : les 14 Go garantis du runner ne suffisent pas.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache
+          df -h /
+
+      - name: Compute image tag
+        id: tag
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/jobtracker-ci-db"
+          echo "tag=$(CI_IMAGE_REPO="$repo" env/ci/build_image.sh tag)" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        env:
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: printf '%s' "$GHCR_TOKEN" | podman login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      # Tags immuables : un tag existant n'est jamais remplacé. Une erreur
+      # d'accès passe ce contrôle, mais fait alors échouer le push.
+      - name: Refuse an existing tag
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          if skopeo inspect --raw "docker://$TAG" >/dev/null 2>&1; then
+            echo "::error::$TAG existe déjà sur GHCR"
+            exit 1
+          fi
+
+      - name: Build image
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          case "$TAG" in *-dirty) echo "::error::arbre de travail modifié"; exit 1 ;; esac
+          CI_IMAGE_REPO="${TAG%:*}" env/ci/build_image.sh build
+          df -h /
+
+      - name: Push image
+        env:
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          podman push --digestfile "$RUNNER_TEMP/digest" "$TAG"
+          {
+            echo "### Image publiée"
+            echo
+            echo "Tag : \`$TAG\`"
+            echo
+            echo "Référence pour \`env/versions.env\` :"
+            echo
+            echo "\`\`\`"
+            echo "CI_DB_IMAGE=${TAG%:*}@$(cat "$RUNNER_TEMP/digest")"
+            echo "\`\`\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Disk usage
+        if: always()
+        run: df -h /

@@ -124,11 +124,12 @@ Il se connecte en `SYS` par l'authentification de l'OS du conteneur (sans mot de
 2. crée les schémas `JOBTRACKER` (applicatif) et `LOGGER`, sans mot de passe ([`env/bootstrap/common/`](env/bootstrap/common/)) ;
 3. crée le compte de déploiement `JOBTRACKER_DEPLOY`, qui se connecte par proxy en tant que `JOBTRACKER` (`jobtracker_deploy[jobtracker]`), avec le mot de passe du secret Podman `jobtracker_deploy_pwd` ;
 4. télécharge, vérifie et installe Logger 3.1.1 et utPLSQL 3.2.3 (schéma `UT3`, droits et synonymes publics) ;
-5. accorde au schéma applicatif l'exécution de Logger ;
-6. crée le workspace APEX `JOBTRACKER`, de schéma `JOBTRACKER` ([`create_workspace.sql`](env/bootstrap/common/create_workspace.sql)), et son développeur `DEV`, administrateur du workspace, avec le mot de passe du secret Podman `jobtracker_apex_dev_pwd` ;
-7. ouvre au schéma d'APEX (`APEX_260100`) l'accès HTTPS vers les deux hôtes de l'API France Travail ([`network_acl.sql`](env/bootstrap/common/network_acl.sql)) ;
-8. contrôle les comptes, les objets invalides, les versions installées, la connexion proxy, le workspace et les ACL ;
-9. contrôle le Web Credential de l'API ([`check_credential.sql`](env/bootstrap/common/check_credential.sql)) : un avertissement s'il est absent ou différent des valeurs attendues, sans arrêter l'amorçage.
+5. charge la traduction française d'APEX si elle est absente ou incomplète (journal : `~/.cache/jobtracker/logs/apex_french_install.log`) ;
+6. accorde au schéma applicatif l'exécution de Logger ;
+7. crée le workspace APEX `JOBTRACKER`, de schéma `JOBTRACKER` ([`create_workspace.sql`](env/bootstrap/common/create_workspace.sql)), et son développeur `DEV`, administrateur du workspace, avec le mot de passe du secret Podman `jobtracker_apex_dev_pwd` ;
+8. ouvre au schéma d'APEX (`APEX_260100`) l'accès HTTPS vers les deux hôtes de l'API France Travail ([`network_acl.sql`](env/bootstrap/common/network_acl.sql)) ;
+9. contrôle les comptes, les objets invalides, les versions installées, la connexion proxy, le workspace et les ACL ;
+10. contrôle le Web Credential de l'API ([`check_credential.sql`](env/bootstrap/common/check_credential.sql)) : un avertissement s'il est absent ou différent des valeurs attendues, sans arrêter l'amorçage.
 
 Restent deux étapes manuelles : changer le mot de passe `ADMIN` d'APEX, lui aussi écrit en dur dans l'image ORDS (le conserver dans un gestionnaire de mots de passe), et créer le credential de l'API (voir [plus bas](#credential-de-lapi-france-travail)).
 
@@ -370,6 +371,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Formulaires APEX : Form region sur une vue, process Form - Automatic Row Processing en Target Type « PL/SQL Code » qui appelle le package d'écriture | garde le cycle de vie du formulaire (lecture de la ligne, action selon le bouton) sans dupliquer les règles du package ; la clé renvoyée par le package s'affecte à l'item dans le code du process. Limite : la documentation d'APEX 26.1 ne dit pas si `Prevent Lost Updates` reste actif dans ce mode ; à défaut, le dernier enregistrement gagne, acceptable pour un seul utilisateur | Automatic Row Processing sur la table ou la vue (contourne le package), process « Execute Code » isolé (cycle du formulaire à recoder) |
 | Toutes les lectures d'APEX par des vues, LOV comprises ; suffixe `_v` pour une vue 1:1 sur une table | un seul contrat de lecture entre la base et l'application, versionné en migration et testable, indépendant de la structure des tables. Limites : des vues 1:1 à maintenir, sans gain d'isolation puisque l'application tourne sur le schéma propriétaire | tables directes pour les cas simples (moins d'objets, mais une règle à juger page par page) |
 | Application en français, pages numérotées par domaine (une centaine et un page group chacun, `9000-9998` pour l'administration et les référentiels) | outil personnel francophone ; une page se situe à son numéro et les diffs de l'export restent lisibles. Limite : aucun standard Oracle sur ce découpage, choix propre au dépôt | multilingue (traductions à maintenir sans utilisateur), numéros attribués par le Builder (pages d'un domaine dispersées) |
+| Traduction française d'APEX chargée en dev et dans l'image de la CI, pas en prod | les messages internes d'APEX (validations, pagination, erreurs) ne relèvent pas de l'application ; Autonomous Database embarque toutes les langues (message de `load_fr.sql`). Le script s'exécutant en `SYS`, il n'est pas dans `env/bootstrap/common/`. Limite : le contrôle lit des tables internes d'APEX, et l'image grossit | traduction en dev seulement (image inchangée, mais CI différente du dev et de la prod), messages traduits un à un dans l'application (à maintenir) |
 
 ## Limites d'Always Free
 

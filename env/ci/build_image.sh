@@ -4,6 +4,7 @@
 #   - Oracle Database Free : image du dev, base sans volume pour que
 #     podman commit capture les datafiles
 #   - APEX : installé par le conteneur ORDS au premier démarrage, comme en dev
+#   - traduction française d'APEX : chargée en SYS, comme en dev
 #   - utPLSQL : installation headless, UT3 en NO AUTHENTICATION
 # Logger et l'amorçage du projet restent hors de l'image : joués à chaque run
 # de CI, ils restent testés.
@@ -89,11 +90,13 @@ fetch_zip() {
 
 # sysdba [répertoire_du_conteneur] : exécute en SYS, dans la PDB, le script SQL
 # lu sur l'entrée standard. Authentification par l'OS du conteneur.
+# NLS_LANG en UTF-8 : exigé par la traduction d'APEX, sans quoi les accents
+# sont convertis sans erreur.
 sysdba() {
   local workdir=()
   if [[ -n "${1:-}" ]]; then workdir=(-w "$1"); fi
   { printf 'whenever sqlerror exit failure\nset feedback off verify off\nconnect / as sysdba\nalter session set container = %s;\n' "$PDB"; cat; } \
-    | podman exec -i "${workdir[@]}" "$DB_CTR" sqlplus -s -L /nolog
+    | podman exec -i -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 "${workdir[@]}" "$DB_CTR" sqlplus -s -L /nolog
 }
 
 sysdba_value() {
@@ -153,6 +156,29 @@ EOF
   sysdba <<<"alter user ut3 no authentication;"
 }
 
+# Nombre d'applications internes traduites en français absentes de la base
+# (0 : traduction complète). Même contrôle que dev.sh.
+apex_french_missing() {
+  local schema
+  schema="$(sysdba_value "select schema from dba_registry where comp_id = 'APEX';")"
+  sysdba_value "select count(*) from $schema.wwv_flow_language_map m where m.translation_flow_language_code = 'fr' and not exists (select 1 from $schema.wwv_flows f where f.id = m.translation_flow_id);"
+}
+
+# Même chargement que dev.sh : load_trans.sql passe en `whenever sqlerror
+# continue`, son code retour ne prouve rien, seul le contrôle final fait foi.
+install_apex_french() {
+  local dir="$CTR_BOOT_DIR/apex" missing
+  podman exec "$DB_CTR" mkdir -p "$dir/builder"
+  podman cp "$APEX_DIR/load_trans.sql" "$DB_CTR:$dir/"
+  podman cp "$APEX_DIR/builder/fr" "$DB_CTR:$dir/builder/fr"
+  sysdba "$dir" >"$LOG_DIR/ci_apex_french_install.log" 2>&1 <<<"@load_trans.sql FRENCH" || true
+  missing="$(apex_french_missing)"
+  if [[ "$missing" != 0 ]]; then
+    tail -n 30 "$LOG_DIR/ci_apex_french_install.log" >&2
+    die "Traduction française d'APEX incomplète ($missing applications absentes) : voir $LOG_DIR/ci_apex_french_install.log"
+  fi
+}
+
 # ------------------------------------------------------------- commandes ---
 cmd_build() {
   command -v podman >/dev/null || die "Podman est absent : sudo dnf install podman"
@@ -206,6 +232,8 @@ cmd_build() {
   podman exec "$DB_CTR" mkdir -p "$CTR_BOOT_DIR"
   podman cp "$UTPLSQL_DIR/utPLSQL/source" "$DB_CTR:$CTR_BOOT_DIR/utplsql"
   install_utplsql
+  info "Chargement de la traduction française d'APEX"
+  install_apex_french
   # podman cp crée les fichiers en root : nettoyage en root (-u 0)
   podman exec -u 0 "$DB_CTR" rm -rf "$CTR_BOOT_DIR"
 

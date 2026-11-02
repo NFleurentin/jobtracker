@@ -4,8 +4,9 @@
 #   - jobtracker-db   : Oracle Database Free (PDB FREEPDB1)
 #   - jobtracker-ords : ORDS, qui installe APEX dans la base au premier démarrage
 # bootstrap  : amorçage SYS (comptes, schémas, compte de déploiement, Logger,
-#              utPLSQL, workspace APEX et son développeur, ACL réseau,
-#              contrôle du credential de l'API), rejouable
+#              utPLSQL, traduction française d'APEX, workspace APEX et son
+#              développeur, ACL réseau, contrôle du credential de l'API),
+#              rejouable
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
 #              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
@@ -135,11 +136,13 @@ fetch_zip() {
 # sysdba [répertoire_du_conteneur] : exécute en SYS, dans la PDB, le script SQL
 # lu sur l'entrée standard, depuis le répertoire donné.
 # Authentification par l'OS du conteneur : aucun mot de passe manipulé.
+# NLS_LANG en UTF-8 : exigé par la traduction d'APEX, sans quoi les accents
+# sont convertis sans erreur.
 sysdba() {
   local workdir=()
   if [[ -n "${1:-}" ]]; then workdir=(-w "$1"); fi
   { printf 'whenever sqlerror exit failure\nset feedback off verify off\nconnect / as sysdba\nalter session set container = %s;\n' "$PDB"; cat; } \
-    | podman exec -i "${workdir[@]}" "$DB_CTR" sqlplus -s -L /nolog
+    | podman exec -i -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 "${workdir[@]}" "$DB_CTR" sqlplus -s -L /nolog
 }
 
 # Valeur d'une requête scalaire, sans mise en forme
@@ -265,6 +268,28 @@ EOF
   (( rc == 0 )) || die "Installation d'utPLSQL en échec : voir $LOG_DIR/utplsql_install.log"
 }
 
+# Nombre d'applications internes traduites en français absentes de la base
+# (0 : traduction complète). Tables internes, dans le schéma d'APEX, dont le
+# nom change à chaque version.
+apex_french_missing() {
+  local schema
+  schema="$(sysdba_value "select schema from dba_registry where comp_id = 'APEX';")"
+  sysdba_value "select count(*) from $schema.wwv_flow_language_map m where m.translation_flow_language_code = 'fr' and not exists (select 1 from $schema.wwv_flows f where f.id = m.translation_flow_id);"
+}
+
+# load_trans.sql passe en `whenever sqlerror continue` : son code retour ne
+# prouve rien, seul le contrôle final fait foi. Lancé depuis son répertoire :
+# les @@ imbriqués sont relatifs.
+install_apex_french() {
+  local dir="$CTR_BOOT_DIR/apex" missing
+  podman exec "$DB_CTR" mkdir -p "$dir/builder"
+  podman cp "$APEX_DIR/load_trans.sql" "$DB_CTR:$dir/"
+  podman cp "$APEX_DIR/builder/fr" "$DB_CTR:$dir/builder/fr"
+  sysdba "$dir" >"$LOG_DIR/apex_french_install.log" 2>&1 <<<"@load_trans.sql FRENCH" || true
+  missing="$(apex_french_missing)"
+  [[ "$missing" == 0 ]] || die "Traduction française d'APEX incomplète ($missing applications absentes) : voir $LOG_DIR/apex_french_install.log"
+}
+
 # Compte de déploiement : le script commun le crée sans mot de passe, celui
 # du secret est fixé ici. Le rejouer resynchronise la base avec le secret.
 # Le mot de passe passe par l'entrée standard, jamais par la ligne de commande.
@@ -362,6 +387,14 @@ EOF
   else
     info "Installation d'utPLSQL $UTPLSQL_VERSION"
     install_utplsql
+  fi
+
+  if [[ "$(apex_french_missing)" == 0 ]]; then
+    info "Traduction française d'APEX déjà chargée"
+  else
+    info "Chargement de la traduction française d'APEX"
+    fetch_apex
+    install_apex_french
   fi
 
   info "Droits du schéma applicatif"

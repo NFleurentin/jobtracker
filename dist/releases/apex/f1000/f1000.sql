@@ -101,8 +101,10 @@ wwv_imp_workspace.create_flow(
 ,p_authorize_batch_job=>'N'
 ,p_rejoin_existing_sessions=>'N'
 ,p_csv_encoding=>'Y'
+,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
+,p_version_scn=>'5431976'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -995,6 +997,7 @@ wwv_flow_imp_page.create_page(
 ,p_warn_on_unsaved_changes=>null
 ,p_autocomplete_on_off=>'OFF'
 ,p_protection_level=>'D'
+,p_page_component_map=>'14'
 );
 end;
 /
@@ -1009,6 +1012,7 @@ wwv_flow_imp_page.create_page(
 ,p_step_template=>4073832297226169690
 ,p_page_template_options=>'#DEFAULT#'
 ,p_protection_level=>'C'
+,p_page_component_map=>'13'
 );
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(10005304082844235)
@@ -1042,6 +1046,7 @@ wwv_flow_imp_page.create_page(
 ,p_page_template_options=>'#DEFAULT#'
 ,p_page_is_public_y_n=>'Y'
 ,p_protection_level=>'C'
+,p_page_component_map=>'12'
 );
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(10005558668844238)
@@ -1260,4 +1265,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"f5bc6260d785ee4cacde8436e052ab917bbeb97b","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"512db666f5ea9c4c2aa0d494610500765bf85a99","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

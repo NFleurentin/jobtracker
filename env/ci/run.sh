@@ -7,7 +7,8 @@
 #             déploiement, Logger, droits, workspace APEX, ACL réseau), sans
 #             le contrôle du credential (aucun secret en CI)
 # deploy    : project gen-artifact puis project deploy, en proxy ; échec si un
-#             changeset reste en attente ou si un objet est invalide
+#             changeset reste en attente, si un objet est invalide ou si
+#             l'application APEX est absente
 # test      : compile test/, lance utPLSQL ; rapport JUnit dans REPORT_DIR,
 #             échec si un test échoue ou si aucun test ne s'exécute
 # stage-check : project stage relancé sur la branche courante, comparée à la
@@ -32,6 +33,7 @@ readonly CI_DB_IMAGE LOGGER_VERSION LOGGER_URL LOGGER_SHA256 \
 readonly DB_CTR=jobtracker-ci-db
 readonly DEPLOY_SECRET=jobtracker_ci_deploy_pwd
 readonly PDB=FREEPDB1
+readonly APEX_APP_ID=1000
 
 # Cache des archives partagé avec le dev : un poste qui a déjà le dev ne
 # retélécharge rien.
@@ -141,6 +143,15 @@ exit\n' | sqlcl >&2
   die "$invalid objets invalides dans JOBTRACKER"
 }
 
+# Application importée : lb status ne regarde que le journal Liquibase, pas APEX
+check_apex_app() {
+  local found
+  found="$(printf "set heading off feedback off pagesize 0
+select count(*) from apex_applications where application_id = %s;
+exit\n" "$APEX_APP_ID" | sqlcl | tr -d '[:space:]')"
+  [[ "$found" == 1 ]] || die "Application APEX $APEX_APP_ID absente de la base : $found"
+}
+
 # Le script de Logger s'exécute en tant que propriétaire : mot de passe jetable,
 # jamais stocké, le temps de l'installation, puis retour à NO AUTHENTICATION.
 install_logger() {
@@ -245,6 +256,9 @@ exit\n' | sqlcl
 
   info "Objets invalides (aucun attendu)"
   check_invalid
+
+  info "Application APEX $APEX_APP_ID (attendue)"
+  check_apex_app
   info "Déploiement conforme"
 }
 

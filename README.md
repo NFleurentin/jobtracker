@@ -179,6 +179,16 @@ Points d'attention :
 
 Les migrations ne s'exécutent donc pas sur la base où le DDL a été écrit.
 
+### Faire évoluer l'application APEX
+
+L'application `JobTracker` (ID `1000`, alias `JOBTRACKER`) se modifie dans le Builder du dev, puis suit le même circuit que le schéma, par `env/local/dev.sh stage` :
+
+1. `project export` écrit l'application dans `src/database/jobtracker/apex_apps/f1000/` : `f1000.sql` (`APPLICATION_SOURCE`), seul fichier importé, et les fichiers `.apx` (`APEXLANG`), pour relire les diffs. Relire puis committer `src/`.
+2. `project stage` copie `f1000.sql` dans `dist/releases/apex/f1000/`, avec son script d'import. Cette copie reste hors des changesets de la branche : le changeset `INSTALL_1000`, en `runOnChange`, se rejoue à chaque modification de l'application.
+3. L'alignement du journal Liquibase marque ce changeset comme joué, car le dev a déjà l'application. Relire puis committer `dist/`.
+
+Une application reconstruite sur une base vide n'a aucun utilisateur : les comptes APEX ne sont pas exportés avec elle. Le compte de connexion se crée à la main dans le workspace, comme `DEV`.
+
 ### Mettre à niveau une autre base de dev
 
 Sur un autre poste, ou après un `destroy` qui supprime les données, la base amorcée est vide : elle reçoit les migrations de `dist/`, comme le fera la CI ou la prod. Même chose pour une base de dev en retard sur `main`, après un `git pull`.
@@ -241,7 +251,7 @@ Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du s
 
 1. `up` : démarre la base depuis l'image de base de la CI (APEX et utPLSQL déjà installés) ;
 2. `bootstrap` : joue les scripts communs de `env/bootstrap/common/` (sauf le contrôle du credential, aucun secret en CI) et installe Logger ;
-3. `deploy` : `project gen-artifact` puis `project deploy`, en proxy `jobtracker_deploy[jobtracker]` ; échec si un changeset reste en attente ou si un objet est invalide ;
+3. `deploy` : `project gen-artifact` puis `project deploy`, en proxy `jobtracker_deploy[jobtracker]` ; échec si un changeset reste en attente, si un objet est invalide ou si l'application APEX est absente ;
 4. `test` : compile `test/` et lance utPLSQL ; échec si un test échoue ou si aucun ne s'exécute. Le rapport JUnit est publié en artefact du run (`utplsql-junit`) ;
 5. `stage-check` : relance `project stage` sur la branche de la PR, recréée sous son nom avec une branche locale `main` ; échec si `dist/` change, donc si une modification de `src/database/` n'a pas ses changesets committés.
 
@@ -275,6 +285,7 @@ env/ci/run.sh down
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)
 - [ ] Tests utPLSQL (en place pour la collecte, à étendre à chaque package)
 - [ ] Job `DBMS_SCHEDULER` de collecte quotidienne
+- [x] Application APEX vide, exportée et déployée par les migrations
 - [ ] Application APEX v1 (offres en cours, fiche d'offre, suivi des candidatures)
 - [ ] Score de pertinence par règles
 - [ ] Enrichissement des offres
@@ -290,13 +301,13 @@ env/local/      Conteneurs du dev (Oracle Database Free, ORDS)
 env/ci/         Image de base de la CI et étapes du workflow de CI
 env/bootstrap/  Amorçages manuels (SYS en local, ADMIN sur ADB)
 .dbtools/       Configuration du projet SQLcl (schéma exporté, filtres, format)
-src/database/   Objets du schéma exportés par SQLcl (project export), un dossier par type
+src/database/   Objets du schéma et application APEX exportés par SQLcl (project export), un dossier par type
 test/           Packages de test utPLSQL, même découpage que src/, jamais exportés ni déployés en prod
 dist/           Changesets Liquibase générés par project stage, regroupés par release
 .github/        Workflows CI, modèles d'issue et de PR
 ```
 
-À venir : export de l'application APEX (`project export`, dossier créé par SQLcl), données fictives de démonstration. Les artefacts de déploiement (`artifact/`) et le répertoire de travail de SQLcl (`var/`) ne sont pas versionnés.
+À venir : données fictives de démonstration. Les artefacts de déploiement (`artifact/`) et le répertoire de travail de SQLcl (`var/`) ne sont pas versionnés.
 
 ## Choix techniques et compromis
 
@@ -311,6 +322,10 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Image publiée sur GHCR par un workflow manuel (`ci-image.yml`), depuis `main` seulement, seul job avec `packages: write` ; tag immuable portant les versions et le commit, référencé par digest ; package privé | construction reproductible, sans identifiant de registry dans le script ; une branche non relue ne publie rien ; image Oracle non redistribuée publiquement (dépôt public, package à garder privé). Stockage gratuit à ce jour (préavis d'un mois annoncé). Limites : un package lié à un dépôt public est créé public, donc passé en privé à la main après la première publication (vérifié par un accès anonyme refusé) ; digest à reporter dans `env/versions.env` après chaque construction ; le workflow ne se lance qu'une fois sur `main` | build et push depuis le poste (non reproductible, jeton personnel), registry d'Oracle ou d'un cloud (compte et coût en plus) |
 | Migrations avec SQLcl (Liquibase intégré, SQLcl Projects), version figée dans le dépôt | gratuit, un seul outil pour les objets de la base et l'application APEX (export découpé en fichiers versionnables), changesets générés depuis le schéma. Limites : SQLcl Projects est récent et ses commandes évoluent, Java 17 ou plus requis | Flyway Community (gratuit, plus simple, mais ne gère pas APEX : il faudrait SQLcl en plus), scripts SQL joués à la main (aucun suivi de ce qui est déployé) |
 | SQLcl figé par version et empreinte SHA-256 dans `env/versions.env`, lancé sur le poste avec le Java de l'hôte | même schéma que Logger et utPLSQL (téléchargement vérifié, hors du dépôt), aucune dépendance au cycle de l'image ORDS, transposable en CI (Java et archive). Limites : Java 17 ou plus à installer sur le poste ; Oracle ne publie pas d'empreinte (relevée au premier téléchargement) | image conteneur SQLcl (Java inclus, mais montage du dépôt et droits de fichiers en rootless), SQLcl du conteneur ORDS (version liée à celle d'ORDS, change sans commit dédié) |
+| Application APEX importée depuis l'export SQL (`apexlang: false`), avec un export APEXlang à côté (`exptype` : `APPLICATION_SOURCE`, `APEXLANG`) | l'import SQL est le chemin éprouvé d'APEX, et APEXlang rend les diffs lisibles. `apexlang` désigne la source de vérité, `exptype` ce qui est exporté : les deux réglages ne se contredisent pas. Limite : deux représentations versionnées pour une même application | APEXlang comme source de vérité (format récent, pris en charge par SQLcl Projects depuis la 26.2, compilé ici par un compilateur 26.2 pour un APEX 26.1), export SQL seul (`f1000.sql` généré, peu lisible en relecture) |
+| ID d'application fixe, `1000`, et alias `JOBTRACKER`, identiques dans tous les environnements, sans offset à l'import | URL et ID stables, hors de la plage 3000-8999 réservée à APEX ; sans surcharge, le script généré par SQLcl n'applique aucun offset, et un cycle `dist/` vers la base puis export ne change aucun fichier. Limite : l'ID doit rester libre sur l'instance | ID attribué par le Builder (différent d'une base à l'autre), surcharge par environnement (`apex.1000.*`, inutile avec un seul nom de workspace) |
+| Authentification par comptes APEX, toutes les pages protégées sauf le login | rien à intégrer pour un seul utilisateur, aucun secret dans le dépôt. Limites : compte à créer à la main sur chaque base reconstruite, politique de mot de passe à la charge du workspace | SSO OIDC (plus solide, mais fournisseur et credential à gérer), comptes de la base (droits sur la base pour un simple utilisateur de l'application) |
+| Export APEX publié avec son `p_checksum_salt`, dépôt public | l'export ne peut pas s'en passer, et le déploiement de `f1000.sql` importe cette valeur. Hypothèse, non confirmée par la documentation d'Oracle : risque faible, ce sel servant aux checksums de Session State Protection, défense en profondeur derrière une session authentifiée | parade après import (faisabilité inconnue, complexité du déploiement), dépôt privé (perd la vitrine) |
 | Droits reçus d'autres schémas exclus de l'export SQLcl (filtre `ALL_TAB_PRIVS` dans `.dbtools/filters/ddl.filters`) : seuls les droits accordés par `JOBTRACKER` sont versionnés | ces droits (Logger vers `JOBTRACKER`) sont accordés par l'amorçage ; rejoués par le déploiement en tant que `JOBTRACKER`, ils échouent (ORA-01749). Limite : un droit reçu manquant n'est détecté qu'au contrôle de l'amorçage | les garder dans les migrations (le déploiement proxy ne peut pas les accorder), déployer avec un compte doté de `GRANT ANY OBJECT PRIVILEGE` (contraire au compte proxy sans privilège) |
 | ACL réseau vers l'API France Travail accordée au seul schéma d'APEX (`APEX_260100`), en HTTPS sur le port 443, pour les deux hôtes du jeton et de l'API | `APEX_WEB_SERVICE` appelle `UTL_HTTP` avec les droits du schéma d'APEX, en session APEX comme dans un job : le schéma applicatif n'a aucun accès réseau direct (moindre privilège). Limite : le schéma d'APEX change à chaque version, l'ACL est à rejouer après une montée de version | ACE au schéma applicatif (accès réseau direct par `UTL_HTTP`, inutile puisque les appels passent par `APEX_WEB_SERVICE`), ACE sur `*` (tout Internet) |
 | Web Credential de l'API (static id `FRANCE_TRAVAIL_API`, URL autorisées limitées aux deux hôtes de l'ACL) créé à la main dans le Builder, avec ses identifiants, d'après une procédure du README ; valeurs attendues contrôlées en lecture seule par l'amorçage (script commun) | `apex_credential` refuse le schéma applicatif, qui n'est pas administrateur du workspace (ORA-20987), et `SYS`, qui n'accorde pas `INHERIT PRIVILEGES` au schéma d'APEX (ORA-06598) : un script devrait affaiblir l'une de ces protections. Le secret reste hors du dépôt, chiffré par APEX, et se met à jour sans code. Limites : création manuelle à chaque reconstruction de base ; le contrôle signale un oubli ou un écart sans le corriger | migration ou script d'amorçage (refusés, voir ci-contre), `INHERIT PRIVILEGES` de `SYS` accordé le temps du script ou `APEX_ADMINISTRATOR_ROLE` au schéma applicatif (protections levées), composant de l'application APEX (à réévaluer quand l'application existera : export d'un credential qu'elle n'utilise pas incertain), page de paramétrage (code et autorisations à maintenir), préférence APEX (stockée en clair) |

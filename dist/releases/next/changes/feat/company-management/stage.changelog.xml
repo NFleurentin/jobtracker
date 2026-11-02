@@ -6,4 +6,7 @@
 <include file="jobtracker/tables/company_types.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/comments/company_types.sql" relativeToChangelogFile="true"/>
 <include file="_custom/company_types_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/company_sizes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/company_sizes.sql" relativeToChangelogFile="true"/>
+<include file="_custom/company_sizes_data.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

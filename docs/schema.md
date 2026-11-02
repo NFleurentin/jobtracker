@@ -136,7 +136,9 @@ erDiagram
 
     COMPANY_SIZES {
         NUMBER company_size_id PK "clé de la taille d'entreprise"
-        VARCHAR2(100) company_size_name "taille de l'entreprise (TPE, PME, ETI, Grande entreprise)"
+        VARCHAR2(10) company_size_short_name "sigle (TPE, PME, ETI, GE)"
+        VARCHAR2(100) company_size_long_name "libellé complet (Grande entreprise...)"
+        NUMBER(3) display_order "ordre d'affichage"
     }
 
     SECTORS {
@@ -330,9 +332,10 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `LOCATIONS` | `location_name` obligatoire ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
 | `COLLECTIVE_AGREEMENTS` | `idcc_code` unique |
 | `COMPANY_TYPES` | `company_type_code` obligatoire et unique |
+| `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
-| Référentiels, sauf `LOCATIONS` | `<entité>_name` obligatoire et unique |
+| Référentiels, sauf `LOCATIONS` et `COMPANY_SIZES` | `<entité>_name` obligatoire et unique |
 | Tables hiérarchiques (`APPLICATIONS`, `COMPANIES`, `LOCATIONS`, `SKILL_CATEGORIES`) | une ligne n'est pas son propre parent ; les cycles plus longs sont contrôlés par le package |
 | Toutes les tables | clés étrangères obligatoires là où le diagramme montre `\|\|` côté parent ; `created_at` et `updated_at` obligatoires |
 | Colonnes `BOOLEAN` | `NOT NULL` : un `BOOLEAN` accepte aussi `NULL` |

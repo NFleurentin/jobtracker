@@ -19,5 +19,17 @@
 <include file="jobtracker/indexes/locations_location_type_id_location_code_i.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/ref_constraints/locations_locations_fk.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/ref_constraints/locations_location_types_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/companies.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/companies.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_company_size_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_company_type_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_location_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_parent_company_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_sector_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_companies_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_company_sizes_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_company_types_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_locations_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_sectors_fk.sql" relativeToChangelogFile="true"/>
 <include file="_custom/company_sizes_data.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

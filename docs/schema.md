@@ -166,7 +166,7 @@ erDiagram
         NUMBER location_id FK "lieu de l'entreprise, jusqu'à l'adresse"
         VARCHAR2(9) siren "numéro SIREN, unique"
         VARCHAR2(500) website_url "site web"
-        VARCHAR2(500) linkedin_url "page LinkedIn"
+        VARCHAR2(100) linkedin_slug "identifiant de la page LinkedIn (linkedin.com/company/<slug>)"
         VARCHAR2(254) email "email"
         VARCHAR2(30) phone "numéro de téléphone"
         NUMBER(4) creation_year "année de création de l'entreprise"
@@ -327,7 +327,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` obligatoire, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 |
 | `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire |
 | `EDUCATIONS` | `(education_level_id, education_domain_id)` unique |
-| `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres |
+| `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace |
 | `CONTACTS` | `last_name` obligatoire |
 | `INTERVIEWS` | `scheduled_at` obligatoire ; `duration_minutes` positif |
 | `LOCATIONS` | `location_type_id` et `location_name` obligatoires ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |

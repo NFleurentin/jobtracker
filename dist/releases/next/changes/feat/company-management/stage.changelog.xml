@@ -11,5 +11,8 @@
 <include file="jobtracker/tables/sectors.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/comments/sectors.sql" relativeToChangelogFile="true"/>
 <include file="_custom/sectors_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/location_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/location_types.sql" relativeToChangelogFile="true"/>
+<include file="_custom/location_types_data.sql" relativeToChangelogFile="true"/>
 <include file="_custom/company_sizes_data.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

@@ -115,6 +115,7 @@ erDiagram
 
     LOCATION_TYPES {
         NUMBER location_type_id PK "clé du type de lieu"
+        VARCHAR2(30) location_type_code "code stable, testé par le code applicatif (COUNTRY, MUNICIPALITY...)"
         VARCHAR2(100) location_type_name "type de lieu (Pays, Région, Commune, Adresse...)"
     }
 
@@ -333,6 +334,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `COLLECTIVE_AGREEMENTS` | `idcc_code` unique |
 | `COMPANY_TYPES` | `company_type_code` obligatoire et unique |
 | `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |
+| `LOCATION_TYPES` | `location_type_code` obligatoire et unique |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | Référentiels, sauf `LOCATIONS` et `COMPANY_SIZES` | `<entité>_name` obligatoire et unique |

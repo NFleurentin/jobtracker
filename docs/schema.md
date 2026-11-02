@@ -330,7 +330,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres |
 | `CONTACTS` | `last_name` obligatoire |
 | `INTERVIEWS` | `scheduled_at` obligatoire ; `duration_minutes` positif |
-| `LOCATIONS` | `location_name` obligatoire ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
+| `LOCATIONS` | `location_type_id` et `location_name` obligatoires ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
 | `COLLECTIVE_AGREEMENTS` | `idcc_code` unique |
 | `COMPANY_TYPES` | `company_type_code` obligatoire et unique |
 | `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |

@@ -13,7 +13,8 @@
 #             échec si un test échoue ou si aucun test ne s'exécute
 # stage-check : project stage relancé sur la branche courante, comparée à la
 #             branche locale main ; échec s'il modifie dist/ (changesets non
-#             générés ou non committés)
+#             générés ou non committés) ou si l'empreinte de l'export APEX
+#             dans son changeset n'est pas exacte
 # down      : supprime le conteneur et le secret
 #
 # Lancé par .github/workflows/ci.yml. Rejouable sur le poste, à côté du dev
@@ -341,6 +342,15 @@ cmd_stage_check() {
     git -C "$REPO_DIR" --no-pager diff -- dist >&2
     die "dist/ n'est pas à jour de src/database/ : lancer env/local/dev.sh stage, puis committer dist/"
   fi
+
+  # Sans cette empreinte, écrite par dev.sh stage, une nouvelle version de
+  # l'application ne serait pas importée sur une base existante
+  local xml
+  for xml in "$REPO_DIR"/dist/releases/apex/f*/f*.xml; do
+    [[ -f "$xml" ]] || continue
+    grep -qxF -- "-- app_sql_sha1 $(sha1sum "${xml%.xml}.sql" | cut -d' ' -f1)" "$xml" \
+      || die "Empreinte de l'export APEX absente ou périmée dans ${xml#"$REPO_DIR"/} : lancer env/local/dev.sh stage, puis committer dist/"
+  done
   info "dist/ à jour de src/database/"
 }
 

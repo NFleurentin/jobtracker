@@ -252,7 +252,7 @@ Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du s
 
 À chaque PR prête à être relue, le workflow [`ci.yml`](.github/workflows/ci.yml) reconstruit le schéma sur une base vide, par le chemin de la prod, puis lance les tests. Les étapes sont celles de [`env/ci/run.sh`](env/ci/run.sh) :
 
-1. `up` : démarre la base depuis l'image de base de la CI (APEX et utPLSQL déjà installés) ;
+1. `up` : démarre la base depuis l'image de base de la CI (APEX, sa traduction française et utPLSQL déjà installés) ;
 2. `bootstrap` : joue les scripts communs de `env/bootstrap/common/` (sauf le contrôle du credential, aucun secret en CI) et installe Logger ;
 3. `deploy` : `project gen-artifact` puis `project deploy`, en proxy `jobtracker_deploy[jobtracker]` ; échec si un changeset reste en attente, si un objet est invalide ou si l'application APEX est absente ;
 4. `test` : compile `test/` et lance utPLSQL ; échec si un test échoue ou si aucun ne s'exécute. Le rapport JUnit est publié en artefact du run (`utplsql-junit`) ;
@@ -294,7 +294,7 @@ env/ci/run.sh down
 - [ ] Score de pertinence par règles
 - [ ] Enrichissement des offres
 - [ ] Indicateurs de suivi (funnel personnel)
-- [x] Image de base de la CI (base, APEX, utPLSQL) publiée sur GHCR, référencée par digest dans `env/versions.env`
+- [x] Image de base de la CI (base, APEX et sa traduction française, utPLSQL) publiée sur GHCR, référencée par digest dans `env/versions.env`
 - [x] CI : `dist/` déployé sur une base vide et tests utPLSQL, à chaque PR
 - [x] CI : `dist/` contrôlé à jour de `src/database/` (`project stage` relancé sur la branche)
 

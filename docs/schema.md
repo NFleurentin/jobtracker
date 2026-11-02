@@ -130,7 +130,8 @@ erDiagram
 
     COMPANY_TYPES {
         NUMBER company_type_id PK "clé du type d'entreprise"
-        VARCHAR2(100) company_type_name "type d'entreprise (ESN, Cabinet de recrutement, Publique...)"
+        VARCHAR2(30) company_type_code "code stable, testé par le code applicatif (ESN, DIRECT_EMPLOYER...)"
+        VARCHAR2(100) company_type_name "type d'entreprise (ESN, Cabinet de recrutement, Fonction publique...)"
     }
 
     COMPANY_SIZES {
@@ -328,6 +329,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `INTERVIEWS` | `scheduled_at` obligatoire ; `duration_minutes` positif |
 | `LOCATIONS` | `location_name` obligatoire ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
 | `COLLECTIVE_AGREEMENTS` | `idcc_code` unique |
+| `COMPANY_TYPES` | `company_type_code` obligatoire et unique |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | Référentiels, sauf `LOCATIONS` | `<entité>_name` obligatoire et unique |

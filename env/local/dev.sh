@@ -520,9 +520,28 @@ restore_snapshot_only_diffs() {
   done < <(git -C "$REPO_DIR" diff --name-only -- src/database)
 }
 
+# Empreinte de l'export APEX dans son changeset : Liquibase calcule son checksum
+# sur le texte du changeset, qui appelle l'export sans l'inclure, donc runOnChange
+# ne verrait aucune nouvelle version. project stage régénère ce fichier quand
+# l'application change, ce qui efface l'empreinte, et refuse de remplacer un
+# fichier dont le tampon sqlcl_checksum (SHA-1 du fichier sans cette ligne) n'est
+# plus exact : le tampon est recalculé après l'écriture de l'empreinte.
+stamp_apex_changesets() {
+  local xml sql hash
+  for xml in "$REPO_DIR"/dist/releases/apex/f*/f*.xml; do
+    [[ -f "$xml" ]] || continue
+    sql="${xml%.xml}.sql"
+    hash="$(sha1sum "$sql" | cut -d' ' -f1)"
+    sed -i -e '/^-- app_sql_sha1 /d' -e "/^@${sql##*/}\$/i -- app_sql_sha1 $hash" "$xml"
+    hash="$(sed '/^-- sqlcl_checksum /d' "$xml" | sha1sum | cut -d' ' -f1)"
+    sed -i "s/^-- sqlcl_checksum .*/-- sqlcl_checksum  $hash/" "$xml"
+  done
+}
+
 # Évolution du schéma sur la base de dev, où le DDL a été joué à la main :
 # project export, project stage, puis alignement du journal Liquibase par
-# lb changelog-sync, après confirmation. Ne committe rien : src/ doit l'être
+# lb changelog-sync et réimport de l'application APEX si son changeset a changé,
+# après confirmation. Ne committe rien : src/ doit l'être
 # avant (project stage compare les commits), dist/ se relit et se committe
 # après. Les commandes project rendent 0 même en échec : leur effet est
 # contrôlé (fichiers de src/, changelog de la branche dans dist/).
@@ -544,6 +563,7 @@ cmd_stage() {
 
   info "Génération des changesets de la branche (project stage)"
   printf 'whenever sqlerror exit failure\nproject stage\nexit\n' | cmd_sql -S
+  stamp_apex_changesets
   # L'application APEX va dans dist/releases/apex/, hors des changesets de la
   # branche : stage-check (CI) contrôle qu'elle y est.
   if ! git -C "$REPO_DIR" diff --quiet main...HEAD -- src/database ':!src/database/*/apex_apps/*' \
@@ -570,9 +590,19 @@ cmd_stage() {
     local f
     for f in "$changes_dir"/_custom/*.sql; do printf '   %s\n' "${f#"$REPO_DIR"/}" >&2; done
   fi
-  read -r -p "Marquer ces changesets comme joués sur la base de dev (lb changelog-sync) ? Saisir 'oui' : " answer || answer=""
+  read -r -p "Marquer ces changesets comme joués sur la base de dev (lb changelog-sync), puis réimporter l'application APEX si elle a changé ? Saisir 'oui' : " answer || answer=""
   [[ "$answer" == "oui" ]] || { info "Alignement annulé : rien n'a été écrit en base"; return; }
   printf 'whenever sqlerror exit failure\ncd dist\nlb changelog-sync %s\nexit\n' "$lb_args" | cmd_sql -S
+
+  # changelog-sync ignore un changeset déjà joué dont le checksum a changé :
+  # il reste INSTALL_1000, importé pour de bon. Sans effet sur l'application,
+  # que l'export ci-dessus vient de trouver identique à src/.
+  status="$(printf 'whenever sqlerror exit failure\ncd dist\nlb status %s\nexit\n' "$lb_args" | cmd_sql -S)" \
+    || { printf '%s\n' "$status"; die "lb status en échec"; }
+  if ! grep -q 'is up to date' <<<"$status"; then
+    info "Import de l'application APEX (dist/install.sql)"
+    printf 'cd dist\n@install.sql\nexit\n' | cmd_sql -S
+  fi
 
   info "Changesets restant en attente (aucun attendu)"
   printf 'whenever sqlerror exit failure\ncd dist\nlb status %s\nexit\n' "$lb_args" | cmd_sql -S

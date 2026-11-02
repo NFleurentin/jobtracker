@@ -31,5 +31,8 @@
 <include file="jobtracker/ref_constraints/companies_company_types_fk.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/ref_constraints/companies_locations_fk.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/ref_constraints/companies_sectors_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/app_errors.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/company_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/company_api.sql" relativeToChangelogFile="true"/>
 <include file="_custom/company_sizes_data.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

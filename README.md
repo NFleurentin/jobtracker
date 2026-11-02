@@ -230,7 +230,7 @@ printf 'exec collect_france_travail.run\nexit\n' | env/local/dev.sh sql -S
 Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. Ils se compilent en dev par `@fichier` (spec puis body), puis :
 
 ```bash
-printf "set serveroutput on\nexec ut.run(ut_varchar2_list('test_http_util', 'test_collect_staging', 'test_collect_france_travail'))\nexit\n" | env/local/dev.sh sql -S
+printf "set serveroutput on\nexec ut.run(ut_varchar2_list('test_http_util', 'test_collect_staging', 'test_collect_france_travail', 'test_company_api'))\nexit\n" | env/local/dev.sh sql -S
 ```
 
 Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du staging sont testées, utPLSQL annulant les écritures à la fin de chaque test.
@@ -269,6 +269,7 @@ env/ci/run.sh down
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
 - [x] Tables de staging de la collecte (runs, requêtes) et référentiel des sources
+- [x] Entreprises : tables, référentiels, package d'écriture et tests
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)
@@ -345,6 +346,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Colonne `<entité>_code` seulement sur un référentiel testé par du code (`offer_sources`, `company_types`, `location_types`) ; valeurs initiales des référentiels chargées par migration | le code reste stable quand le libellé change, et l'identity peut différer d'une base à l'autre ; une liste vide rendrait les formulaires inutilisables dès le premier déploiement. Limite : un référentiel qui devient testé demande une migration avec reprise des lignes | code sur tous les référentiels (colonnes sans usage), test sur le libellé (cassé par une reformulation), référentiels remplis à la main (liste vide en CI et sur une base neuve) |
 | `company_sizes` avec nom court, nom long et `display_order` | l'ordre métier n'est pas alphabétique (ETI avant PME), et le sigle comme le libellé complet servent selon l'écran. Limite : un écart à la convention `<entité>_name` des référentiels | nom unique (ordre alphabétique ou sigle seul), tri sur l'identity (s'appuie sur l'ordre d'insertion, sans valeur métier) |
 | Page LinkedIn d'une entreprise stockée par son slug (`companies.linkedin_slug`), lien reconstruit à l'affichage ; contrainte `CHECK` sans `/` ni espace | le préfixe `linkedin.com/company/` est fixe ; la contrainte refuse une URL collée, qui casserait le lien. Limite : une page `/school/` ou `/showcase/` n'entre pas dans le gabarit | URL complète (préfixe répété, saisie non contrôlée) |
+| Écritures sur `companies` par le package `company_api`, plutôt que par le traitement natif d'APEX ; `updated_at` renseigné par le package ; cycles sur `parent_company_id` refusés par une remontée de la hiérarchie ; suppression d'une entreprise référencée traduite de l'`ORA-02292` vers `app_errors` | un seul point d'entrée pour les règles, testable sans APEX ; pas de logique dans un trigger ; messages lisibles par l'utilisateur. Limites : `update_company` remplace toute la ligne ; deux sessions simultanées pourraient créer un cycle à elles deux, sans verrou, acceptable pour une application à un seul utilisateur ; une écriture directe en SQL contourne ces contrôles | traitement natif d'APEX (règles dans l'application), trigger sur `updated_at` et les cycles (logique cachée, `ORA-04091` sur une lecture de la table modifiée) |
 
 ## Limites d'Always Free
 

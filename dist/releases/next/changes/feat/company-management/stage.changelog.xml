@@ -8,5 +8,8 @@
 <include file="_custom/company_types_data.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/tables/company_sizes.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/comments/company_sizes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/sectors.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/sectors.sql" relativeToChangelogFile="true"/>
+<include file="_custom/sectors_data.sql" relativeToChangelogFile="true"/>
 <include file="_custom/company_sizes_data.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

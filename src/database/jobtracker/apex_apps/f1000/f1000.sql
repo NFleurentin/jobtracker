@@ -20,7 +20,7 @@ begin
 wwv_flow_imp.import_begin (
  p_version_yyyy_mm_dd=>'2026.03.30'
 ,p_release=>'26.1.0'
-,p_default_workspace_id=>6800164315863072
+,p_default_workspace_id=>5545883586040021
 ,p_default_application_id=>1000
 ,p_default_id_offset=>0
 ,p_default_owner=>'JOBTRACKER'
@@ -61,7 +61,7 @@ prompt APPLICATION 1000 - JobTracker
 --       E-Mail:
 --     Supporting Objects:  Excluded
 --   Version:         26.1.0
---   Instance ID:     2400139363144436
+--   Instance ID:     1745857762556088
 --
 
 prompt --application/delete_application
@@ -80,10 +80,11 @@ wwv_imp_workspace.create_flow(
 ,p_page_protection_enabled_y_n=>'Y'
 ,p_checksum_salt=>'BE8E26C19CF3511FBFEB1A6F9F79DA741A84B7ED70299369E025F6E56E2FFF65'
 ,p_bookmark_checksum_function=>'SH512'
-,p_compatibility_mode=>'24.2'
-,p_flow_language=>'en'
+,p_max_session_length_sec=>28800
+,p_max_session_idle_sec=>3600
+,p_compatibility_mode=>'26.1'
+,p_flow_language=>'fr'
 ,p_flow_language_derived_from=>'FLOW_PRIMARY_LANGUAGE'
-,p_allow_feedback_yn=>'Y'
 ,p_date_format=>'DS'
 ,p_timestamp_format=>'DS'
 ,p_timestamp_tz_format=>'DS'
@@ -104,7 +105,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'5431976'
+,p_version_scn=>'6375202'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -124,6 +125,7 @@ wwv_imp_workspace.create_flow(
 ,p_nav_bar_list_id=>wwv_flow_imp.id(10000335531844198)
 ,p_nav_bar_list_template_id=>2849019392706229583
 ,p_nav_bar_template_options=>'#DEFAULT#'
+,p_translation_method=>'TEXT_MESSAGES'
 );
 end;
 /
@@ -240,6 +242,7 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10000335531844198)
 ,p_name=>'Navigation Bar'
 ,p_static_id=>'navigation-bar'
+,p_version_scn=>'SH256:JMMcQPtHAL-Uy3M7Mbis8VvYnul83qyX3t3OW42n-kw'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10004279031844232)
@@ -264,7 +267,7 @@ wwv_flow_imp_shared.create_list_item(
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10004409236844234)
 ,p_list_item_display_sequence=>30
-,p_list_item_link_text=>'Sign Out'
+,p_list_item_link_text=>unistr('Se d\00E9connecter')
 ,p_static_id=>'sign-out'
 ,p_list_item_link_target=>'&LOGOUT_URL.'
 ,p_list_item_icon=>'fa-sign-out'
@@ -280,13 +283,14 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10000203478844198)
 ,p_name=>'Navigation Menu'
 ,p_static_id=>'navigation-menu'
+,p_version_scn=>'SH256:h91dB6n36-2JFTUrNUAAsxK97MaimTX6pXSycTsh8X4'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10004591931844234)
 ,p_list_item_display_sequence=>10
-,p_list_item_link_text=>'Home'
+,p_list_item_link_text=>'Accueil'
 ,p_static_id=>'home'
-,p_list_item_link_target=>'f?p=&APP_ID.:1:&SESSION.::&DEBUG.'
+,p_list_item_link_target=>'f?p=&APP_ID.:1:&SESSION.::&DEBUG.::::'
 ,p_list_item_icon=>'fa-home'
 ,p_list_item_current_type=>'TARGET_PAGE'
 );
@@ -862,9 +866,9 @@ wwv_flow_imp_shared.create_menu(
 );
 wwv_flow_imp_shared.create_menu_option(
  p_id=>wwv_flow_imp.id(10004164786844232)
-,p_short_name=>'Home'
+,p_short_name=>'Accueil'
 ,p_static_id=>'home'
-,p_link=>'f?p=&APP_ID.:1:&SESSION.::&DEBUG.'
+,p_link=>'f?p=&APP_ID.:1:&SESSION.::&DEBUG.:::'
 ,p_page_id=>1
 );
 end;
@@ -1005,9 +1009,9 @@ prompt --application/pages/page_00001
 begin
 wwv_flow_imp_page.create_page(
  p_id=>1
-,p_name=>'Home'
+,p_name=>'Accueil'
 ,p_alias=>'HOME'
-,p_step_title=>'Home'
+,p_step_title=>'Accueil'
 ,p_autocomplete_on_off=>'OFF'
 ,p_step_template=>4073832297226169690
 ,p_page_template_options=>'#DEFAULT#'
@@ -1016,7 +1020,7 @@ wwv_flow_imp_page.create_page(
 );
 wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(10005304082844235)
-,p_plug_name=>'Home'
+,p_plug_name=>'Accueil'
 ,p_static_id=>'app-name'
 ,p_title=>'&APP_TITLE.'
 ,p_region_template_options=>'#DEFAULT#'
@@ -1036,9 +1040,9 @@ prompt --application/pages/page_09999
 begin
 wwv_flow_imp_page.create_page(
  p_id=>9999
-,p_name=>'Login Page'
+,p_name=>'Connexion'
 ,p_alias=>'LOGIN'
-,p_step_title=>'&APP_TITLE. - Log In'
+,p_step_title=>'&APP_TITLE. - Connexion'
 ,p_warn_on_unsaved_changes=>'N'
 ,p_first_item=>'AUTO_FIRST_ITEM'
 ,p_autocomplete_on_off=>'OFF'
@@ -1074,23 +1078,21 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_template_options=>'#DEFAULT#'
 ,p_button_template_id=>4073839297780169708
 ,p_button_is_hot=>'Y'
-,p_button_image_alt=>'Sign In'
+,p_button_image_alt=>'Se connecter'
 ,p_button_position=>'NEXT'
-,p_grid_new_row=>'Y'
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(10005693176844238)
 ,p_name=>'P9999_PASSWORD'
 ,p_item_sequence=>20
 ,p_item_plug_id=>wwv_flow_imp.id(10005558668844238)
-,p_prompt=>'Password'
-,p_placeholder=>'Password'
+,p_prompt=>'Mot de passe'
+,p_placeholder=>'Mot de passe'
 ,p_source_type=>'ALWAYS_NULL'
 ,p_display_as=>'NATIVE_PASSWORD'
 ,p_cSize=>40
 ,p_cMaxlength=>100
 ,p_tag_attributes=>'autocomplete="current-password"'
-,p_label_alignment=>'RIGHT'
 ,p_field_template=>2042262243893469891
 ,p_item_icon_css_classes=>'fa-key'
 ,p_item_template_options=>'#DEFAULT#'
@@ -1103,10 +1105,9 @@ wwv_flow_imp_page.create_page_item(
 ,p_name=>'P9999_REMEMBER'
 ,p_item_sequence=>30
 ,p_item_plug_id=>wwv_flow_imp.id(10005558668844238)
-,p_prompt=>'Remember username'
+,p_prompt=>unistr('M\00E9moriser le nom d''utilisateur')
 ,p_source_type=>'ALWAYS_NULL'
 ,p_display_as=>'NATIVE_SINGLE_CHECKBOX'
-,p_label_alignment=>'RIGHT'
 ,p_display_when=>'apex_authentication.persistent_cookies_enabled'
 ,p_display_when2=>'PLSQL'
 ,p_display_when_type=>'EXPRESSION'
@@ -1120,14 +1121,13 @@ wwv_flow_imp_page.create_page_item(
 ,p_name=>'P9999_USERNAME'
 ,p_item_sequence=>10
 ,p_item_plug_id=>wwv_flow_imp.id(10005558668844238)
-,p_prompt=>'Username'
-,p_placeholder=>'Username'
+,p_prompt=>'Nom d''utilisateur'
+,p_placeholder=>'Nom d''utilisateur'
 ,p_source_type=>'ALWAYS_NULL'
 ,p_display_as=>'NATIVE_TEXT_FIELD'
 ,p_cSize=>40
 ,p_cMaxlength=>100
 ,p_tag_attributes=>'autocomplete="username"'
-,p_label_alignment=>'RIGHT'
 ,p_field_template=>2042262243893469891
 ,p_item_icon_css_classes=>'fa-user'
 ,p_item_template_options=>'#DEFAULT#'
@@ -1265,4 +1265,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"512db666f5ea9c4c2aa0d494610500765bf85a99","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"818876948c93bd4d750d78fa79c5f5d525a3c317","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

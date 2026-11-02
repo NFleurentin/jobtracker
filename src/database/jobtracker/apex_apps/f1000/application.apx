@@ -43,12 +43,16 @@ app JOBTRACKER (
     sessionStateProtection {
         checksumSalt: BE8E26C19CF3511FBFEB1A6F9F79DA741A84B7ED70299369E025F6E56E2FFF65
     }
+    sessionManagement {
+        maxSessionLength: 28800
+        maxSessionIdleTime: 3600
+    }
+    globalization {
+        primaryLanguage: fr
+        translationMethod: textMessages
+    }
     errorHandling {
         errorHandlingFunctionName: app_error_handler.handle_error
-    }
-    runtime {
-        allowFeedback: true
-        compatibilityMode: 24.2
     }
 )
 

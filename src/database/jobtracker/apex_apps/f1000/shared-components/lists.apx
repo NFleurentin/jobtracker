@@ -38,7 +38,7 @@ list navigation-bar (
     )
 
     entry sign-out (
-        label: Sign Out
+        label: Se déconnecter
         icon {
             imageIconCssClasses: fa-sign-out
         }
@@ -63,7 +63,7 @@ list navigation-menu (
     name: Navigation Menu
 
     entry home (
-        label: Home
+        label: Accueil
         icon {
             imageIconCssClasses: fa-home
         }

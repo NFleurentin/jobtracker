@@ -240,7 +240,7 @@ printf 'exec collect_france_travail.run\nexit\n' | env/local/dev.sh sql -S
 Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. Ils se compilent en dev par `@fichier` (spec puis body), puis :
 
 ```bash
-printf "set serveroutput on\nexec ut.run(ut_varchar2_list('test_http_util', 'test_collect_staging', 'test_collect_france_travail', 'test_company_api'))\nexit\n" | env/local/dev.sh sql -S
+printf "set serveroutput on\nexec ut.run(ut_varchar2_list('test_http_util', 'test_collect_staging', 'test_collect_france_travail', 'test_company_api', 'test_app_error_handler'))\nexit\n" | env/local/dev.sh sql -S
 ```
 
 Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du staging sont testées, utPLSQL annulant les écritures à la fin de chaque test.
@@ -286,6 +286,7 @@ env/ci/run.sh down
 - [ ] Tests utPLSQL (en place pour la collecte, à étendre à chaque package)
 - [ ] Job `DBMS_SCHEDULER` de collecte quotidienne
 - [x] Application APEX vide, exportée et déployée par les migrations
+- [x] Erreurs de la base traduites pour l'utilisateur de l'application APEX
 - [ ] Application APEX v1 (offres en cours, fiche d'offre, suivi des candidatures)
 - [ ] Score de pertinence par règles
 - [ ] Enrichissement des offres
@@ -362,6 +363,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | `company_sizes` avec nom court, nom long et `display_order` | l'ordre métier n'est pas alphabétique (ETI avant PME), et le sigle comme le libellé complet servent selon l'écran. Limite : un écart à la convention `<entité>_name` des référentiels | nom unique (ordre alphabétique ou sigle seul), tri sur l'identity (s'appuie sur l'ordre d'insertion, sans valeur métier) |
 | Page LinkedIn d'une entreprise stockée par son slug (`companies.linkedin_slug`), lien reconstruit à l'affichage ; contrainte `CHECK` sans `/` ni espace | le préfixe `linkedin.com/company/` est fixe ; la contrainte refuse une URL collée, qui casserait le lien. Limite : une page `/school/` ou `/showcase/` n'entre pas dans le gabarit | URL complète (préfixe répété, saisie non contrôlée) |
 | Écritures sur `companies` par le package `company_api`, plutôt que par le traitement natif d'APEX ; `updated_at` renseigné par le package ; cycles sur `parent_company_id` refusés par une remontée de la hiérarchie ; suppression d'une entreprise référencée traduite de l'`ORA-02292` vers `app_errors` | un seul point d'entrée pour les règles, testable sans APEX ; pas de logique dans un trigger ; messages lisibles par l'utilisateur. Limites : `update_company` remplace toute la ligne ; deux sessions simultanées pourraient créer un cycle à elles deux, sans verrou, acceptable pour une application à un seul utilisateur ; une écriture directe en SQL contourne ces contrôles | traitement natif d'APEX (règles dans l'application), trigger sur `updated_at` et les cycles (logique cachée, `ORA-04091` sur une lecture de la table modifiée) |
+| Erreurs de la base traduites par une Error Handling Function de niveau application, `app_error_handler.handle_error` : seules les erreurs métier (plage `-202xx`) et les contraintes listées dans le package s'affichent, le reste donne un message générique et part dans Logger | un seul point pour tous les formulaires, logique testée en utPLSQL, doublon concurrent couvert puisque la contrainte reste juge. Les plages `-200xx` et `-201xx`, techniques, sont masquées : une entreprise supprimée entre-temps donne le message générique. Limites : fonction à renseigner dans l'application, contrainte nouvelle à ajouter au package, sinon elle tombe dans le message générique | validations de page seules (à répéter par formulaire, doublon concurrent non couvert), contrôles dans `company_api` avant l'écriture (course entre contrôle et écriture), messages en table (paramétrage sans déploiement, inutile pour un seul utilisateur) |
 
 ## Limites d'Always Free
 

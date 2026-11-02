@@ -1,7 +1,7 @@
 page 1 (
-    name: Home
+    name: Accueil
     alias: HOME
-    title: Home
+    title: Accueil
     appearance {
         pageTemplate: @/standard
         templateOptions: #DEFAULT#
@@ -15,7 +15,7 @@ page 1 (
     }
 
     region app-name (
-        name: Home
+        name: Accueil
         title: &APP_TITLE.
         type: staticContent
         layout {

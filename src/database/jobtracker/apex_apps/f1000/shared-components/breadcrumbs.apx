@@ -2,7 +2,7 @@ breadcrumb breadcrumb (
     name: Breadcrumb
 
     entry home (
-        name: Home
+        name: Accueil
         pageNumber: 1
         execution {
             sequence: 10

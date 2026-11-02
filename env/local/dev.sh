@@ -544,7 +544,10 @@ cmd_stage() {
 
   info "Génération des changesets de la branche (project stage)"
   printf 'whenever sqlerror exit failure\nproject stage\nexit\n' | cmd_sql -S
-  if ! git -C "$REPO_DIR" diff --quiet main...HEAD -- src/database && [[ ! -f "$changes_dir/stage.changelog.xml" ]]; then
+  # L'application APEX va dans dist/releases/apex/, hors des changesets de la
+  # branche : stage-check (CI) contrôle qu'elle y est.
+  if ! git -C "$REPO_DIR" diff --quiet main...HEAD -- src/database ':!src/database/*/apex_apps/*' \
+     && [[ ! -f "$changes_dir/stage.changelog.xml" ]]; then
     die "project stage n'a rien produit dans ${changes_dir#"$REPO_DIR"/} alors que src/database/ diffère de main"
   fi
 

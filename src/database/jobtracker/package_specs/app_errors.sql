@@ -50,8 +50,18 @@ create or replace package jobtracker.app_errors authid definer is
     -- -------------------------------------------------------------------------
     -- Métier : -20200 à -20299
     -- -------------------------------------------------------------------------
+
+    -- Rattachement qui créerait un cycle dans une hiérarchie (entreprises...)
+    co_circular_reference constant pls_integer := -20200;
+    e_circular_reference exception;
+    pragma exception_init ( e_circular_reference, -20200 );
+
+    -- Suppression d'une ligne encore référencée par d'autres données
+    co_row_referenced constant pls_integer := -20201;
+    e_row_referenced exception;
+    pragma exception_init ( e_row_referenced, -20201 );
 end app_errors;
 /
 
 
--- sqlcl_snapshot {"hash":"513facdaec90d3121e59a5a6cc8f1eb0600af2ad","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"d2725f0c30ff607bdcac6f5aa2ad91e5adc41a9c","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}

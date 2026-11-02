@@ -115,6 +115,7 @@ erDiagram
 
     LOCATION_TYPES {
         NUMBER location_type_id PK "clé du type de lieu"
+        VARCHAR2(30) location_type_code "code stable, testé par le code applicatif (COUNTRY, MUNICIPALITY...)"
         VARCHAR2(100) location_type_name "type de lieu (Pays, Région, Commune, Adresse...)"
     }
 
@@ -130,12 +131,15 @@ erDiagram
 
     COMPANY_TYPES {
         NUMBER company_type_id PK "clé du type d'entreprise"
-        VARCHAR2(100) company_type_name "type d'entreprise (ESN, Cabinet de recrutement, Publique...)"
+        VARCHAR2(30) company_type_code "code stable, testé par le code applicatif (ESN, DIRECT_EMPLOYER...)"
+        VARCHAR2(100) company_type_name "type d'entreprise (ESN, Cabinet de recrutement, Fonction publique...)"
     }
 
     COMPANY_SIZES {
         NUMBER company_size_id PK "clé de la taille d'entreprise"
-        VARCHAR2(100) company_size_name "taille de l'entreprise (TPE, PME, ETI, Grande entreprise)"
+        VARCHAR2(10) company_size_short_name "sigle (TPE, PME, ETI, GE)"
+        VARCHAR2(100) company_size_long_name "libellé complet (Grande entreprise...)"
+        NUMBER(3) display_order "ordre d'affichage"
     }
 
     SECTORS {
@@ -162,7 +166,7 @@ erDiagram
         NUMBER location_id FK "lieu de l'entreprise, jusqu'à l'adresse"
         VARCHAR2(9) siren "numéro SIREN, unique"
         VARCHAR2(500) website_url "site web"
-        VARCHAR2(500) linkedin_url "page LinkedIn"
+        VARCHAR2(100) linkedin_slug "identifiant de la page LinkedIn (linkedin.com/company/<slug>)"
         VARCHAR2(254) email "email"
         VARCHAR2(30) phone "numéro de téléphone"
         NUMBER(4) creation_year "année de création de l'entreprise"
@@ -323,14 +327,17 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` obligatoire, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 |
 | `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire |
 | `EDUCATIONS` | `(education_level_id, education_domain_id)` unique |
-| `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres |
+| `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace |
 | `CONTACTS` | `last_name` obligatoire |
 | `INTERVIEWS` | `scheduled_at` obligatoire ; `duration_minutes` positif |
-| `LOCATIONS` | `location_name` obligatoire ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
+| `LOCATIONS` | `location_type_id` et `location_name` obligatoires ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
 | `COLLECTIVE_AGREEMENTS` | `idcc_code` unique |
+| `COMPANY_TYPES` | `company_type_code` obligatoire et unique |
+| `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |
+| `LOCATION_TYPES` | `location_type_code` obligatoire et unique |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
-| Référentiels, sauf `LOCATIONS` | `<entité>_name` obligatoire et unique |
+| Référentiels, sauf `LOCATIONS` et `COMPANY_SIZES` | `<entité>_name` obligatoire et unique |
 | Tables hiérarchiques (`APPLICATIONS`, `COMPANIES`, `LOCATIONS`, `SKILL_CATEGORIES`) | une ligne n'est pas son propre parent ; les cycles plus longs sont contrôlés par le package |
 | Toutes les tables | clés étrangères obligatoires là où le diagramme montre `\|\|` côté parent ; `created_at` et `updated_at` obligatoires |
 | Colonnes `BOOLEAN` | `NOT NULL` : un `BOOLEAN` accepte aussi `NULL` |

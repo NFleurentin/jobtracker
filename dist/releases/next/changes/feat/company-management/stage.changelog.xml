@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/tables/company_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/company_types.sql" relativeToChangelogFile="true"/>
+<include file="_custom/company_types_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/company_sizes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/company_sizes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/sectors.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/sectors.sql" relativeToChangelogFile="true"/>
+<include file="_custom/sectors_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/location_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/location_types.sql" relativeToChangelogFile="true"/>
+<include file="_custom/location_types_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/locations.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/locations.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/locations_location_type_id_location_code_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/locations_locations_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/locations_location_types_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/companies.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/companies.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_company_size_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_company_type_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_location_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_parent_company_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/companies_sector_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_companies_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_company_sizes_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_company_types_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_locations_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/companies_sectors_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/app_errors.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/company_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/company_api.sql" relativeToChangelogFile="true"/>
+<include file="_custom/company_sizes_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

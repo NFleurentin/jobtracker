@@ -20,7 +20,6 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
   - colonne `not null` ajoutée à une table remplie : l'ajout direct échoue. Ajouter la colonne nullable et la remplir par un `_custom`, puis la rendre obligatoire dans une PR suivante ;
   - renommage de colonne : généré en ajout puis suppression, qui perd la donnée. Nouvelle colonne nullable copiée par un `_custom`, puis, dans une PR suivante, `not null` et suppression de l'ancienne par un `_custom` placé après. Choisir les noms de colonnes définitifs dès la création ;
   - suppression de colonne : générée en commentaire, donc à faire par un `_custom`.
-- Recréer une vue de base ou supprimer une colonne invalide les vues dépendantes : les recompiler par un `_custom` en fin de branche, car la CI refuse un objet invalide après le déploiement.
 
 ## Modèle de données
 

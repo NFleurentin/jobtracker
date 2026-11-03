@@ -300,7 +300,7 @@ env/ci/run.sh down
 - [x] Entreprises dans l'application APEX : liste avec recherche, formulaire de création, modification et suppression par le package
 - [x] Libellés français des colonnes courantes repris par l'assistant des Forms APEX (UI Defaults, amorçage du dev)
 - [x] Référentiels en français et en anglais : colonnes `_fr` et `_en` remplies, lues par les LOV et `company_details` selon la langue de la session APEX, tests
-- [ ] Libellés des référentiels obligatoires (`not null`) et colonnes d'origine supprimées, une fois les colonnes `_fr` et `_en` remplies par la migration
+- [x] Libellés des référentiels obligatoires (`not null`) et colonnes d'origine supprimées
 - [ ] Application APEX v1 (offres en cours, fiche d'offre, suivi des candidatures)
 - [ ] Score de pertinence par règles
 - [ ] Enrichissement des offres

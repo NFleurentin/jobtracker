@@ -8,5 +8,6 @@
 <include file="changes/feat/company-management/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/apex-error-handling/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/company-read-views/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/apex-companies-pages/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

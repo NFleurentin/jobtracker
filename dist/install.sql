@@ -19,4 +19,10 @@ set sqlblanklines on
 prompt "Installing/updating schemas"
 lb update -log -engine SQLCL -changelog-file releases/main.changelog.xml -search-path "." -def env/default.properties
 
--- @utils/recompile.sql
+-- Objets invalidés par les migrations (vues dépendant d'une table modifiée
+-- ou d'une vue recréée) : Oracle les recompilerait au premier accès, mais le
+-- déploiement doit laisser le schéma sans objet invalide (contrôlé en CI).
+-- utils/recompile.sql, fourni par SQLcl, lit les vues dba_ : inaccessibles à
+-- la session de déploiement.
+prompt "Recompiling invalid objects"
+exec dbms_utility.compile_schema(schema => user, compile_all => false)

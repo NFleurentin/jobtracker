@@ -190,6 +190,8 @@ L'application `JobTracker` (ID `1000`, alias `JOBTRACKER`) se modifie dans le Bu
 
 `project stage` seul ne suffit donc pas pour l'application : il régénère `f1000.xml` sans l'empreinte, et la CI échoue (`stage-check`). `sqlcl_checksum`, dans le même fichier, ne dépend pas de l'application : c'est le SHA-1 de `f1000.xml` sans cette ligne, par lequel SQLcl détecte une modification manuelle. `dev.sh stage` le recalcule, sinon le `project stage` suivant refuserait de remplacer le fichier.
 
+Chaque base de dev (un autre poste, ou une base reconstruite) a son propre workspace APEX : l'export y réécrit `p_default_workspace_id` et le commentaire `Instance ID` de `f1000.sql`. Un diff limité à ces lignes et à l'empreinte `sqlcl_snapshot` est restauré par `dev.sh stage` : il est sans effet sur le déploiement, l'import fixant le workspace cible (`apex_application_install.set_workspace` dans `f1000.xml`). Un vrai changement de l'application emporte avec lui les identifiants de la base qui l'a exporté, sans conséquence.
+
 Une application reconstruite sur une base vide n'a aucun utilisateur : les comptes APEX ne sont pas exportés avec elle. Le compte de connexion se crée à la main dans le workspace, comme `DEV`.
 
 ### Mettre à niveau une autre base de dev

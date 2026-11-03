@@ -553,6 +553,24 @@ restore_snapshot_only_diffs() {
   done < <(git -C "$REPO_DIR" diff --name-only -- src/database)
 }
 
+# Exports APEX dont seuls les identifiants propres à la base de dev ont changé
+# (workspace, instance) et, par suite, l'empreinte sqlcl_snapshot : chaque base
+# de dev a les siens. Sans effet sur le déploiement, l'import fixant le workspace
+# cible (apex_application_install.set_workspace) : ce diff est restauré.
+restore_apex_id_only_diffs() {
+  local f lines
+  while IFS= read -r f; do
+    lines="$(git -C "$REPO_DIR" diff -U0 -- "$f" | grep -v -e '^--- a/' -e '^+++ b/' | grep '^[-+]')" || continue
+    if ! grep -v -E \
+         -e '^[-+],p_default_workspace_id=>[0-9]+$' \
+         -e '^[-+]--   Instance ID: +[0-9]+$' \
+         -e '^[-+]-- sqlcl_snapshot ' <<<"$lines" >/dev/null; then
+      git -C "$REPO_DIR" restore -- "$f"
+      info "Identifiants de la base de dev restaurés (export APEX) : $f"
+    fi
+  done < <(git -C "$REPO_DIR" diff --name-only -- 'src/database/*/apex_apps/*.sql')
+}
+
 # Empreinte de l'export APEX dans son changeset : Liquibase calcule son checksum
 # sur le texte du changeset, qui appelle l'export sans l'inclure, donc runOnChange
 # ne verrait aucune nouvelle version. project stage régénère ce fichier quand
@@ -588,6 +606,7 @@ cmd_stage() {
   info "Export des objets du schéma (project export)"
   printf 'whenever sqlerror exit failure\nproject export\nexit\n' | cmd_sql -S
   restore_snapshot_only_diffs
+  restore_apex_id_only_diffs
   dirty="$(git -C "$REPO_DIR" status --porcelain -- src/database)"
   if [[ -n "$dirty" ]]; then
     printf '%s\n' "$dirty"

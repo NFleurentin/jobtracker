@@ -107,7 +107,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'6623229'
+,p_version_scn=>'6659998'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -1241,6 +1241,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Company Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
  p_id=>wwv_flow_imp.id(12222039403864099)
@@ -1261,6 +1262,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Company Size Display Order'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -1455,6 +1457,7 @@ wwv_flow_imp_page.create_component_da_action(
 ,p_action_sequence=>10
 ,p_action=>'NATIVE_DIALOG_CANCEL'
 ,p_static_id=>'native-dialog-cancel'
+,p_stop_execution_on_error=>true
 );
 wwv_flow_imp_page.create_page_button(
  p_id=>wwv_flow_imp.id(12217917585864026)
@@ -2190,4 +2193,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"98f4eae86fcade74ceec18787e69671ee9a4c92e","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"23eb7e2e486cbeefd533f4315f48652b185499fe","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

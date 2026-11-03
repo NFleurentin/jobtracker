@@ -5,6 +5,28 @@ create or replace package body jobtracker.company_api is
     pragma exception_init ( e_child_record_found, -2292 );
 
     /**
+     * Nom d'une entreprise, entre guillemets, pour un message d'erreur métier :
+     * l'utilisateur ne voit jamais les identifiants.
+     */
+    function quoted_name (
+        in_company_id in companies.company_id%type
+    ) return varchar2 is
+        l_company_name companies.company_name%type;
+    begin
+        select
+            company_name
+        into l_company_name
+        from
+            companies
+        where
+            company_id = in_company_id;
+
+        return '« '
+               || l_company_name
+               || ' »';
+    end quoted_name;
+
+    /**
      * Refuse un parent qui créerait un cycle, l'entreprise elle-même comprise.
      * Remonte la hiérarchie depuis le parent demandé : l'entreprise ne doit pas
      * y figurer. NOCYCLE protège la lecture d'un cycle déjà présent en base.
@@ -30,11 +52,11 @@ create or replace package body jobtracker.company_api is
             prior parent_company_id = company_id;
 
         if l_cycle_count > 0 then
-            raise_application_error(app_errors.co_circular_reference, 'L''entreprise '
-                                                                      || in_parent_company_id
-                                                                      || ' ne peut pas être la société mère de l''entreprise '
-                                                                      || in_company_id
-                                                                      || ' : ce rattachement créerait un cycle.');
+            raise_application_error(app_errors.co_circular_reference,
+                                    quoted_name(in_company_id)
+                                    || ' ne peut pas avoir '
+                                    || quoted_name(in_parent_company_id)
+                                    || ' comme entreprise parente : ce rattachement créerait un cycle.');
 
         end if;
 
@@ -152,14 +174,14 @@ create or replace package body jobtracker.company_api is
 
     exception
         when e_child_record_found then
-            raise_application_error(app_errors.co_row_referenced, 'L''entreprise '
-                                                                  || in_company_id
-                                                                  || ' est référencée par d''autres données : suppression impossible.'
-                                                                  );
+            raise_application_error(app_errors.co_row_referenced,
+                                    'L''entreprise '
+                                    || quoted_name(in_company_id)
+                                    || ' est référencée par d''autres données : suppression impossible.');
     end delete_company;
 
 end company_api;
 /
 
 
--- sqlcl_snapshot {"hash":"5ff319e29a1efc0e76663b9c3b1f3735e8967766","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"0c32234563a43767422789678d6c1e5093ca2192","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}

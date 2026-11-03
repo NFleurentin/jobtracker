@@ -208,6 +208,22 @@ create or replace package body jobtracker.test_company_api is
         set_parent(l_top_id, l_bottom_id);
     end update_company_long_cycle;
 
+    procedure update_company_cycle_names_companies is
+        l_parent_id companies.company_id%type;
+        l_child_id  companies.company_id%type;
+    begin
+        l_parent_id := company_api.create_company('Groupe');
+        l_child_id := company_api.create_company(
+            in_company_name      => 'Filiale',
+            in_parent_company_id => l_parent_id
+        );
+        set_parent(l_parent_id, l_child_id);
+        ut.fail('Cycle accepté');
+    exception
+        when app_errors.e_circular_reference then
+            ut.expect(sqlerrm).to_be_like('%« Groupe » ne peut pas avoir « Filiale » comme entreprise parente%');
+    end update_company_cycle_names_companies;
+
     procedure delete_company_removes_row is
         l_company_id companies.company_id%type;
         l_count      pls_integer;
@@ -251,6 +267,19 @@ create or replace package body jobtracker.test_company_api is
         when app_errors.e_row_referenced then
             ut.expect(sqlerrm).to_be_like('%suppression impossible%');
     end delete_company_readable_error;
+
+    procedure delete_company_error_names_company is
+        l_parent_id companies.company_id%type;
+        l_child_id  companies.company_id%type;
+    begin
+        l_parent_id := company_api.create_company('Groupe');
+        l_child_id := new_company(l_parent_id);
+        company_api.delete_company(l_parent_id);
+        ut.fail('Suppression acceptée');
+    exception
+        when app_errors.e_row_referenced then
+            ut.expect(sqlerrm).to_be_like('%« Groupe »%');
+    end delete_company_error_names_company;
 
     procedure company_name_required is
         l_company_id companies.company_id%type;

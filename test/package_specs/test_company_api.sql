@@ -47,6 +47,9 @@ create or replace package jobtracker.test_company_api authid definer is
     --%throws(app_errors.co_circular_reference)
     procedure update_company_long_cycle;
 
+    --%test(nomme les deux entreprises dans le message de cycle)
+    procedure update_company_cycle_names_companies;
+
     --%endcontext
 
     --%context(delete_company)
@@ -64,6 +67,9 @@ create or replace package jobtracker.test_company_api authid definer is
 
     --%test(explique le refus dans un message lisible)
     procedure delete_company_readable_error;
+
+    --%test(nomme l'entreprise dans le message de refus)
+    procedure delete_company_error_names_company;
 
     --%endcontext
 

@@ -1,6 +1,6 @@
 -- liquibase formatted sql
--- changeset JOBTRACKER:1793723863050 stripComments:false  logicalFilePath:feat/translate-reference-labels/jobtracker/views/ui_sectors_lov.sql
--- sqlcl_snapshot src/database/jobtracker/views/ui_sectors_lov.sql:389f8f98f88fa4d035356e06029144b3cb22666d:82fd741d96f58fdd9913d90a6ce24f122c3304bd:alter
+-- changeset JOBTRACKER:1793724733495 stripComments:false  logicalFilePath:feat/translate-reference-labels/jobtracker/views/ui_sectors_lov.sql
+-- sqlcl_snapshot src/database/jobtracker/views/ui_sectors_lov.sql:389f8f98f88fa4d035356e06029144b3cb22666d:19c4f2566181b4b3d40b9f7b277d4f52c41c69d9:alter
 
 create or replace force editionable view jobtracker.ui_sectors_lov (
     return_value,
@@ -17,7 +17,7 @@ create or replace force editionable view jobtracker.ui_sectors_lov (
             when 'en' then
                 sector_name_en
             else
-                sector_name
+                sector_name_fr
         end       as display_value
     from
         jobtracker.sectors

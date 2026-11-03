@@ -1,6 +1,6 @@
 -- liquibase formatted sql
--- changeset JOBTRACKER:1793723863087 stripComments:false  logicalFilePath:feat/translate-reference-labels/jobtracker/views/company_details.sql
--- sqlcl_snapshot src/database/jobtracker/views/company_details.sql:cb7f7bf30a09f7864374be083100edc2fd4c6a95:161ddf2562ec67e37697032dcf422d78d245a779:alter
+-- changeset JOBTRACKER:1793724733528 stripComments:false  logicalFilePath:feat/translate-reference-labels/jobtracker/views/company_details.sql
+-- sqlcl_snapshot src/database/jobtracker/views/company_details.sql:cb7f7bf30a09f7864374be083100edc2fd4c6a95:4f2a42d693b38b9cf3fc2e2d4e3f04e434e3bffd:alter
 
 create or replace force editionable view jobtracker.company_details (
     company_id,
@@ -45,7 +45,7 @@ create or replace force editionable view jobtracker.company_details (
             when 'en' then
                 ct.company_type_name_en
             else
-                ct.company_type_name
+                ct.company_type_name_fr
         end              as company_type_name,
         c.sector_id,
         case (
@@ -57,7 +57,7 @@ create or replace force editionable view jobtracker.company_details (
             when 'en' then
                 s.sector_name_en
             else
-                s.sector_name
+                s.sector_name_fr
         end              as sector_name,
         c.company_size_id,
         case (
@@ -69,7 +69,7 @@ create or replace force editionable view jobtracker.company_details (
             when 'en' then
                 cs.company_size_short_name_en
             else
-                cs.company_size_short_name
+                cs.company_size_short_name_fr
         end              as company_size_short_name,
         case (
             select
@@ -80,7 +80,7 @@ create or replace force editionable view jobtracker.company_details (
             when 'en' then
                 cs.company_size_long_name_en
             else
-                cs.company_size_long_name
+                cs.company_size_long_name_fr
         end              as company_size_long_name,
         cs.display_order as company_size_display_order,
         c.location_id,

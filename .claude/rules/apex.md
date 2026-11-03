@@ -17,8 +17,8 @@ Ces règles couvrent l'application `JobTracker` (ID `1000`). Le schéma et les m
 
 ## Accès aux données
 
-- Lectures : toutes par des vues, LOV et rapports compris. Une page ne lit jamais une table et ne porte pas de SQL métier.
-- Écritures : toutes par les packages. Un formulaire est une Form region sur une vue, avec un process Form - Automatic Row Processing en Target Type « PL/SQL Code » qui appelle le package. Jamais d'Automatic Row Processing sur une table ou une vue : il contournerait les contrôles du package.
+- Lectures : uniquement par les vues `ui_` (`sql.md`), LOV et rapports compris, chaque région et chaque LOV par la sienne. Une page ne lit ni table ni vue de base et ne porte pas de SQL métier : une condition à changer se change dans la vue.
+- Écritures : toutes par les packages. Un formulaire est une Form region sur sa vue `ui_<entité>_form`, avec un process Form - Automatic Row Processing en Target Type « PL/SQL Code » qui appelle le package. Jamais d'Automatic Row Processing sur une table ou une vue : il contournerait les contrôles du package.
 - Validations de page : confort de saisie seulement (champ requis, format). Une règle métier est dans le package, testée sans APEX.
 - Un bloc PL/SQL de page (process, action dynamique, calcul) se limite à l'appel d'un package.
 - Les données collectées sont externes : jamais d'affichage sans échappement. Dans le SQL et le PL/SQL de page, des bind variables (`:P100_ID`), jamais de substitution (`&P100_ID.`).
@@ -31,7 +31,7 @@ Ces règles couvrent l'application `JobTracker` (ID `1000`). Le schéma et les m
 ## Nommage
 
 - Pages par domaine, une centaine par domaine et un page group pour chacun, boîtes de dialogue comprises : `1` accueil, `100-199` entreprises, `200-299` offres, `300-399` candidatures. Un domaine nouveau prend la centaine suivante. `9000-9998` : administration et référentiels.
-- Une LOV utilisée par plus d'une page est une shared LOV, nommée `<REFERENTIEL>_LOV` (`SECTORS_LOV`).
+- Une LOV utilisée par plus d'une page est une shared LOV, nommée `<REFERENTIEL>_LOV` (`SECTORS_LOV`), qui lit `ui_<referentiel>_lov`.
 
 ## Garde-fous pour l'agent
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="_custom/contacts_messages_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/contacts.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/salutations.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/contact_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/contact_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/contacts.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/salutations.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/contacts_salutation_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/contacts_salutations_fk.sql" relativeToChangelogFile="true"/>
+<include file="_custom/salutations_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

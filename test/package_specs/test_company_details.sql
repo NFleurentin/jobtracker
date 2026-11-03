@@ -18,5 +18,14 @@ create or replace package jobtracker.test_company_details authid definer is
     --%test(donne une seule ligne par entreprise)
     procedure one_row_per_company;
 
+    --%test(remonte les libellés anglais dans une session APEX en anglais)
+    --%aftertest(end_english_session)
+    procedure labels_in_english_session;
+
+    -- Détache la session APEX ouverte par un test, en transaction autonome :
+    -- detach et delete_session font un commit, qui empêcherait le rollback
+    -- automatique d'utPLSQL
+    procedure end_english_session;
+
 end test_company_details;
 /

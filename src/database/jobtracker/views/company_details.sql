@@ -32,12 +32,52 @@ create or replace force editionable view jobtracker.company_details (
         c.parent_company_id,
         p.company_name   as parent_company_name,
         c.company_type_id,
-        ct.company_type_name,
+        case (
+            select
+                jobtracker.app_message.current_language
+            from
+                dual
+        )
+            when 'en' then
+                ct.company_type_name_en
+            else
+                ct.company_type_name_fr
+        end              as company_type_name,
         c.sector_id,
-        s.sector_name,
+        case (
+            select
+                jobtracker.app_message.current_language
+            from
+                dual
+        )
+            when 'en' then
+                s.sector_name_en
+            else
+                s.sector_name_fr
+        end              as sector_name,
         c.company_size_id,
-        cs.company_size_short_name,
-        cs.company_size_long_name,
+        case (
+            select
+                jobtracker.app_message.current_language
+            from
+                dual
+        )
+            when 'en' then
+                cs.company_size_short_name_en
+            else
+                cs.company_size_short_name_fr
+        end              as company_size_short_name,
+        case (
+            select
+                jobtracker.app_message.current_language
+            from
+                dual
+        )
+            when 'en' then
+                cs.company_size_long_name_en
+            else
+                cs.company_size_long_name_fr
+        end              as company_size_long_name,
         cs.display_order as company_size_display_order,
         c.location_id,
         l.location_name,
@@ -59,4 +99,4 @@ create or replace force editionable view jobtracker.company_details (
 with read only;
 
 
--- sqlcl_snapshot {"hash":"cb7f7bf30a09f7864374be083100edc2fd4c6a95","type":"VIEW","name":"COMPANY_DETAILS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"4f2a42d693b38b9cf3fc2e2d4e3f04e434e3bffd","type":"VIEW","name":"COMPANY_DETAILS","schemaName":"JOBTRACKER","sxml":""}

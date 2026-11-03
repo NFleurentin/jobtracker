@@ -1,0 +1,257 @@
+page 400 (
+    name: Contacts
+    alias: CONTACTS
+    title: Contacts
+    pageGroup: @contacts
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region contacts (
+        name: Contacts
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: UI_CONTACTS_LIST
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 401
+                items: {
+                    P401_CONTACT_ID: \#CONTACT_ID#\
+                }
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Aucun contact.
+            whenMoreDataFound: Le rapport est limité à #MAX_ROW_COUNT# lignes. Appliquez un filtre pour réduire le nombre de résultats.
+        }
+        advanced {
+            savedReportMappingIdentifier: 7763381621718246
+        }
+
+        column CONTACT_ID (
+            type: hidden
+            heading {
+                heading: Contact Id
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column FIRST_NAME (
+            type: plainText
+            heading {
+                heading: Prénom
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column LAST_NAME (
+            type: plainText
+            heading {
+                heading: Nom
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column SALUTATION_SHORT_NAME (
+            type: plainText
+            heading {
+                heading: Civilité
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column UPDATED_AT (
+            type: plainText
+            heading {
+                heading: Modifié le
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: DATE
+                timezoneAware: Y
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn FIRST_NAME (
+                sequence: 3
+            )
+
+            displayColumn LAST_NAME (
+                sequence: 2
+            )
+
+            displayColumn SALUTATION_SHORT_NAME (
+                sequence: 1
+            )
+
+            displayColumn UPDATED_AT (
+                sequence: 4
+            )
+
+            sort (
+                column: LAST_NAME
+                sort {
+                    sequence: 1
+                }
+            )
+
+            sort (
+                column: FIRST_NAME
+                sort {
+                    sequence: 2
+                }
+            )
+
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Créer
+        layout {
+            sequence: 10
+            region: @contacts
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 401
+                clearCache: 401
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @contacts
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @contacts
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)
+

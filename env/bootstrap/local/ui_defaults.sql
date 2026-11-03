@@ -51,11 +51,16 @@ begin
    add_attribute('SECTOR_ID', 'Secteur');
    add_attribute('COMPANY_SIZE_ID', 'Taille');
    add_attribute('LOCATION_ID', 'Lieu');
+   add_attribute('SALUTATION_ID', 'Civilité');
 
    -- Entreprise, reprise par les offres, les candidatures et les contacts
    add_attribute('COMPANY_ID', 'Entreprise');
    add_attribute('PARENT_COMPANY_ID', 'Entreprise parente');
    add_attribute('CREATION_YEAR', 'Année de création');
+
+   -- Personne, reprise par les contacts et les entretiens
+   add_attribute('FIRST_NAME', 'Prénom');
+   add_attribute('LAST_NAME', 'Nom');
 
    -- Textes libres et coordonnées
    add_attribute('DESCRIPTION', 'Description');

@@ -66,6 +66,18 @@ lov locations-lov (
     }
 )
 
+lov salutations-lov (
+    name: SALUTATIONS_LOV
+    source {
+        tableName: UI_SALUTATIONS_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
 lov sectors-lov (
     name: SECTORS_LOV
     source {

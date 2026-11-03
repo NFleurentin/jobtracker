@@ -9,3 +9,10 @@ pageGroup companies (
     }
 )
 
+pageGroup contacts (
+    name: Contacts
+    description {
+        description: Liste et formulaire des contacts
+    }
+)
+

@@ -16,6 +16,12 @@ create or replace package jobtracker.test_app_error_handler authid definer is
     --%test(laisse passer le message d'une validation de page)
     procedure validation_error_unchanged;
 
+    --%test(traduit une modification concurrente sans la journaliser)
+    procedure data_has_changed_translated;
+
+    --%test(masque une autre erreur ORA-20987 d'APEX)
+    procedure other_apex_error_hidden;
+
     --%endcontext
 
     --%context(erreurs métier)

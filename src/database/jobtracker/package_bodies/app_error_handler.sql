@@ -12,6 +12,10 @@ create or replace package body jobtracker.app_error_handler is
     co_unique_violated    constant pls_integer := -1;
     co_check_violated     constant pls_integer := -2290;
 
+    -- Modification concurrente détectée par le formulaire (Prevent Lost Updates) :
+    -- APEX la lève en ORA-20987, code partagé avec ses erreurs internes
+    co_data_has_changed   constant varchar2(30 char) := 'APEX.DATA_HAS_CHANGED';
+
     /**
      * Message d'une contrainte.
      * @param in_constraint_name nom de la contrainte, sans le schéma
@@ -41,7 +45,9 @@ create or replace package body jobtracker.app_error_handler is
         p_error in apex_error.t_error
     ) return varchar2 is
     begin
-        if p_error.ora_sqlcode between co_business_error_min and co_business_error_max then
+        if p_error.apex_error_code = co_data_has_changed then
+            return 'Ces données ont été modifiées entre-temps. Rechargez la page avant d''enregistrer.';
+        elsif p_error.ora_sqlcode between co_business_error_min and co_business_error_max then
             return apex_error.get_first_ora_error_text(p_error => p_error);
         elsif p_error.ora_sqlcode in ( co_unique_violated, co_check_violated ) then
             return constraint_message(apex_error.extract_constraint_name(p_error => p_error));
@@ -76,7 +82,10 @@ create or replace package body jobtracker.app_error_handler is
         else
             logger.log_error(p_error.message,
                              co_scope,
-                             p_error.ora_sqlerrm
+                             'apex_error_code: '
+                             || p_error.apex_error_code
+                             || chr(10)
+                             || p_error.ora_sqlerrm
                              || chr(10)
                              || p_error.error_backtrace
                              || chr(10)
@@ -92,4 +101,4 @@ end app_error_handler;
 /
 
 
--- sqlcl_snapshot {"hash":"29b99f6fa72f0e6c1975f15ea716c1ec8767ada4","type":"PACKAGE_BODY","name":"APP_ERROR_HANDLER","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"b3d5e12918ae06c9de585fe5aba474ca9f16186a","type":"PACKAGE_BODY","name":"APP_ERROR_HANDLER","schemaName":"JOBTRACKER","sxml":""}

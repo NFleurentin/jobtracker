@@ -81,6 +81,29 @@ create or replace package body jobtracker.test_app_error_handler is
         ut.expect(r_result.display_location).to_equal(apex_error.c_inline_with_field);
     end validation_error_unchanged;
 
+    procedure data_has_changed_translated is
+        r_error  apex_error.t_error;
+        l_logged pls_integer := logged_error_count;
+        r_result apex_error.t_error_result;
+    begin
+        r_error := new_error(-20987, 'ORA-20987: La version en cours des données dans la base a changé.');
+        r_error.apex_error_code := 'APEX.DATA_HAS_CHANGED';
+        r_result := app_error_handler.handle_error(r_error);
+        ut.expect(r_result.message).to_equal('Ces données ont été modifiées entre-temps. Rechargez la page avant d''enregistrer.');
+        ut.expect(r_result.display_location).to_equal(apex_error.c_inline_in_notification);
+        ut.expect(logged_error_count).to_equal(l_logged);
+    end data_has_changed_translated;
+
+    procedure other_apex_error_hidden is
+        r_error  apex_error.t_error;
+        r_result apex_error.t_error_result;
+    begin
+        r_error := new_error(-20987, 'ORA-20987: APEX - Erreur interne.');
+        r_error.apex_error_code := 'APEX.OTHER_ERROR';
+        r_result := app_error_handler.handle_error(r_error);
+        ut.expect(r_result.message).to_equal(co_unexpected_message);
+    end other_apex_error_hidden;
+
     procedure business_error_without_prefix is
         r_result apex_error.t_error_result;
     begin

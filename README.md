@@ -244,10 +244,10 @@ Collecte manuelle en dev (appels réels à l'API, résultat validé en base) :
 printf 'exec collect_france_travail.run\nexit\n' | env/local/dev.sh sql -S
 ```
 
-Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. Ils se compilent en dev par `@fichier` (spec puis body), puis :
+Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. Ils se compilent en dev par `@fichier` (spec puis body), puis `ut.run`, sans argument comme en CI, lance toutes les suites du schéma applicatif :
 
 ```bash
-printf "set serveroutput on\nexec ut.run(ut_varchar2_list('test_http_util', 'test_collect_staging', 'test_collect_france_travail', 'test_company_api', 'test_app_error_handler', 'test_app_message'))\nexit\n" | env/local/dev.sh sql -S
+printf "set serveroutput on\nexec ut.run\nexit\n" | env/local/dev.sh sql -S
 ```
 
 Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du staging sont testées, utPLSQL annulant les écritures à la fin de chaque test.

@@ -285,6 +285,7 @@ env/ci/run.sh down
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
 - [x] Tables de staging de la collecte (runs, requêtes) et référentiel des sources
 - [x] Entreprises : tables, référentiels, package d'écriture et tests
+- [x] Entreprises : vues de lecture pour APEX (vue de base et vues `ui_` de la liste, du formulaire et des LOV)
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)

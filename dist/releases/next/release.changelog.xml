@@ -14,5 +14,6 @@
 <include file="changes/feat/translate-reference-labels/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/refactor/finish-reference-label-rename/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/contacts-data-model/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/contacts-read-views/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

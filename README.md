@@ -290,7 +290,7 @@ env/ci/run.sh down
 - [x] Entreprises : vues de lecture pour APEX (vue de base et vues `ui_` de la liste, du formulaire et des LOV)
 - [x] Contacts : table, référentiel des civilités (formes abrégée et complète, en français et en anglais), package d'écriture et tests
 - [x] Contacts : vues de lecture pour APEX (vue de base et vues `ui_` de la liste, du formulaire et de la LOV des civilités)
-- [ ] Contacts dans l'application APEX : liste et formulaire
+- [x] Contacts dans l'application APEX : liste, formulaire de création, modification et suppression par le package
 - [ ] Contacts : rattachement aux entreprises (fonction par entreprise, suppression d'un contact avec ses rattachements après confirmation)
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement

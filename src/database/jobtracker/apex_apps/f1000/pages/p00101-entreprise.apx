@@ -1,0 +1,729 @@
+page 101 (
+    name: Entreprise
+    alias: ENTREPRISE
+    title: Entreprise
+    pageGroup: @companies
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region entreprise (
+        name: Entreprise
+        type: form
+        source {
+            location: localDatabase
+            tableName: UI_COMPANIES_FORM
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P101_COMPANY_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @entreprise
+            slot: regionBody
+        }
+        source {
+            formRegion: @entreprise
+            column: COMPANY_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P101_COMPANY_NAME (
+        type: textField
+        label {
+            label: Nom
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @entreprise
+            column: COMPANY_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P101_COMPANY_SIZE_ID (
+        type: selectList
+        label {
+            label: Taille
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @company-sizes-lov
+            nullDisplayValue: - Aucun -
+        }
+        layout {
+            sequence: 80
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @entreprise
+            column: COMPANY_SIZE_ID
+            dataType: number
+        }
+    )
+
+    pageItem P101_COMPANY_TYPE_ID (
+        type: selectList
+        label {
+            label: Type
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @company-types-lov
+            nullDisplayValue: - Aucun -
+        }
+        layout {
+            sequence: 60
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @entreprise
+            column: COMPANY_TYPE_ID
+            dataType: number
+        }
+    )
+
+    pageItem P101_CREATED_AT (
+        type: displayOnly
+        label {
+            label: Créée le
+            alignment: left
+        }
+        layout {
+            sequence: 160
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @entreprise
+            column: CREATED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P101_COMPANY_ID
+        }
+    )
+
+    pageItem P101_CREATION_YEAR (
+        type: numberField
+        label {
+            label: Année de création
+            alignment: left
+        }
+        settings {
+            minValue: 1000
+            maxValue: 2999
+        }
+        layout {
+            sequence: 150
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @entreprise
+            column: CREATION_YEAR
+            dataType: number
+        }
+    )
+
+    pageItem P101_DESCRIPTION (
+        type: textarea
+        label {
+            label: Description
+            alignment: right
+        }
+        layout {
+            sequence: 30
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        source {
+            formRegion: @entreprise
+            column: DESCRIPTION
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P101_EMAIL (
+        type: textField
+        label {
+            label: Courriel
+            alignment: left
+        }
+        settings {
+            subtype: email
+        }
+        layout {
+            sequence: 130
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 254
+        }
+        source {
+            formRegion: @entreprise
+            column: EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P101_LINKEDIN_SLUG (
+        type: textField
+        label {
+            label: Identifiant Linkedin
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 100
+        }
+        source {
+            formRegion: @entreprise
+            column: LINKEDIN_SLUG
+            dataType: varchar2
+        }
+    )
+
+    pageItem P101_LOCATION_ID (
+        type: popupLov
+        label {
+            label: Lieu
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @locations-lov
+        }
+        layout {
+            sequence: 90
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @entreprise
+            column: LOCATION_ID
+            dataType: number
+        }
+    )
+
+    pageItem P101_NOTE_TEXT (
+        type: textarea
+        label {
+            label: Notes
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        source {
+            formRegion: @entreprise
+            column: NOTE_TEXT
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P101_PARENT_COMPANY_ID (
+        type: popupLov
+        label {
+            label: Entreprise parente
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @companies-lov
+        }
+        layout {
+            sequence: 50
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @entreprise
+            column: PARENT_COMPANY_ID
+            dataType: number
+        }
+    )
+
+    pageItem P101_PHONE (
+        type: textField
+        label {
+            label: Téléphone
+            alignment: left
+        }
+        settings {
+            subtype: phone
+        }
+        layout {
+            sequence: 140
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 30
+        }
+        source {
+            formRegion: @entreprise
+            column: PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P101_SECTOR_ID (
+        type: selectList
+        label {
+            label: Secteur
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @sectors-lov
+            nullDisplayValue: - Aucun -
+        }
+        layout {
+            sequence: 70
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        source {
+            formRegion: @entreprise
+            column: SECTOR_ID
+            dataType: number
+        }
+    )
+
+    pageItem P101_SIREN (
+        type: textField
+        label {
+            label: SIREN
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 9
+        }
+        source {
+            formRegion: @entreprise
+            column: SIREN
+            dataType: varchar2
+        }
+    )
+
+    pageItem P101_UPDATED_AT (
+        type: displayOnly
+        label {
+            label: Modifiée le
+            alignment: left
+        }
+        layout {
+            sequence: 170
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @entreprise
+            column: UPDATED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P101_COMPANY_ID
+        }
+    )
+
+    pageItem P101_WEBSITE_URL (
+        type: textField
+        label {
+            label: Site web
+            alignment: left
+        }
+        settings {
+            subtype: url
+        }
+        layout {
+            sequence: 110
+            region: @entreprise
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+        }
+        validation {
+            maxLength: 500
+        }
+        source {
+            formRegion: @entreprise
+            column: WEBSITE_URL
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Annuler
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Créer
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P101_COMPANY_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: Supprimer
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P101_COMPANY_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Enregistrer
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P101_COMPANY_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 12219140419864027
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-entreprise (
+        name: Initialize form Entreprise
+        type: formInitialization
+        formRegion: @entreprise
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 12218336986864026
+        }
+    )
+
+    process process-form-entreprise (
+        name: Process form Entreprise
+        type: formAutoRowProcessing
+        formRegion: @entreprise
+        target {
+            targetType: plsqlCode
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'CREATE' then
+                        :P101_COMPANY_ID := company_api.create_company(
+                            in_company_name      => :P101_COMPANY_NAME,
+                            in_description       => :P101_DESCRIPTION,
+                            in_note_text         => :P101_NOTE_TEXT,
+                            in_parent_company_id => :P101_PARENT_COMPANY_ID,
+                            in_company_type_id   => :P101_COMPANY_TYPE_ID,
+                            in_sector_id         => :P101_SECTOR_ID,
+                            in_company_size_id   => :P101_COMPANY_SIZE_ID,
+                            in_location_id       => :P101_LOCATION_ID,
+                            in_siren             => :P101_SIREN,
+                            in_website_url       => :P101_WEBSITE_URL,
+                            in_linkedin_slug     => :P101_LINKEDIN_SLUG,
+                            in_email             => :P101_EMAIL,
+                            in_phone             => :P101_PHONE,
+                            in_creation_year     => :P101_CREATION_YEAR
+                        );
+                    when 'SAVE' then
+                        company_api.update_company(
+                            in_company_id        => :P101_COMPANY_ID,
+                            in_company_name      => :P101_COMPANY_NAME,
+                            in_description       => :P101_DESCRIPTION,
+                            in_note_text         => :P101_NOTE_TEXT,
+                            in_parent_company_id => :P101_PARENT_COMPANY_ID,
+                            in_company_type_id   => :P101_COMPANY_TYPE_ID,
+                            in_sector_id         => :P101_SECTOR_ID,
+                            in_company_size_id   => :P101_COMPANY_SIZE_ID,
+                            in_location_id       => :P101_LOCATION_ID,
+                            in_siren             => :P101_SIREN,
+                            in_website_url       => :P101_WEBSITE_URL,
+                            in_linkedin_slug     => :P101_LINKEDIN_SLUG,
+                            in_email             => :P101_EMAIL,
+                            in_phone             => :P101_PHONE,
+                            in_creation_year     => :P101_CREATION_YEAR
+                        );
+                    when 'DELETE' then
+                        company_api.delete_company(in_company_id => :P101_COMPANY_ID);
+                end case;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 12218708193864026
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+)
+

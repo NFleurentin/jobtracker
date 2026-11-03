@@ -1,0 +1,349 @@
+page 100 (
+    name: Entreprises
+    alias: ENTREPRISES
+    title: Entreprises
+    pageGroup: @companies
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region entreprises (
+        name: Entreprises
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: UI_COMPANIES_LIST
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 101
+                items: {
+                    P101_COMPANY_ID: #COMPANY_ID#
+                }
+                clearCache: 101
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Aucune entreprise.
+            whenMoreDataFound: Le rapport est limité à #MAX_ROW_COUNT# lignes. Appliquez un filtre pour réduire le nombre de résultats.
+        }
+        advanced {
+            savedReportMappingIdentifier: 12220361263864089
+        }
+
+        column COMPANY_ID (
+            type: hidden
+            heading {
+                heading: Company Id
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column COMPANY_NAME (
+            type: plainText
+            heading {
+                heading: Nom
+            }
+            layout {
+                sequence: 2
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column COMPANY_SIZE_DISPLAY_ORDER (
+            type: hidden
+            heading {
+                heading: Company Size Display Order
+            }
+            layout {
+                sequence: 67
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: V
+            }
+        )
+
+        column COMPANY_SIZE_SHORT_NAME (
+            type: plainText
+            heading {
+                heading: Taille
+            }
+            layout {
+                sequence: 57
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column COMPANY_TYPE_NAME (
+            type: plainText
+            heading {
+                heading: Type
+            }
+            layout {
+                sequence: 37
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column CREATION_YEAR (
+            type: plainText
+            heading {
+                heading: Année de création
+                alignment: end
+            }
+            layout {
+                sequence: 15
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column LOCATION_NAME (
+            type: plainText
+            heading {
+                heading: Lieu
+            }
+            layout {
+                sequence: 77
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        column PARENT_COMPANY_NAME (
+            type: plainText
+            heading {
+                heading: Entreprise parente
+            }
+            layout {
+                sequence: 27
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: R
+            }
+        )
+
+        column SECTOR_NAME (
+            type: plainText
+            heading {
+                heading: Secteur
+            }
+            layout {
+                sequence: 47
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column UPDATED_AT (
+            type: plainText
+            heading {
+                heading: Modifiée le
+            }
+            layout {
+                sequence: 17
+            }
+            source {
+                dataType: DATE
+            }
+            advanced {
+                endUserAlias: Q
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn COMPANY_ID (
+                sequence: 1
+            )
+
+            displayColumn COMPANY_NAME (
+                sequence: 2
+            )
+
+            displayColumn COMPANY_SIZE_DISPLAY_ORDER (
+                sequence: 9
+            )
+
+            displayColumn COMPANY_SIZE_SHORT_NAME (
+                sequence: 8
+            )
+
+            displayColumn COMPANY_TYPE_NAME (
+                sequence: 6
+            )
+
+            displayColumn CREATION_YEAR (
+                sequence: 3
+            )
+
+            displayColumn LOCATION_NAME (
+                sequence: 10
+            )
+
+            displayColumn PARENT_COMPANY_NAME (
+                sequence: 5
+            )
+
+            displayColumn SECTOR_NAME (
+                sequence: 7
+            )
+
+            displayColumn UPDATED_AT (
+                sequence: 4
+            )
+
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Créer
+        layout {
+            sequence: 10
+            region: @entreprises
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 101
+                clearCache: 101
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @entreprises
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @entreprises
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)
+

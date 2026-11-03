@@ -2,3 +2,10 @@ pageGroup administration (
     name: Administration
 )
 
+pageGroup companies (
+    name: Entreprises
+    description {
+        description: Liste et formulaire des entreprises
+    }
+)
+

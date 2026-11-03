@@ -12,5 +12,6 @@
 <include file="changes/feat/db-message-catalog/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/refactor/db-messages-from-catalog/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/translate-reference-labels/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/refactor/finish-reference-label-rename/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

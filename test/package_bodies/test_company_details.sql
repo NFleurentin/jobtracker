@@ -101,10 +101,10 @@ create or replace package body jobtracker.test_company_details is
         ));
 
         ut.expect(r_details.parent_company_name).to_equal('Groupe');
-        ut.expect(r_details.company_type_name).to_equal(r_type.company_type_name);
-        ut.expect(r_details.sector_name).to_equal(r_sector.sector_name);
-        ut.expect(r_details.company_size_short_name).to_equal(r_size.company_size_short_name);
-        ut.expect(r_details.company_size_long_name).to_equal(r_size.company_size_long_name);
+        ut.expect(r_details.company_type_name).to_equal(r_type.company_type_name_fr);
+        ut.expect(r_details.sector_name).to_equal(r_sector.sector_name_fr);
+        ut.expect(r_details.company_size_short_name).to_equal(r_size.company_size_short_name_fr);
+        ut.expect(r_details.company_size_long_name).to_equal(r_size.company_size_long_name_fr);
         ut.expect(r_details.company_size_display_order).to_equal(r_size.display_order);
         ut.expect(r_details.location_name).to_equal('Lieu test');
     end company_with_all_references;
@@ -134,6 +134,66 @@ create or replace package body jobtracker.test_company_details is
 
         ut.expect(l_count).to_equal(1);
     end one_row_per_company;
+
+    procedure labels_in_english_session is
+
+        r_type    company_types%rowtype;
+        r_sector  sectors%rowtype;
+        r_size    company_sizes%rowtype;
+        r_details company_details%rowtype;
+    begin
+        select
+            *
+        into r_type
+        from
+            company_types
+        order by
+            company_type_id
+        fetch first 1 row only;
+
+        select
+            *
+        into r_sector
+        from
+            sectors
+        order by
+            sector_id
+        fetch first 1 row only;
+
+        select
+            *
+        into r_size
+        from
+            company_sizes
+        order by
+            company_size_id
+        fetch first 1 row only;
+
+        -- La langue vient de la session APEX (app_message.current_language)
+        apex_session.create_session(
+            p_app_id   => 1000,
+            p_page_id  => 1,
+            p_username => 'TEST'
+        );
+        apex_util.set_session_lang('en');
+        r_details := get_details(company_api.create_company(
+            in_company_name    => 'Acme',
+            in_company_type_id => r_type.company_type_id,
+            in_sector_id       => r_sector.sector_id,
+            in_company_size_id => r_size.company_size_id
+        ));
+
+        ut.expect(r_details.company_type_name).to_equal(r_type.company_type_name_en);
+        ut.expect(r_details.sector_name).to_equal(r_sector.sector_name_en);
+        ut.expect(r_details.company_size_short_name).to_equal(r_size.company_size_short_name_en);
+        ut.expect(r_details.company_size_long_name).to_equal(r_size.company_size_long_name_en);
+    end labels_in_english_session;
+
+    procedure end_english_session is
+        pragma autonomous_transaction;
+    begin
+        apex_session.detach;
+    end end_english_session;
 
 end test_company_details;
 /

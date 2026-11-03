@@ -34,8 +34,8 @@ app JOBTRACKER (
     }
     appFormatMasks {
         date: DS
-        timestamp: DS
-        timestampTimeZone: DS
+        timestamp: DD/MM/YYYY HH24:MI
+        timestampTimeZone: DD/MM/YYYY HH24:MI
     }
     authentication {
         scheme: @oracle-apex-accounts
@@ -50,6 +50,7 @@ app JOBTRACKER (
     globalization {
         primaryLanguage: fr
         translationMethod: textMessages
+        autoTimeZone: true
     }
     errorHandling {
         errorHandlingFunctionName: app_error_handler.handle_error

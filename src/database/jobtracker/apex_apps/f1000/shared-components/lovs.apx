@@ -18,3 +18,63 @@ lov boolean (
 
 )
 
+lov companies-lov (
+    name: COMPANIES_LOV
+    source {
+        tableName: UI_COMPANIES_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
+lov company-sizes-lov (
+    name: COMPANY_SIZES_LOV
+    source {
+        tableName: UI_COMPANY_SIZES_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_ORDER
+    }
+)
+
+lov company-types-lov (
+    name: COMPANY_TYPES_LOV
+    source {
+        tableName: UI_COMPANY_TYPES_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
+lov locations-lov (
+    name: LOCATIONS_LOV
+    source {
+        tableName: UI_LOCATIONS_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
+lov sectors-lov (
+    name: SECTORS_LOV
+    source {
+        tableName: UI_SECTORS_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+

@@ -2,7 +2,6 @@ create or replace package body jobtracker.app_error_handler is
 
     co_scope              constant logger_logs.scope%type := lower($$plsql_unit)
                                                 || '.handle_error';
-    co_unexpected_message constant varchar2(100 char) := 'Une erreur inattendue s''est produite. Elle a été journalisée.';
 
     -- Plage des erreurs métier, affichables : voir l'en-tête de app_errors
     co_business_error_min constant pls_integer := -20299;
@@ -17,7 +16,7 @@ create or replace package body jobtracker.app_error_handler is
     co_data_has_changed   constant varchar2(30 char) := 'APEX.DATA_HAS_CHANGED';
 
     /**
-     * Message d'une contrainte.
+     * Message d'une contrainte, dont le nom est la clé du catalogue.
      * @param in_constraint_name nom de la contrainte, sans le schéma
      * @return message pour l'utilisateur, null si la contrainte n'est pas traduite
      */
@@ -25,15 +24,12 @@ create or replace package body jobtracker.app_error_handler is
         in_constraint_name in varchar2
     ) return varchar2 is
     begin
-        return
-            case in_constraint_name
-                when 'COMPANIES_SIREN_UK'         then
-                    'Ce SIREN est déjà utilisé par une autre entreprise.'
-                when 'COMPANIES_SIREN_CK'         then
-                    'Le SIREN doit comporter exactement 9 chiffres.'
-                when 'COMPANIES_LINKEDIN_SLUG_CK' then
-                    'L''identifiant LinkedIn ne doit contenir ni barre oblique ni espace.'
-            end;
+        if in_constraint_name is null
+           or not app_message.has_message(in_constraint_name) then
+            return null;
+        end if;
+
+        return app_message.get_text(in_constraint_name);
     end constraint_message;
 
     /**
@@ -46,7 +42,7 @@ create or replace package body jobtracker.app_error_handler is
     ) return varchar2 is
     begin
         if p_error.apex_error_code = co_data_has_changed then
-            return 'Ces données ont été modifiées entre-temps. Rechargez la page avant d''enregistrer.';
+            return app_message.get_text('DATA_HAS_CHANGED');
         elsif p_error.ora_sqlcode between co_business_error_min and co_business_error_max then
             return apex_error.get_first_ora_error_text(p_error => p_error);
         elsif p_error.ora_sqlcode in ( co_unique_violated, co_check_violated ) then
@@ -91,7 +87,7 @@ create or replace package body jobtracker.app_error_handler is
                              || chr(10)
                              || p_error.error_statement);
 
-            l_result.message := co_unexpected_message;
+            l_result.message := app_message.get_text('UNEXPECTED_ERROR');
         end if;
 
         return l_result;
@@ -101,4 +97,4 @@ end app_error_handler;
 /
 
 
--- sqlcl_snapshot {"hash":"b3d5e12918ae06c9de585fe5aba474ca9f16186a","type":"PACKAGE_BODY","name":"APP_ERROR_HANDLER","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"0460a46d3b1cb62da3b7f3ef20f89c134db45c0c","type":"PACKAGE_BODY","name":"APP_ERROR_HANDLER","schemaName":"JOBTRACKER","sxml":""}

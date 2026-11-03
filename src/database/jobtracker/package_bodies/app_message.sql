@@ -54,6 +54,23 @@ create or replace package body jobtracker.app_message is
 
     end current_language;
 
+    function has_message (
+        in_message_key in app_messages.message_key%type
+    ) return boolean is
+        l_count pls_integer;
+    begin
+        select
+            count(*)
+        into l_count
+        from
+            app_messages
+        where
+                message_key = in_message_key
+            and language_code = co_default_language;
+
+        return l_count > 0;
+    end has_message;
+
     function get_text (
         in_message_key in app_messages.message_key%type,
         in_param1      in varchar2 default null,
@@ -104,4 +121,4 @@ end app_message;
 /
 
 
--- sqlcl_snapshot {"hash":"959adf50c7c3e75523663b5d0dfa1989ff5617b4","type":"PACKAGE_BODY","name":"APP_MESSAGE","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"a5458fdb1524ffd5aeba0f8274d1b75fd487e415","type":"PACKAGE_BODY","name":"APP_MESSAGE","schemaName":"JOBTRACKER","sxml":""}

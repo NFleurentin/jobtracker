@@ -22,6 +22,18 @@ create or replace package body jobtracker.test_app_message is
         ut.expect(app_message.current_language).to_equal('fr');
     end default_language_outside_apex;
 
+    procedure has_message_in_default_language is
+    begin
+        add_message('TEST_GREETING', 'fr', 'Bonjour');
+        ut.expect(app_message.has_message('TEST_GREETING')).to_be_true();
+    end has_message_in_default_language;
+
+    procedure has_message_other_language_only is
+    begin
+        add_message('TEST_GREETING', 'en', 'Hello');
+        ut.expect(app_message.has_message('TEST_GREETING')).to_be_false();
+    end has_message_other_language_only;
+
     procedure text_in_requested_language is
     begin
         add_message('TEST_GREETING', 'fr', 'Bonjour');

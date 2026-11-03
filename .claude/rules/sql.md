@@ -25,7 +25,7 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 - Toute clé étrangère est indexée (index dédié, ou colonnes en tête d'une clé unique) : sans index, un `DELETE` sur la table parente verrouille la table enfant.
 - Vues en deux couches. Les vues `ui_` sont le contrat d'APEX : une par usage (région de page ou LOV), nommée `ui_<entité>_<usage>` (`ui_companies_list`, `ui_sectors_lov`). Elles ne font que choisir des colonnes et les présenter (horodatages en `timestamp with local time zone`, convertis par APEX dans le fuseau du navigateur) et lisent une vue de base, ou la table s'il n'y a rien à factoriser. Aucun objet du schéma ne lit une vue `ui_`.
 - Une vue de base factorise une logique partagée (jointures, libellés, règle métier comme « offre active ») et se nomme d'après son contenu (`company_details`, `active_offers`). Une vue de base 1:1 sur une table, si elle est nécessaire, porte le suffixe `_v` (`companies_v`), une vue et une table ne pouvant pas partager un nom.
-- Une contrainte qu'un formulaire peut violer reçoit son message dans `app_error_handler` (`constraint_message`), sinon l'utilisateur voit le message générique.
+- Une contrainte qu'un formulaire peut violer reçoit son message dans le catalogue `app_messages`, sous le nom de la contrainte comme clé, sinon l'utilisateur voit le message générique.
 - Staging : réponse de l'API stockée brute dans une colonne de type `JSON`, sans transformation.
 - Fichiers de données du dépôt : données fictives uniquement.
 

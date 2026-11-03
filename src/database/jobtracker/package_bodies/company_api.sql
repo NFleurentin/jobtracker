@@ -5,12 +5,12 @@ create or replace package body jobtracker.company_api is
     pragma exception_init ( e_child_record_found, -2292 );
 
     /**
-     * Nom d'une entreprise, entre guillemets, pour un message d'erreur métier :
-     * l'utilisateur ne voit jamais les identifiants.
+     * Nom d'une entreprise, pour un message d'erreur métier : l'utilisateur
+     * ne voit jamais les identifiants. Guillemets portés par le catalogue.
      */
-    function quoted_name (
+    function name_of (
         in_company_id in companies.company_id%type
-    ) return varchar2 is
+    ) return companies.company_name%type is
         l_company_name companies.company_name%type;
     begin
         select
@@ -21,10 +21,8 @@ create or replace package body jobtracker.company_api is
         where
             company_id = in_company_id;
 
-        return '« '
-               || l_company_name
-               || ' »';
-    end quoted_name;
+        return l_company_name;
+    end name_of;
 
     /**
      * Refuse un parent qui créerait un cycle, l'entreprise elle-même comprise.
@@ -52,11 +50,10 @@ create or replace package body jobtracker.company_api is
             prior parent_company_id = company_id;
 
         if l_cycle_count > 0 then
-            raise_application_error(app_errors.co_circular_reference,
-                                    quoted_name(in_company_id)
-                                    || ' ne peut pas avoir '
-                                    || quoted_name(in_parent_company_id)
-                                    || ' comme entreprise parente : ce rattachement créerait un cycle.');
+            app_message.raise_error(app_errors.co_circular_reference,
+                                    'COMPANY_CIRCULAR_REFERENCE',
+                                    name_of(in_company_id),
+                                    name_of(in_parent_company_id));
 
         end if;
 
@@ -174,14 +171,13 @@ create or replace package body jobtracker.company_api is
 
     exception
         when e_child_record_found then
-            raise_application_error(app_errors.co_row_referenced,
-                                    'L''entreprise '
-                                    || quoted_name(in_company_id)
-                                    || ' est référencée par d''autres données : suppression impossible.');
+            app_message.raise_error(app_errors.co_row_referenced,
+                                    'COMPANY_ROW_REFERENCED',
+                                    name_of(in_company_id));
     end delete_company;
 
 end company_api;
 /
 
 
--- sqlcl_snapshot {"hash":"0c32234563a43767422789678d6c1e5093ca2192","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"3f9940e3cc136ce1c6c288a84c49036727204a87","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}

@@ -14,6 +14,16 @@ create or replace package jobtracker.test_app_message authid definer is
 
     --%endcontext
 
+    --%context(présence)
+
+    --%test(trouve un message de la langue de repli)
+    procedure has_message_in_default_language;
+
+    --%test(ignore un message absent de la langue de repli)
+    procedure has_message_other_language_only;
+
+    --%endcontext
+
     --%context(texte)
 
     --%test(renvoie le texte dans la langue demandée)

@@ -17,6 +17,15 @@ create or replace package jobtracker.app_message authid definer is
     function current_language return varchar2;
 
     /**
+     * Présence d'un message dans le catalogue, dans la langue de repli :
+     * permet à l'appelant de traiter l'absence autrement que par la clé
+     * renvoyée par get_text (contrainte non traduite, par exemple).
+     */
+    function has_message (
+        in_message_key in app_messages.message_key%type
+    ) return boolean;
+
+    /**
      * Texte d'un message, paramètres substitués.
      * Repli sur la langue par défaut si le message n'existe pas dans la
      * langue demandée.
@@ -50,4 +59,4 @@ end app_message;
 /
 
 
--- sqlcl_snapshot {"hash":"d3abce913d4b30f11264e7542d501e2801de40c8","type":"PACKAGE_SPEC","name":"APP_MESSAGE","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"a3157d330653063a60db7ea8ac2c0cde78c42a32","type":"PACKAGE_SPEC","name":"APP_MESSAGE","schemaName":"JOBTRACKER","sxml":""}

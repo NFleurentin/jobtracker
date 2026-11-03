@@ -13,11 +13,11 @@ create or replace force editionable view jobtracker.ui_sectors_lov (
             when 'en' then
                 sector_name_en
             else
-                sector_name
+                sector_name_fr
         end       as display_value
     from
         jobtracker.sectors
 with read only;
 
 
--- sqlcl_snapshot {"hash":"82fd741d96f58fdd9913d90a6ce24f122c3304bd","type":"VIEW","name":"UI_SECTORS_LOV","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"19c4f2566181b4b3d40b9f7b277d4f52c41c69d9","type":"VIEW","name":"UI_SECTORS_LOV","schemaName":"JOBTRACKER","sxml":""}

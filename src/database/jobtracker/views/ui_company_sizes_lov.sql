@@ -14,7 +14,7 @@ create or replace force editionable view jobtracker.ui_company_sizes_lov (
             when 'en' then
                 company_size_long_name_en
             else
-                company_size_long_name
+                company_size_long_name_fr
         end             as display_value,
         display_order
     from
@@ -22,4 +22,4 @@ create or replace force editionable view jobtracker.ui_company_sizes_lov (
 with read only;
 
 
--- sqlcl_snapshot {"hash":"1a71e84a028c0f707797458bf7295112713b7b9b","type":"VIEW","name":"UI_COMPANY_SIZES_LOV","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"5c62bf43af9eabf0a35babc940322b56852f5ab7","type":"VIEW","name":"UI_COMPANY_SIZES_LOV","schemaName":"JOBTRACKER","sxml":""}

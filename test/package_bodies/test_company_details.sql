@@ -101,10 +101,10 @@ create or replace package body jobtracker.test_company_details is
         ));
 
         ut.expect(r_details.parent_company_name).to_equal('Groupe');
-        ut.expect(r_details.company_type_name).to_equal(r_type.company_type_name);
-        ut.expect(r_details.sector_name).to_equal(r_sector.sector_name);
-        ut.expect(r_details.company_size_short_name).to_equal(r_size.company_size_short_name);
-        ut.expect(r_details.company_size_long_name).to_equal(r_size.company_size_long_name);
+        ut.expect(r_details.company_type_name).to_equal(r_type.company_type_name_fr);
+        ut.expect(r_details.sector_name).to_equal(r_sector.sector_name_fr);
+        ut.expect(r_details.company_size_short_name).to_equal(r_size.company_size_short_name_fr);
+        ut.expect(r_details.company_size_long_name).to_equal(r_size.company_size_long_name_fr);
         ut.expect(r_details.company_size_display_order).to_equal(r_size.display_order);
         ut.expect(r_details.location_name).to_equal('Lieu test');
     end company_with_all_references;

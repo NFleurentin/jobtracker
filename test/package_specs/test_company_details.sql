@@ -1,0 +1,22 @@
+create or replace package jobtracker.test_company_details authid definer is
+    -- =========================================================================
+    -- Tests de la vue company_details : jointures externes et libellés.
+    -- Chaque test écrit réellement dans companies (et locations, sans package
+    -- d'écriture) ; utPLSQL annule ses écritures à la fin (rollback auto).
+    -- Suppose les données de référence de company_types, sectors,
+    -- company_sizes et location_types.
+    -- =========================================================================
+
+    --%suite(company_details)
+
+    --%test(garde une entreprise sans référentiel ni parent, libellés vides)
+    procedure company_without_references;
+
+    --%test(remonte les libellés des référentiels et du parent)
+    procedure company_with_all_references;
+
+    --%test(donne une seule ligne par entreprise)
+    procedure one_row_per_company;
+
+end test_company_details;
+/

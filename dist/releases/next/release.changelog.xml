@@ -7,5 +7,6 @@
 <include file="changes/feat/collect-france-travail-api/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/company-management/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/apex-error-handling/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/company-read-views/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

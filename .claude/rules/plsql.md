@@ -44,4 +44,5 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 ## Tests
 
 - Chaque package public a son package de test utPLSQL `test_<package>`.
+- Une vue de base qui porte une logique (jointures, règle métier) a son package de test `test_<vue>`. Une vue `ui_` n'en a pas : elle ne fait que choisir des colonnes, et la CI détecte déjà les objets invalides.
 - utPLSQL n'existe qu'en dev et en CI : les packages de test ne sont jamais déployés en prod.

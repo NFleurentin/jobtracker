@@ -34,6 +34,12 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 - Pas de `WHEN OTHERS` sans journalisation et relance.
 - Erreurs applicatives déclarées dans le seul package `app_errors` (spec sans body) : une erreur par nature (`not_found`, `invalid_state`…), réutilisée par tous les packages, le contexte dans le message. Code `co_` et exception `e_` pour chacune. Une plage par thème (génériques, intégration, métier), décrite dans l'en-tête du package ; numérotation continue dans la plage, ajout en fin de sa section, numéro jamais réutilisé.
 
+## Messages
+
+- Un texte produit par la base et affiché à l'utilisateur (erreur métier `-202xx`, contrainte traduite, message de `app_error_handler`) vient du catalogue `app_messages`, par `app_message.get_text` ou `app_message.raise_error` : jamais de texte concaténé. Paramètres `{1}` à `{3}`, les guillemets et la ponctuation restent dans le texte du catalogue.
+- Clé : nom de la contrainte pour une contrainte, sinon `<ENTITE>_<NATURE>` en majuscules. Une clé est livrée dans toutes les langues du catalogue, avec le message, dans un changeset `_custom` de la branche.
+- Libellés de l'interface (pages, items, boutons) : Text Messages d'APEX. Messages techniques jamais affichés (journal, erreurs des plages `-200xx` et `-201xx`) : en dur, hors catalogue.
+
 ## Collecte
 
 - Appels HTTP uniquement par `http_util.make_rest_request`, jamais par `APEX_WEB_SERVICE.MAKE_REST_REQUEST` en direct : obtenir un jeton OAuth2 par un Web Credential fait un `ROLLBACK` de la transaction en cours (constaté avec APEX 26.1), que le wrapper isole dans une transaction autonome.

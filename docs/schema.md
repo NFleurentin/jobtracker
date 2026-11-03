@@ -247,7 +247,11 @@ erDiagram
 
     SALUTATIONS {
         NUMBER salutation_id PK "clé de la civilité"
-        VARCHAR2(30) salutation_name "civilité (Monsieur, Madame...)"
+        VARCHAR2(10) salutation_code "code stable (MR, MS)"
+        VARCHAR2(10) salutation_short_name_fr "civilité abrégée (M., Mme)"
+        VARCHAR2(30) salutation_long_name_fr "civilité complète (Monsieur, Madame)"
+        VARCHAR2(10) salutation_short_name_en "civilité abrégée anglaise (Mr, Ms)"
+        VARCHAR2(30) salutation_long_name_en "civilité complète anglaise (Mister, Madam)"
     }
 
     CONTACTS {
@@ -257,7 +261,7 @@ erDiagram
         NUMBER salutation_id FK "civilité pour les échanges, null si inconnue"
         VARCHAR2(254) email "email"
         VARCHAR2(30) phone "numéro de téléphone"
-        VARCHAR2(500) linkedin_url "profil LinkedIn"
+        VARCHAR2(100) linkedin_slug "identifiant du profil LinkedIn (linkedin.com/in/<slug>)"
         CLOB note_text "commentaire ou avis sur le contact"
         TIMESTAMP_TZ created_at "date d'enregistrement"
         TIMESTAMP_TZ updated_at "date de dernière mise à jour"
@@ -333,17 +337,18 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire |
 | `EDUCATIONS` | `(education_level_id, education_domain_id)` unique |
 | `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace |
-| `CONTACTS` | `last_name` obligatoire |
+| `CONTACTS` | `last_name` obligatoire ; `linkedin_slug` sans `/` ni espace |
 | `INTERVIEWS` | `scheduled_at` obligatoire ; `duration_minutes` positif |
 | `LOCATIONS` | `location_type_id` et `location_name` obligatoires ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |
 | `COLLECTIVE_AGREEMENTS` | `idcc_code` unique |
 | `COMPANY_TYPES` | `company_type_code` obligatoire et unique |
 | `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |
 | `LOCATION_TYPES` | `location_type_code` obligatoire et unique |
+| `SALUTATIONS` | `salutation_code` obligatoire et unique |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | Référentiels, sauf `LOCATIONS` et les référentiels traduits (ligne suivante) | `<entité>_name` obligatoire et unique |
-| `SECTORS`, `COMPANY_TYPES`, `COMPANY_SIZES`, `LOCATION_TYPES` | libellés français (`_fr`) et anglais (`_en`) obligatoires et uniques |
+| `SECTORS`, `COMPANY_TYPES`, `COMPANY_SIZES`, `LOCATION_TYPES`, `SALUTATIONS` | libellés français (`_fr`) et anglais (`_en`) obligatoires et uniques |
 | Tables hiérarchiques (`APPLICATIONS`, `COMPANIES`, `LOCATIONS`, `SKILL_CATEGORIES`) | une ligne n'est pas son propre parent ; les cycles plus longs sont contrôlés par le package |
 | Toutes les tables | clés étrangères obligatoires là où le diagramme montre `\|\|` côté parent ; `created_at` et `updated_at` obligatoires |
 | Colonnes `BOOLEAN` | `NOT NULL` : un `BOOLEAN` accepte aussi `NULL` |

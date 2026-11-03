@@ -8,10 +8,13 @@
 -- =============================================================================
 -- reference_labels_en.sql : libellés des référentiels en français et en anglais
 --
--- Écrit à la main, à la place des changesets générés par project stage pour
--- les quatre tables : SQLcl ne détecte pas le renommage d'une colonne (il
+-- Écrit à la main et joué avant les changesets générés par project stage
+-- pour les quatre tables : SQLcl ne détecte pas le renommage d'une colonne (il
 -- génère un ajout puis un drop, qui perd la donnée) et ajoute les colonnes
--- directement en not null, ce qui échoue sur une table remplie.
+-- directement en not null, ce qui échoue sur une table remplie. Ceux de
+-- project stage restent dans dist/, sinon il les régénère :
+-- une précondition (onFail:MARK_RAN) les marque joués sans les exécuter
+-- quand leur colonne ou leur contrainte existe déjà.
 -- Une colonne anglaise s'ajoute nullable, se remplit, puis devient
 -- obligatoire : un libellé sans traduction fait échouer le déploiement.
 -- Un seul changeset : un échec au milieu laisse les DDL déjà joués (commit

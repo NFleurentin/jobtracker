@@ -4,6 +4,10 @@
                    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                       http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
 <include file="_custom/reference_labels_en.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/company_sizes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/company_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/location_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/sectors.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/views/company_details.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/views/ui_company_sizes_lov.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/views/ui_company_types_lov.sql" relativeToChangelogFile="true"/>

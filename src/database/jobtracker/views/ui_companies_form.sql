@@ -33,11 +33,11 @@ create or replace force editionable view jobtracker.ui_companies_form (
         email,
         phone,
         creation_year,
-        created_at,
-        updated_at
+        cast(created_at as timestamp with local time zone) as created_at,
+        cast(updated_at as timestamp with local time zone) as updated_at
     from
         jobtracker.companies
 with read only;
 
 
--- sqlcl_snapshot {"hash":"6b23285427b7caab5583c910d3416985c66c46a8","type":"VIEW","name":"UI_COMPANIES_FORM","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"04336ef4b0bdbaf16312544438cda48a6d8f25b2","type":"VIEW","name":"UI_COMPANIES_FORM","schemaName":"JOBTRACKER","sxml":""}

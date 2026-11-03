@@ -117,6 +117,7 @@ erDiagram
         NUMBER location_type_id PK "clé du type de lieu"
         VARCHAR2(30) location_type_code "code stable, testé par le code applicatif (COUNTRY, MUNICIPALITY...)"
         VARCHAR2(100) location_type_name "type de lieu (Pays, Région, Commune, Adresse...)"
+        VARCHAR2(100) location_type_name_en "libellé anglais (Country, Region...)"
     }
 
     LOCATIONS {
@@ -133,18 +134,22 @@ erDiagram
         NUMBER company_type_id PK "clé du type d'entreprise"
         VARCHAR2(30) company_type_code "code stable, testé par le code applicatif (ESN, DIRECT_EMPLOYER...)"
         VARCHAR2(100) company_type_name "type d'entreprise (ESN, Cabinet de recrutement, Fonction publique...)"
+        VARCHAR2(100) company_type_name_en "libellé anglais (IT consultancy, Recruitment agency...)"
     }
 
     COMPANY_SIZES {
         NUMBER company_size_id PK "clé de la taille d'entreprise"
         VARCHAR2(10) company_size_short_name "sigle (TPE, PME, ETI, GE)"
         VARCHAR2(100) company_size_long_name "libellé complet (Grande entreprise...)"
+        VARCHAR2(10) company_size_short_name_en "sigle anglais (Micro, SME, Mid-cap, Large)"
+        VARCHAR2(100) company_size_long_name_en "libellé complet anglais (Large enterprise...)"
         NUMBER(3) display_order "ordre d'affichage"
     }
 
     SECTORS {
         NUMBER sector_id PK "clé du secteur d'activité"
         VARCHAR2(100) sector_name "secteur d'activité (Banque, Santé, Industrie...)"
+        VARCHAR2(100) sector_name_en "libellé anglais (Banking, Healthcare...)"
     }
 
     COLLECTIVE_AGREEMENTS {
@@ -338,6 +343,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | Référentiels, sauf `LOCATIONS` et `COMPANY_SIZES` | `<entité>_name` obligatoire et unique |
+| `SECTORS`, `COMPANY_TYPES`, `COMPANY_SIZES`, `LOCATION_TYPES` | libellés anglais (`_en`) uniques ; nullables le temps de les remplir par migration, obligatoires ensuite (#61) |
 | Tables hiérarchiques (`APPLICATIONS`, `COMPANIES`, `LOCATIONS`, `SKILL_CATEGORIES`) | une ligne n'est pas son propre parent ; les cycles plus longs sont contrôlés par le package |
 | Toutes les tables | clés étrangères obligatoires là où le diagramme montre `\|\|` côté parent ; `created_at` et `updated_at` obligatoires |
 | Colonnes `BOOLEAN` | `NOT NULL` : un `BOOLEAN` accepte aussi `NULL` |

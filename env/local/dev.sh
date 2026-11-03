@@ -5,7 +5,8 @@
 #   - jobtracker-ords : ORDS, qui installe APEX dans la base au premier démarrage
 # bootstrap  : amorçage SYS (comptes, schémas, compte de déploiement, Logger,
 #              utPLSQL, traduction française d'APEX, workspace APEX et son
-#              développeur, ACL réseau, contrôle du credential de l'API),
+#              développeur, libellés des assistants APEX, ACL réseau,
+#              contrôle du credential de l'API),
 #              rejouable
 # apex-admin : change le mot de passe ADMIN d'APEX (interactif)
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
@@ -143,6 +144,15 @@ sysdba() {
   if [[ -n "${1:-}" ]]; then workdir=(-w "$1"); fi
   { printf 'whenever sqlerror exit failure\nset feedback off verify off\nconnect / as sysdba\nalter session set container = %s;\n' "$PDB"; cat; } \
     | podman exec -i -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 "${workdir[@]}" "$DB_CTR" sqlplus -s -L /nolog
+}
+
+# app_schema : exécute en JOBTRACKER, par la connexion proxy du compte de
+# déploiement, le script SQL lu sur l'entrée standard. Pour les packages
+# d'APEX en droits de l'appelant, que SYS ne peut pas appeler (ORA-06598).
+app_schema() {
+  { printf 'whenever sqlerror exit failure\nset feedback off verify off\nconnect jobtracker_deploy[jobtracker]/"%s"@//localhost:1521/%s\n' \
+      "$(secret_value "$DEPLOY_SECRET")" "$PDB"; cat; } \
+    | podman exec -i -e NLS_LANG=AMERICAN_AMERICA.AL32UTF8 "$DB_CTR" sqlplus -s -L /nolog
 }
 
 # Valeur d'une requête scalaire, sans mise en forme
@@ -403,6 +413,9 @@ EOF
   info "Workspace APEX JOBTRACKER et son développeur DEV"
   sysdba <<<"@$CTR_BOOT_DIR/sql/common/create_workspace.sql"
   setup_apex_developer
+
+  info "Libellés français des assistants APEX (UI Defaults)"
+  app_schema <<<"@$CTR_BOOT_DIR/sql/local/ui_defaults.sql"
 
   info "ACL réseau vers l'API France Travail"
   sysdba <<<"@$CTR_BOOT_DIR/sql/common/network_acl.sql"

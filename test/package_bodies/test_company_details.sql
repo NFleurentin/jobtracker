@@ -135,8 +135,39 @@ create or replace package body jobtracker.test_company_details is
         ut.expect(l_count).to_equal(1);
     end one_row_per_company;
 
-    procedure labels_in_english_session is
+    procedure position_count is
 
+        l_company_id          companies.company_id%type;
+        l_job_id              jobs.job_id%type;
+        l_contact_position_id contact_positions.contact_position_id%type;
+    begin
+        l_company_id := company_api.create_company('Acme');
+        ut.expect(get_details(l_company_id).position_count).to_equal(0);
+        select
+            min(job_id)
+        into l_job_id
+        from
+            jobs;
+
+        -- Deux contacts en poste dans l'entreprise
+        l_contact_position_id := contact_api.create_position(
+            in_contact_id => contact_api.create_contact('Martin'),
+            in_company_id => l_company_id,
+            in_job_id     => l_job_id,
+            in_is_current => true
+        );
+
+        l_contact_position_id := contact_api.create_position(
+            in_contact_id => contact_api.create_contact('Durand'),
+            in_company_id => l_company_id,
+            in_job_id     => l_job_id,
+            in_is_current => false
+        );
+
+        ut.expect(get_details(l_company_id).position_count).to_equal(2);
+    end position_count;
+
+    procedure labels_in_english_session is
         r_type    company_types%rowtype;
         r_sector  sectors%rowtype;
         r_size    company_sizes%rowtype;

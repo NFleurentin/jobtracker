@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/views/company_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/contact_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/contact_position_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_companies_form.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_company_contacts_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_contacts_form.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_contact_positions_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_jobs_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/company_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/contact_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/contact_position_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ui_company_contacts_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ui_contact_positions_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ui_jobs_lov.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -4,7 +4,7 @@ create or replace package jobtracker.test_company_details authid definer is
     -- Chaque test écrit réellement dans companies (et locations, sans package
     -- d'écriture) ; utPLSQL annule ses écritures à la fin (rollback auto).
     -- Suppose les données de référence de company_types, sectors,
-    -- company_sizes et location_types.
+    -- company_sizes, location_types et jobs.
     -- =========================================================================
 
     --%suite(company_details)
@@ -17,6 +17,9 @@ create or replace package jobtracker.test_company_details authid definer is
 
     --%test(donne une seule ligne par entreprise)
     procedure one_row_per_company;
+
+    --%test(compte les postes de contacts dans l'entreprise, zéro sans poste)
+    procedure position_count;
 
     --%test(remonte les libellés anglais dans une session APEX en anglais)
     --%beforetest(test_helpers.start_english_session)

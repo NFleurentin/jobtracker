@@ -56,6 +56,38 @@ create or replace package body jobtracker.test_contact_details is
         ut.expect(r_details.salutation_long_name).to_equal(r_salutation.salutation_long_name_fr);
     end salutation_labels_in_french;
 
+    procedure position_count is
+
+        l_contact_id          contacts.contact_id%type;
+        l_job_id              jobs.job_id%type;
+        l_contact_position_id contact_positions.contact_position_id%type;
+    begin
+        l_contact_id := contact_api.create_contact('Martin');
+        ut.expect(get_details(l_contact_id).position_count).to_equal(0);
+        select
+            min(job_id)
+        into l_job_id
+        from
+            jobs;
+
+        -- Deux postes dans deux entreprises
+        l_contact_position_id := contact_api.create_position(
+            in_contact_id => l_contact_id,
+            in_company_id => company_api.create_company('Acme'),
+            in_job_id     => l_job_id,
+            in_is_current => true
+        );
+
+        l_contact_position_id := contact_api.create_position(
+            in_contact_id => l_contact_id,
+            in_company_id => company_api.create_company('Globex'),
+            in_job_id     => l_job_id,
+            in_is_current => false
+        );
+
+        ut.expect(get_details(l_contact_id).position_count).to_equal(2);
+    end position_count;
+
     procedure salutation_labels_in_english_session is
         r_salutation salutations%rowtype;
         r_details    contact_details%rowtype;

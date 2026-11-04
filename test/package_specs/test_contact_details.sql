@@ -3,7 +3,7 @@ create or replace package jobtracker.test_contact_details authid definer is
     -- Tests de la vue contact_details : jointure externe et libellés.
     -- Chaque test écrit réellement dans contacts ; utPLSQL annule ses
     -- écritures à la fin (rollback auto).
-    -- Suppose les données de référence de salutations.
+    -- Suppose les données de référence de salutations et de jobs.
     -- =========================================================================
 
     --%suite(contact_details)
@@ -13,6 +13,9 @@ create or replace package jobtracker.test_contact_details authid definer is
 
     --%test(remonte les libellés français de la civilité)
     procedure salutation_labels_in_french;
+
+    --%test(compte les postes du contact, zéro s'il n'en a pas)
+    procedure position_count;
 
     --%test(remonte les libellés anglais dans une session APEX en anglais)
     --%beforetest(test_helpers.start_english_session)

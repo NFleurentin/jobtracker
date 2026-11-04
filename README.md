@@ -293,7 +293,8 @@ env/ci/run.sh down
 - [x] Contacts dans l'application APEX : liste, formulaire de création, modification et suppression par le package
 - [x] Référentiel des postes (`jobs`), bilingue et modifiable : table, postes de départ, package d'écriture et tests
 - [x] Contacts : postes dans les entreprises (table, gestion par `contact_api`, suppression d'un contact ou d'une entreprise avec ses postes sur demande, tests)
-- [ ] Contacts : postes dans l'application APEX (vues `ui_`, saisie depuis la fiche du contact, confirmation avant suppression avec les postes)
+- [x] Contacts : vues de lecture des postes pour APEX (vue de base `contact_position_details`, listes des fiches contact et entreprise, LOV des postes, nombre de postes dans les formulaires, tests)
+- [ ] Contacts : postes dans l'application APEX (saisie depuis la fiche du contact, confirmation avant suppression avec les postes)
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)

@@ -9,6 +9,7 @@ create or replace force editionable view jobtracker.contact_details (
     phone,
     linkedin_slug,
     note_text,
+    position_count,
     created_at,
     updated_at
 ) as
@@ -43,6 +44,14 @@ create or replace force editionable view jobtracker.contact_details (
         c.phone,
         c.linkedin_slug,
         c.note_text,
+        (
+            select
+                count(*)
+            from
+                jobtracker.contact_positions cp
+            where
+                cp.contact_id = c.contact_id
+        )   as position_count,
         c.created_at,
         c.updated_at
     from
@@ -51,4 +60,4 @@ create or replace force editionable view jobtracker.contact_details (
 with read only;
 
 
--- sqlcl_snapshot {"hash":"2d0c7e2a00fe90b1f5b7a36bdc27576c0ffac0eb","type":"VIEW","name":"CONTACT_DETAILS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"7473bd5a65dfe772a9f90ae02b499ff492689b4f","type":"VIEW","name":"CONTACT_DETAILS","schemaName":"JOBTRACKER","sxml":""}

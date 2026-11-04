@@ -21,6 +21,7 @@ create or replace force editionable view jobtracker.company_details (
     email,
     phone,
     creation_year,
+    position_count,
     created_at,
     updated_at
 ) as
@@ -87,6 +88,14 @@ create or replace force editionable view jobtracker.company_details (
         c.email,
         c.phone,
         c.creation_year,
+        (
+            select
+                count(*)
+            from
+                jobtracker.contact_positions cp
+            where
+                cp.company_id = c.company_id
+        )                as position_count,
         c.created_at,
         c.updated_at
     from
@@ -99,4 +108,4 @@ create or replace force editionable view jobtracker.company_details (
 with read only;
 
 
--- sqlcl_snapshot {"hash":"4f2a42d693b38b9cf3fc2e2d4e3f04e434e3bffd","type":"VIEW","name":"COMPANY_DETAILS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"3684f88f515237510b9f0678e5a7de0c280d4a12","type":"VIEW","name":"COMPANY_DETAILS","schemaName":"JOBTRACKER","sxml":""}

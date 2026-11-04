@@ -17,5 +17,6 @@
 <include file="changes/feat/contacts-read-views/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/job-lookup/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/contact-positions/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/contact-positions-views/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

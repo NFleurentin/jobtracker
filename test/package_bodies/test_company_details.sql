@@ -169,13 +169,8 @@ create or replace package body jobtracker.test_company_details is
             company_size_id
         fetch first 1 row only;
 
-        -- La langue vient de la session APEX (app_message.current_language)
-        apex_session.create_session(
-            p_app_id   => 1000,
-            p_page_id  => 1,
-            p_username => 'TEST'
-        );
-        apex_util.set_session_lang('en');
+        -- La langue vient de la session APEX (app_message.current_language),
+        -- ouverte par start_english_session
         r_details := get_details(company_api.create_company(
             in_company_name    => 'Acme',
             in_company_type_id => r_type.company_type_id,
@@ -188,6 +183,18 @@ create or replace package body jobtracker.test_company_details is
         ut.expect(r_details.company_size_short_name).to_equal(r_size.company_size_short_name_en);
         ut.expect(r_details.company_size_long_name).to_equal(r_size.company_size_long_name_en);
     end labels_in_english_session;
+
+    procedure start_english_session is
+        pragma autonomous_transaction;
+    begin
+        apex_session.create_session(
+            p_app_id   => 1000,
+            p_page_id  => 1,
+            p_username => 'TEST'
+        );
+        apex_util.set_session_lang('en');
+        commit;
+    end start_english_session;
 
     procedure end_english_session is
         pragma autonomous_transaction;

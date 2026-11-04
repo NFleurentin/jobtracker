@@ -254,6 +254,12 @@ erDiagram
         VARCHAR2(30) salutation_long_name_en "civilité complète anglaise (Mister, Madam)"
     }
 
+    JOBS {
+        NUMBER job_id PK "clé du poste"
+        VARCHAR2(100) job_name_en "poste en anglais (Recruiter)"
+        VARCHAR2(100) job_name_fr "poste en français (Recruteur)"
+    }
+
     CONTACTS {
         NUMBER contact_id PK "clé du contact"
         VARCHAR2(100) first_name "prénom"
@@ -271,7 +277,7 @@ erDiagram
         NUMBER company_contact_id PK "clé du rattachement"
         NUMBER company_id FK "clé de l'entreprise"
         NUMBER contact_id FK "clé du contact"
-        VARCHAR2(200) job_title "fonction du contact dans cette entreprise"
+        NUMBER job_id FK "poste du contact dans cette entreprise"
     }
 
     INTERVIEW_CONTACTS {
@@ -307,6 +313,7 @@ erDiagram
     SALUTATIONS |o--o{ CONTACTS : "qualifie"
     COMPANIES ||--o{ COMPANY_CONTACTS : "emploie"
     CONTACTS ||--o{ COMPANY_CONTACTS : "travaille pour"
+    JOBS ||--o{ COMPANY_CONTACTS : "qualifie"
 
     OFFERS |o--o| APPLICATIONS : "suivie par"
     APPLICATIONS |o--o{ APPLICATIONS : "regroupe"
@@ -345,6 +352,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |
 | `LOCATION_TYPES` | `location_type_code` obligatoire et unique |
 | `SALUTATIONS` | `salutation_code` obligatoire et unique |
+| `JOBS` | `job_name_en` et `job_name_fr` obligatoires, chacun unique sans tenir compte de la casse, par un index unique sur `upper()` |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | Référentiels, sauf `LOCATIONS` et les référentiels traduits (ligne suivante) | `<entité>_name` obligatoire et unique |

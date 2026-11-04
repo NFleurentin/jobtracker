@@ -1,5 +1,5 @@
 comment on table jobtracker.company_details is
-    'Entreprises avec les libellés de leurs référentiels et de l''entreprise parente.';
+    'Entreprises avec les libellés de leurs référentiels, de l''entreprise parente et le nombre de postes de contacts.';
 
 
--- sqlcl_snapshot {"hash":"45dc94aeb38e04dd2ea8a1855b0ef42656e62333","type":"COMMENT","name":"COMPANY_DETAILS","schemaName":"jobtracker","sxml":""}
+-- sqlcl_snapshot {"hash":"ea8537e1791ae5d293a8018fdc0d1290a07e6291","type":"COMMENT","name":"COMPANY_DETAILS","schemaName":"jobtracker","sxml":""}

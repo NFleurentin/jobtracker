@@ -13,6 +13,37 @@ create or replace package body jobtracker.test_company_api is
         );
     end new_company;
 
+    /** Poste d'un contact de test dans l'entreprise donnée. */
+    procedure add_position (
+        in_company_id in companies.company_id%type
+    ) is
+        l_contact_position_id contact_positions.contact_position_id%type;
+    begin
+        l_contact_position_id := contact_api.create_position(
+            in_contact_id => contact_api.create_contact('Martin'),
+            in_company_id => in_company_id,
+            in_job_id     => job_api.create_job('Test scout', 'Éclaireur de test'),
+            in_is_current => true
+        );
+    end add_position;
+
+    /** Nombre de postes dans l'entreprise donnée. */
+    function count_positions (
+        in_company_id in companies.company_id%type
+    ) return pls_integer is
+        l_count pls_integer;
+    begin
+        select
+            count(*)
+        into l_count
+        from
+            contact_positions
+        where
+            company_id = in_company_id;
+
+        return l_count;
+    end count_positions;
+
     /** Ligne de l'entreprise donnée. */
     function get_company (
         in_company_id in companies.company_id%type
@@ -280,6 +311,39 @@ create or replace package body jobtracker.test_company_api is
         when app_errors.e_row_referenced then
             ut.expect(sqlerrm).to_be_like('%« Groupe »%');
     end delete_company_error_names_company;
+
+    procedure delete_company_with_positions is
+        l_company_id companies.company_id%type;
+    begin
+        l_company_id := new_company;
+        add_position(l_company_id);
+        company_api.delete_company(l_company_id);
+    end delete_company_with_positions;
+
+    procedure delete_company_deletes_positions is
+        l_company_id companies.company_id%type;
+    begin
+        l_company_id := new_company;
+        add_position(l_company_id);
+        company_api.delete_company(l_company_id,
+                                   in_delete_positions => true);
+        ut.expect(count_positions(l_company_id)).to_equal(0);
+    end delete_company_deletes_positions;
+
+    procedure delete_company_parent_keeps_positions is
+        l_parent_id companies.company_id%type;
+        l_child_id  companies.company_id%type;
+    begin
+        l_parent_id := new_company;
+        l_child_id := new_company(l_parent_id);
+        add_position(l_parent_id);
+        company_api.delete_company(l_parent_id,
+                                   in_delete_positions => true);
+        ut.fail('Suppression acceptée');
+    exception
+        when app_errors.e_row_referenced then
+            ut.expect(count_positions(l_parent_id)).to_equal(1);
+    end delete_company_parent_keeps_positions;
 
     procedure company_name_required is
         l_company_id companies.company_id%type;

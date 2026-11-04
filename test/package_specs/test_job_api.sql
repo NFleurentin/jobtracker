@@ -56,6 +56,9 @@ create or replace package jobtracker.test_job_api authid definer is
     --%throws(app_errors.co_not_found)
     procedure delete_job_unknown;
 
+    --%test(refuse un poste occupé et le nomme dans le message)
+    procedure delete_job_in_use;
+
     --%endcontext
 end test_job_api;
 /

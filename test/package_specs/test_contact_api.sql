@@ -40,6 +40,44 @@ create or replace package jobtracker.test_contact_api authid definer is
     --%throws(app_errors.co_not_found)
     procedure delete_contact_unknown;
 
+    --%test(refuse un contact qui a des postes)
+    --%throws(app_errors.co_row_referenced)
+    procedure delete_contact_with_positions;
+
+    --%test(nomme le contact dans le message de refus)
+    procedure delete_contact_error_names_contact;
+
+    --%test(supprime aussi ses postes sur demande)
+    procedure delete_contact_deletes_positions;
+
+    --%endcontext
+
+    --%context(postes)
+
+    --%test(crée un poste avec toutes ses colonnes)
+    procedure create_position_all_columns;
+
+    --%test(accepte plusieurs postes actuels, dans plusieurs entreprises)
+    procedure create_position_several_current;
+
+    --%test(refuse le même poste deux fois dans la même entreprise)
+    --%throws(-1)
+    procedure create_position_duplicate;
+
+    --%test(remplace les colonnes et met à jour updated_at)
+    procedure update_position_replaces_columns;
+
+    --%test(refuse un poste inconnu en modification)
+    --%throws(app_errors.co_not_found)
+    procedure update_position_unknown;
+
+    --%test(supprime le poste)
+    procedure delete_position_removes_row;
+
+    --%test(refuse un poste inconnu en suppression)
+    --%throws(app_errors.co_not_found)
+    procedure delete_position_unknown;
+
     --%endcontext
 
     --%context(contraintes de la table)

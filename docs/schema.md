@@ -273,17 +273,20 @@ erDiagram
         TIMESTAMP_TZ updated_at "date de dernière mise à jour"
     }
 
-    COMPANY_CONTACTS {
-        NUMBER company_contact_id PK "clé du rattachement"
-        NUMBER company_id FK "clé de l'entreprise"
+    CONTACT_POSITIONS {
+        NUMBER contact_position_id PK "clé du poste du contact"
         NUMBER contact_id FK "clé du contact"
+        NUMBER company_id FK "clé de l'entreprise"
         NUMBER job_id FK "poste du contact dans cette entreprise"
+        BOOLEAN is_current "poste actuel, faux par défaut"
+        TIMESTAMP_TZ created_at "date d'enregistrement, ordre des anciens postes"
+        TIMESTAMP_TZ updated_at "date de dernière mise à jour"
     }
 
     INTERVIEW_CONTACTS {
         NUMBER interview_contact_id PK "clé de la participation"
         NUMBER interview_id FK "clé de l'entretien"
-        NUMBER company_contact_id FK "contact, au titre de l'entreprise pour laquelle il participe"
+        NUMBER contact_position_id FK "contact, au titre du poste qu'il occupe dans une entreprise"
     }
 
     LOCATIONS |o--o{ OFFERS : "localise"
@@ -311,9 +314,9 @@ erDiagram
     SECTORS |o--o{ COMPANIES : "classe"
     COLLECTIVE_AGREEMENTS |o--o{ COMPANIES : "s'applique à"
     SALUTATIONS |o--o{ CONTACTS : "qualifie"
-    COMPANIES ||--o{ COMPANY_CONTACTS : "emploie"
-    CONTACTS ||--o{ COMPANY_CONTACTS : "travaille pour"
-    JOBS ||--o{ COMPANY_CONTACTS : "qualifie"
+    COMPANIES ||--o{ CONTACT_POSITIONS : "emploie"
+    CONTACTS ||--o{ CONTACT_POSITIONS : "occupe"
+    JOBS ||--o{ CONTACT_POSITIONS : "qualifie"
 
     OFFERS |o--o| APPLICATIONS : "suivie par"
     APPLICATIONS |o--o{ APPLICATIONS : "regroupe"
@@ -330,7 +333,7 @@ erDiagram
     MEETING_TYPES |o--o{ INTERVIEWS : "qualifie"
     INTERVIEW_OUTCOMES ||--o{ INTERVIEWS : "conclut"
     INTERVIEWS ||--o{ INTERVIEW_CONTACTS : "réunit"
-    COMPANY_CONTACTS ||--o{ INTERVIEW_CONTACTS : "participe à"
+    CONTACT_POSITIONS ||--o{ INTERVIEW_CONTACTS : "participe à"
 ```
 
 ## Contraintes
@@ -355,6 +358,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `JOBS` | `job_name_en` et `job_name_fr` obligatoires, chacun unique sans tenir compte de la casse, par un index unique sur `upper()` |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
+| `CONTACT_POSITIONS` | `(contact_id, company_id, job_id)` unique : plusieurs postes par contact, y compris dans une même entreprise, sans limite de postes actuels ; `company_id` et `job_id` indexés ; clés étrangères sans cascade |
 | Référentiels, sauf `LOCATIONS` et les référentiels traduits (ligne suivante) | `<entité>_name` obligatoire et unique |
 | `SECTORS`, `COMPANY_TYPES`, `COMPANY_SIZES`, `LOCATION_TYPES`, `SALUTATIONS` | libellés français (`_fr`) et anglais (`_en`) obligatoires et uniques |
 | Tables hiérarchiques (`APPLICATIONS`, `COMPANIES`, `LOCATIONS`, `SKILL_CATEGORIES`) | une ligne n'est pas son propre parent ; les cycles plus longs sont contrôlés par le package |

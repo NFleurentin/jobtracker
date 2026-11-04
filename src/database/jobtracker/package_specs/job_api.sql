@@ -29,6 +29,7 @@ create or replace package jobtracker.job_api authid definer is
     /**
      * Supprime un poste.
      * @throws app_errors.co_not_found poste inexistant
+     * @throws app_errors.co_row_referenced poste occupé par des contacts
      */
     procedure delete_job (
         in_job_id in jobs.job_id%type
@@ -38,4 +39,4 @@ end job_api;
 /
 
 
--- sqlcl_snapshot {"hash":"282d36451a63c3ff4bf4d0a99c52a5f6891d9e86","type":"PACKAGE_SPEC","name":"JOB_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"4b4ebe6d9b2b0cef77c64d036b1a34ce3484aaf0","type":"PACKAGE_SPEC","name":"JOB_API","schemaName":"JOBTRACKER","sxml":""}

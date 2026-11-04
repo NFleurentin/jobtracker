@@ -60,8 +60,13 @@ create or replace package jobtracker.app_errors authid definer is
     co_row_referenced constant pls_integer := -20201;
     e_row_referenced exception;
     pragma exception_init ( e_row_referenced, -20201 );
+
+    -- Valeur déjà présente là où elle doit être unique (libellé de référentiel...)
+    co_duplicate_value constant pls_integer := -20202;
+    e_duplicate_value exception;
+    pragma exception_init ( e_duplicate_value, -20202 );
 end app_errors;
 /
 
 
--- sqlcl_snapshot {"hash":"d2725f0c30ff607bdcac6f5aa2ad91e5adc41a9c","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"2dfef3d80768248c63575fa575721a948529aa46","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}

@@ -1,0 +1,7 @@
+textMessage CONTACT_DELETE_WITH_POSITIONS_MSG (
+    message {
+        text: Ce contact a des postes, qui seront supprimés avec lui. Voulez-vous continuer ?
+        language: fr
+    }
+)
+

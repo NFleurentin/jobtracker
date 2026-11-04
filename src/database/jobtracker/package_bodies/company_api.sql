@@ -24,6 +24,24 @@ create or replace package body jobtracker.company_api is
         return l_company_name;
     end name_of;
 
+    /** Vrai si un contact occupe au moins un poste dans l'entreprise. */
+    function has_positions (
+        in_company_id in companies.company_id%type
+    ) return boolean is
+        l_count pls_integer;
+    begin
+        select
+            count(*)
+        into l_count
+        from
+            contact_positions
+        where
+                company_id = in_company_id
+            and rownum = 1;
+
+        return l_count > 0;
+    end has_positions;
+
     /**
      * Refuse un parent qui créerait un cycle, l'entreprise elle-même comprise.
      * Remonte la hiérarchie depuis le parent demandé : l'entreprise ne doit pas
@@ -158,9 +176,24 @@ create or replace package body jobtracker.company_api is
     end update_company;
 
     procedure delete_company (
-        in_company_id in companies.company_id%type
+        in_company_id       in companies.company_id%type,
+        in_delete_positions in boolean default false
     ) is
     begin
+        -- Un refus après la suppression des postes (filiale...) doit les
+        -- rétablir : l'erreur n'annule que l'instruction en échec
+        savepoint before_delete_company;
+        if in_delete_positions then
+            delete from contact_positions
+            where
+                company_id = in_company_id;
+
+        elsif has_positions(in_company_id) then
+            app_message.raise_error(app_errors.co_row_referenced,
+                                    'COMPANY_HAS_POSITIONS',
+                                    name_of(in_company_id));
+        end if;
+
         delete from companies
         where
             company_id = in_company_id;
@@ -171,6 +204,7 @@ create or replace package body jobtracker.company_api is
 
     exception
         when e_child_record_found then
+            rollback to savepoint before_delete_company;
             app_message.raise_error(app_errors.co_row_referenced,
                                     'COMPANY_ROW_REFERENCED',
                                     name_of(in_company_id));
@@ -180,4 +214,4 @@ end company_api;
 /
 
 
--- sqlcl_snapshot {"hash":"3f9940e3cc136ce1c6c288a84c49036727204a87","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"821be1eb6a5d2ce680390f485b97586d7297226c","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}

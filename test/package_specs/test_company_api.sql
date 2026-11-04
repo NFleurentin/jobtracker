@@ -71,6 +71,16 @@ create or replace package jobtracker.test_company_api authid definer is
     --%test(nomme l'entreprise dans le message de refus)
     procedure delete_company_error_names_company;
 
+    --%test(refuse une entreprise où des contacts ont des postes)
+    --%throws(app_errors.co_row_referenced)
+    procedure delete_company_with_positions;
+
+    --%test(supprime aussi les postes sur demande)
+    procedure delete_company_deletes_positions;
+
+    --%test(garde les postes si une filiale bloque la suppression)
+    procedure delete_company_parent_keeps_positions;
+
     --%endcontext
 
     --%context(contraintes de la table)

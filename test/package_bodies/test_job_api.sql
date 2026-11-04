@@ -118,5 +118,24 @@ create or replace package body jobtracker.test_job_api is
         job_api.delete_job(co_unknown_job_id);
     end delete_job_unknown;
 
+    procedure delete_job_in_use is
+        l_job_id              jobs.job_id%type;
+        l_contact_position_id contact_positions.contact_position_id%type;
+    begin
+        l_job_id := create_test_job;
+        l_contact_position_id := contact_api.create_position(
+            in_contact_id => contact_api.create_contact('Martin'),
+            in_company_id => company_api.create_company('Test'),
+            in_job_id     => l_job_id,
+            in_is_current => true
+        );
+
+        job_api.delete_job(l_job_id);
+        ut.fail('Suppression acceptée');
+    exception
+        when app_errors.e_row_referenced then
+            ut.expect(sqlerrm).to_be_like('%« Éclaireur de test »%');
+    end delete_job_in_use;
+
 end test_job_api;
 /

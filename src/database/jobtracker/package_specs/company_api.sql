@@ -52,16 +52,21 @@ create or replace package jobtracker.company_api authid definer is
     );
 
     /**
-     * Supprime une entreprise.
+     * Supprime une entreprise. Tout ou rien : si la suppression est refusée,
+     * les postes supprimés sont rétablis.
+     * @param in_delete_positions true : supprime aussi les postes de ses
+     *        contacts ; false : refuse la suppression si elle en a
      * @throws app_errors.co_not_found entreprise inexistante
-     * @throws app_errors.co_row_referenced entreprise encore référencée
+     * @throws app_errors.co_row_referenced entreprise qui a des postes (sans
+     *         in_delete_positions), ou encore référencée (filiale...)
      */
     procedure delete_company (
-        in_company_id in companies.company_id%type
+        in_company_id       in companies.company_id%type,
+        in_delete_positions in boolean default false
     );
 
 end company_api;
 /
 
 
--- sqlcl_snapshot {"hash":"532c3e0c74a43c1acba737eeb8a3c3426a26aa70","type":"PACKAGE_SPEC","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"08abf08e638d8b5ad08e4b08f3e4eab5cc63bd53","type":"PACKAGE_SPEC","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}

@@ -1,6 +1,7 @@
 create or replace package jobtracker.contact_api authid definer is
     /**
-     * Écritures sur les contacts : point d'entrée unique, appelé par APEX.
+     * Écritures sur les contacts et leurs postes dans les entreprises : point
+     * d'entrée unique, appelé par APEX.
      * Aucun COMMIT : la transaction appartient à l'appelant.
      * Les contraintes de la table restent la dernière ligne de défense : un
      * identifiant LinkedIn mal formé remonte en erreur Oracle.
@@ -37,15 +38,53 @@ create or replace package jobtracker.contact_api authid definer is
     );
 
     /**
-     * Supprime un contact.
+     * Supprime un contact. Tout ou rien : si la suppression est refusée, ses
+     * postes supprimés sont rétablis.
+     * @param in_delete_positions true : supprime aussi ses postes ;
+     *        false : refuse la suppression s'il en a
      * @throws app_errors.co_not_found contact inexistant
+     * @throws app_errors.co_row_referenced contact qui a des postes (sans
+     *         in_delete_positions), ou encore référencé par d'autres données
      */
     procedure delete_contact (
-        in_contact_id in contacts.contact_id%type
+        in_contact_id       in contacts.contact_id%type,
+        in_delete_positions in boolean default false
+    );
+
+    /**
+     * Crée un poste du contact dans une entreprise.
+     * @param in_is_current true : poste actuel
+     * @return identifiant du poste
+     */
+    function create_position (
+        in_contact_id in contact_positions.contact_id%type,
+        in_company_id in contact_positions.company_id%type,
+        in_job_id     in contact_positions.job_id%type,
+        in_is_current in contact_positions.is_current%type
+    ) return contact_positions.contact_position_id%type;
+
+    /**
+     * Remplace l'entreprise, le poste et l'indicateur d'un poste du contact, et
+     * met à jour updated_at. Le contact ne change pas.
+     * @throws app_errors.co_not_found poste inexistant
+     */
+    procedure update_position (
+        in_contact_position_id in contact_positions.contact_position_id%type,
+        in_company_id          in contact_positions.company_id%type,
+        in_job_id              in contact_positions.job_id%type,
+        in_is_current          in contact_positions.is_current%type
+    );
+
+    /**
+     * Supprime un poste du contact.
+     * @throws app_errors.co_not_found poste inexistant
+     */
+    procedure delete_position (
+        in_contact_position_id in contact_positions.contact_position_id%type
     );
 
 end contact_api;
 /
 
 
--- sqlcl_snapshot {"hash":"214aa39fa9c29c86a5117af33557e6b68cd20ace","type":"PACKAGE_SPEC","name":"CONTACT_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"4707f25a53494913950a49cf4abfd471839f68b4","type":"PACKAGE_SPEC","name":"CONTACT_API","schemaName":"JOBTRACKER","sxml":""}

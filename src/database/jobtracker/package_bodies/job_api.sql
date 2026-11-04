@@ -1,5 +1,34 @@
 create or replace package body jobtracker.job_api is
 
+    -- ORA-02292 : suppression d'une ligne parente d'une clé étrangère
+    e_child_record_found exception;
+    pragma exception_init ( e_child_record_found, -2292 );
+
+    /**
+     * Libellé d'un poste dans la langue de la session, français pour toute
+     * autre langue, pour un message d'erreur métier.
+     */
+    function name_of (
+        in_job_id in jobs.job_id%type
+    ) return jobs.job_name_fr%type is
+        l_job_name jobs.job_name_fr%type;
+    begin
+        select
+            case app_message.current_language
+                when 'en' then
+                    job_name_en
+                else
+                    job_name_fr
+            end
+        into l_job_name
+        from
+            jobs
+        where
+            job_id = in_job_id;
+
+        return l_job_name;
+    end name_of;
+
     /**
      * Lève l'erreur métier d'un libellé en double, après un ORA-00001.
      * Retrouve le libellé en conflit pour le nommer dans le message : anglais
@@ -88,10 +117,15 @@ create or replace package body jobtracker.job_api is
             raise_application_error(app_errors.co_not_found, 'Unknown job: ' || in_job_id);
         end if;
 
+    exception
+        when e_child_record_found then
+            app_message.raise_error(app_errors.co_row_referenced,
+                                    'JOB_ROW_REFERENCED',
+                                    name_of(in_job_id));
     end delete_job;
 
 end job_api;
 /
 
 
--- sqlcl_snapshot {"hash":"b07de4502df1276a1b8fec42c335f80c9cc66d39","type":"PACKAGE_BODY","name":"JOB_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"005c3b6f24d268b25e66cfb3b253314daa3d2d52","type":"PACKAGE_BODY","name":"JOB_API","schemaName":"JOBTRACKER","sxml":""}

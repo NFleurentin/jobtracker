@@ -27,6 +27,7 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 - La spec est le contrat public : une modification incompatible impose le `!` du commit (`git.md`).
 - Documentation au format PLDoc (`/** … @param … @return … @throws … */`), dans la spec pour les routines publiques, dans le body pour les routines privées (jamais les deux pour une même routine), à l'intérieur du package (un commentaire avant `create or replace` est perdu par `project export`). Balises seulement quand elles ajoutent du sens : unité, signification de `null`, erreur levée.
 - `COMMIT` et `ROLLBACK` uniquement dans les points d'entrée appelés par `DBMS_SCHEDULER`, jamais dans les procédures de service. Le code appelé par APEX n'en fait pas : APEX valide la transaction en fin de traitement. Seule exception : `http_util.make_rest_request`, en transaction autonome (voir « Collecte »).
+- `ROLLBACK TO SAVEPOINT` est permis dans une procédure de service, sur son propre savepoint, pour la rendre atomique : une erreur n'annule que l'instruction en échec, pas les écritures précédentes de la procédure (suppression des lignes enfants, puis du parent qui échoue).
 
 ## Erreurs et journalisation
 

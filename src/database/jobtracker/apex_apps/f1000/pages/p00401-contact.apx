@@ -57,6 +57,212 @@ page 401 (
         }
     )
 
+    region positions (
+        name: Postes
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: UI_CONTACT_POSITIONS_LIST
+            whereClause: contact_id = :P401_CONTACT_ID
+            pageItemsToSubmit: P401_CONTACT_ID
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            htmlDomId: positions
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        pagination {
+            showTotalCount: false
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function(config) {
+                    config.defaultGridViewOptions = { footer: false };
+                    return config;
+                }
+                
+                ```
+        }
+        advanced {
+            savedReportMappingIdentifier: 13801199579393302
+        }
+
+        savedReport primary (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @CONTACT_POSITION_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @COMPANY_ID
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @JOB_ID
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @IS_CURRENT
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column COMPANY_ID (
+            type: popupLov
+            heading {
+                heading: Entreprise
+            }
+            lov {
+                type: sharedComponent
+                lov: @companies-lov
+                displayNullValue: false
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: COMPANY_ID
+                dataType: number
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: useLov
+            }
+        )
+
+        column CONTACT_POSITION_ID (
+            type: hidden
+            heading {
+                heading: Contact Position Id
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: CONTACT_POSITION_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column IS_CURRENT (
+            type: switch
+            heading {
+                heading: Poste actuel
+            }
+            settings {
+                useDefaults: false
+                onLabel: Oui
+                offLabel: Non
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: IS_CURRENT
+                dataType: boolean
+            }
+            sessionState {
+                dataType: boolean
+            }
+        )
+
+        column JOB_ID (
+            type: popupLov
+            heading {
+                heading: Poste
+            }
+            lov {
+                type: sharedComponent
+                lov: @jobs-lov
+                displayNullValue: false
+            }
+            layout {
+                sequence: 70
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: JOB_ID
+                dataType: number
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: useLov
+            }
+        )
+
+    )
+
     pageItem P401_CONTACT_ID (
         type: hidden
         layout {
@@ -431,7 +637,7 @@ page 401 (
         name: Close Dialog
         type: closeDialog
         execution {
-            sequence: 50
+            sequence: 30
         }
         advanced {
             executionMappingIdentifier: 7762105876717925
@@ -452,6 +658,46 @@ page 401 (
         }
         advanced {
             executionMappingIdentifier: 7761394745717922
+        }
+    )
+
+    process positions-save-interactive-grid-data (
+        name: Positions - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @positions
+        target {
+            targetType: plsqlCode
+            dmlPlsqlCode:
+                ```plsql
+                case :APEX$ROW_STATUS
+                    when 'C' then
+                        :CONTACT_POSITION_ID := contact_api.create_position(
+                            in_contact_id => :P401_CONTACT_ID,
+                            in_company_id => :COMPANY_ID,
+                            in_job_id     => :JOB_ID,
+                            in_is_current => :IS_CURRENT
+                        );
+                    when 'U' then
+                        contact_api.update_position(
+                            in_contact_position_id => :CONTACT_POSITION_ID,
+                            in_company_id          => :COMPANY_ID,
+                            in_job_id              => :JOB_ID,
+                            in_is_current          => :IS_CURRENT
+                        );
+                    when 'D' then
+                        contact_api.delete_position(in_contact_position_id => :CONTACT_POSITION_ID);
+                end case;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 13804198614393332
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE
         }
     )
 

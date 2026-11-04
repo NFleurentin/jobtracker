@@ -38,8 +38,8 @@ prompt APPLICATION 1000 - JobTracker
 --   Export Type:     Application Export
 --     Pages:                      7
 --       Items:                   30
---       Processes:               10
---       Regions:                 10
+--       Processes:               11
+--       Regions:                 11
 --       Buttons:                 11
 --       Dynamic Actions:          2
 --     Shared Components:
@@ -55,7 +55,7 @@ prompt APPLICATION 1000 - JobTracker
 --       User Interface:
 --         Themes:                 1
 --         Templates:
---         LOVs:                   7
+--         LOVs:                   8
 --       PWA:
 --       Globalization:
 --       Reports:
@@ -107,7 +107,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'7522074'
+,p_version_scn=>'7898739'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -918,6 +918,23 @@ wwv_flow_imp_shared.create_list_of_values(
 ,p_default_sort_column_name=>'DISPLAY_VALUE'
 ,p_default_sort_direction=>'ASC'
 ,p_version_scn=>'SH256:dNm49-uMwFma2TO958zhP0p14eCaS5MX8QMbq0OENaI'
+);
+end;
+/
+prompt --application/shared_components/user_interface/lovs/jobs_lov
+begin
+wwv_flow_imp_shared.create_list_of_values(
+ p_id=>wwv_flow_imp.id(13800527686387507)
+,p_lov_name=>'JOBS_LOV'
+,p_static_id=>'jobs-lov'
+,p_source_type=>'TABLE'
+,p_location=>'LOCAL'
+,p_query_table=>'UI_JOBS_LOV'
+,p_return_column_name=>'RETURN_VALUE'
+,p_display_column_name=>'DISPLAY_VALUE'
+,p_default_sort_column_name=>'DISPLAY_VALUE'
+,p_default_sort_direction=>'ASC'
+,p_version_scn=>'SH256:aNW9pb2q7JrI5x9ZNtuDSNLc0RGabFvrUxcyul2tp_Q'
 );
 end;
 /
@@ -2243,6 +2260,268 @@ wwv_flow_imp_page.create_page_plug(
 ,p_lost_update_check_type=>'VALUES'
 ,p_plug_source_type=>'NATIVE_FORM'
 );
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(13801076874393301)
+,p_plug_name=>'Postes'
+,p_static_id=>'positions'
+,p_region_name=>'positions'
+,p_region_template_options=>'#DEFAULT#:t-Region--noPadding:t-Region--scrollBody'
+,p_plug_template=>4073835273271169698
+,p_plug_display_sequence=>20
+,p_plug_item_display_point=>'ABOVE'
+,p_query_type=>'TABLE'
+,p_query_table=>'UI_CONTACT_POSITIONS_LIST'
+,p_query_where=>'contact_id = :P401_CONTACT_ID'
+,p_include_rowid_column=>false
+,p_plug_source_type=>'NATIVE_IG'
+,p_ajax_items_to_submit=>'P401_CONTACT_ID'
+,p_prn_units=>'MILLIMETERS'
+,p_prn_paper_size=>'A4'
+,p_prn_width=>297
+,p_prn_height=>210
+,p_prn_orientation=>'HORIZONTAL'
+,p_prn_page_header_font_color=>'#000000'
+,p_prn_page_header_font_family=>'Helvetica'
+,p_prn_page_header_font_weight=>'normal'
+,p_prn_page_header_font_size=>'12'
+,p_prn_page_footer_font_color=>'#000000'
+,p_prn_page_footer_font_family=>'Helvetica'
+,p_prn_page_footer_font_weight=>'normal'
+,p_prn_page_footer_font_size=>'12'
+,p_prn_header_bg_color=>'#EEEEEE'
+,p_prn_header_font_color=>'#000000'
+,p_prn_header_font_family=>'Helvetica'
+,p_prn_header_font_weight=>'bold'
+,p_prn_header_font_size=>'10'
+,p_prn_body_bg_color=>'#FFFFFF'
+,p_prn_body_font_color=>'#000000'
+,p_prn_body_font_family=>'Helvetica'
+,p_prn_body_font_weight=>'normal'
+,p_prn_body_font_size=>'10'
+,p_prn_border_width=>.5
+,p_prn_page_header_alignment=>'CENTER'
+,p_prn_page_footer_alignment=>'CENTER'
+,p_prn_border_color=>'#666666'
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(13803903539393330)
+,p_name=>'APEX$ROW_ACTION'
+,p_session_state_data_type=>'VARCHAR2'
+,p_item_type=>'NATIVE_ROW_ACTION'
+,p_display_sequence=>20
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(13803395767393324)
+,p_name=>'COMPANY_ID'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'COMPANY_ID'
+,p_data_type=>'NUMBER'
+,p_session_state_data_type=>'VARCHAR2'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_POPUP_LOV'
+,p_heading=>'Entreprise'
+,p_heading_alignment=>'LEFT'
+,p_display_sequence=>50
+,p_value_alignment=>'LEFT'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'case_sensitive', 'N',
+  'display_as', 'POPUP',
+  'fetch_on_search', 'N',
+  'initial_fetch', 'FIRST_ROWSET',
+  'manual_entry', 'N',
+  'match_type', 'CONTAINS',
+  'min_chars', '0')).to_clob
+,p_is_required=>true
+,p_lov_type=>'SHARED'
+,p_lov_id=>wwv_flow_imp.id(12201736029757873)
+,p_lov_display_extra=>true
+,p_lov_display_null=>false
+,p_enable_filter=>true
+,p_filter_operators=>'C:S:CASE_INSENSITIVE:REGEXP'
+,p_filter_text_case=>'MIXED'
+,p_filter_exact_match=>true
+,p_filter_lov_type=>'LOV'
+,p_use_as_row_header=>false
+,p_enable_sort_group=>true
+,p_enable_control_break=>true
+,p_enable_hide=>true
+,p_is_primary_key=>false
+,p_duplicate_value=>true
+,p_include_in_export=>true
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(13803179004393322)
+,p_name=>'CONTACT_POSITION_ID'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'CONTACT_POSITION_ID'
+,p_data_type=>'NUMBER'
+,p_session_state_data_type=>'VARCHAR2'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_HIDDEN'
+,p_heading=>'Contact Position Id'
+,p_display_sequence=>30
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+,p_use_as_row_header=>false
+,p_is_primary_key=>true
+,p_duplicate_value=>true
+,p_include_in_export=>false
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(13803764254393328)
+,p_name=>'IS_CURRENT'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'IS_CURRENT'
+,p_data_type=>'BOOLEAN'
+,p_session_state_data_type=>'BOOLEAN'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_YES_NO'
+,p_heading=>'Poste actuel'
+,p_heading_alignment=>'LEFT'
+,p_display_sequence=>90
+,p_value_alignment=>'LEFT'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'off_label', 'Non',
+  'on_label', 'Oui',
+  'use_defaults', 'N')).to_clob
+,p_is_required=>false
+,p_enable_filter=>true
+,p_filter_lov_type=>'DISTINCT'
+,p_use_as_row_header=>false
+,p_enable_hide=>true
+,p_is_primary_key=>false
+,p_duplicate_value=>true
+,p_include_in_export=>true
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(13803596779393326)
+,p_name=>'JOB_ID'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'JOB_ID'
+,p_data_type=>'NUMBER'
+,p_session_state_data_type=>'VARCHAR2'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_POPUP_LOV'
+,p_heading=>'Poste'
+,p_heading_alignment=>'LEFT'
+,p_display_sequence=>70
+,p_value_alignment=>'LEFT'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'case_sensitive', 'N',
+  'display_as', 'POPUP',
+  'fetch_on_search', 'N',
+  'initial_fetch', 'FIRST_ROWSET',
+  'manual_entry', 'N',
+  'match_type', 'CONTAINS',
+  'min_chars', '0')).to_clob
+,p_is_required=>true
+,p_lov_type=>'SHARED'
+,p_lov_id=>wwv_flow_imp.id(13800527686387507)
+,p_lov_display_extra=>true
+,p_lov_display_null=>false
+,p_enable_filter=>true
+,p_filter_operators=>'C:S:CASE_INSENSITIVE:REGEXP'
+,p_filter_text_case=>'MIXED'
+,p_filter_exact_match=>true
+,p_filter_lov_type=>'LOV'
+,p_use_as_row_header=>false
+,p_enable_sort_group=>true
+,p_enable_control_break=>true
+,p_enable_hide=>true
+,p_is_primary_key=>false
+,p_duplicate_value=>true
+,p_include_in_export=>true
+);
+wwv_flow_imp_page.create_interactive_grid(
+ p_id=>wwv_flow_imp.id(13801199579393302)
+,p_internal_uid=>13801199579393302
+,p_is_editable=>true
+,p_edit_operations=>'i:u:d'
+,p_lost_update_check_type=>'VALUES'
+,p_add_row_if_empty=>true
+,p_lazy_loading=>false
+,p_requires_filter=>false
+,p_select_first_row=>true
+,p_fixed_row_height=>true
+,p_pagination_type=>'SCROLL'
+,p_show_total_row_count=>false
+,p_show_toolbar=>true
+,p_toolbar_buttons=>null
+,p_enable_save_public_report=>false
+,p_enable_subscriptions=>true
+,p_enable_flashback=>true
+,p_define_chart_view=>true
+,p_enable_download=>true
+,p_download_formats=>null
+,p_enable_mail_download=>true
+,p_fixed_header=>'PAGE'
+,p_show_icon_view=>false
+,p_show_detail_view=>false
+,p_javascript_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'function(config) {',
+'    config.defaultGridViewOptions = { footer: false };',
+'    return config;',
+'}',
+''))
+);
+wwv_flow_imp_page.create_ig_report(
+ p_id=>wwv_flow_imp.id(13807219857470995)
+,p_interactive_grid_id=>wwv_flow_imp.id(13801199579393302)
+,p_static_id=>'primary'
+,p_type=>'PRIMARY'
+,p_default_view=>'GRID'
+,p_show_row_number=>false
+,p_settings_area_expanded=>true
+);
+wwv_flow_imp_page.create_ig_report_view(
+ p_id=>wwv_flow_imp.id(13807315235470995)
+,p_report_id=>wwv_flow_imp.id(13807219857470995)
+,p_view_type=>'GRID'
+,p_stretch_columns=>true
+,p_srv_exclude_null_values=>false
+,p_srv_only_display_columns=>true
+,p_edit_mode=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(13807867378470997)
+,p_view_id=>wwv_flow_imp.id(13807315235470995)
+,p_display_seq=>1
+,p_column_id=>wwv_flow_imp.id(13803179004393322)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(13808777733470998)
+,p_view_id=>wwv_flow_imp.id(13807315235470995)
+,p_display_seq=>2
+,p_column_id=>wwv_flow_imp.id(13803395767393324)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(13809642628470999)
+,p_view_id=>wwv_flow_imp.id(13807315235470995)
+,p_display_seq=>3
+,p_column_id=>wwv_flow_imp.id(13803596779393326)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(13810529022471000)
+,p_view_id=>wwv_flow_imp.id(13807315235470995)
+,p_display_seq=>4
+,p_column_id=>wwv_flow_imp.id(13803764254393328)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(13811468958471001)
+,p_view_id=>wwv_flow_imp.id(13807315235470995)
+,p_display_seq=>0
+,p_column_id=>wwv_flow_imp.id(13803903539393330)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
 wwv_flow_imp_page.create_page_button(
  p_id=>wwv_flow_imp.id(7759102154717909)
 ,p_button_sequence=>10
@@ -2526,11 +2805,13 @@ wwv_flow_imp_page.create_page_item(
 );
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(7762105876717925)
-,p_process_sequence=>50
+,p_process_sequence=>30
 ,p_process_point=>'AFTER_SUBMIT'
 ,p_process_type=>'NATIVE_CLOSE_WINDOW'
 ,p_process_name=>'Close Dialog'
 ,p_static_id=>'close-dialog'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'show_success_messages', 'Y')).to_clob
 ,p_error_display_location=>'INLINE_IN_NOTIFICATION'
 ,p_process_when=>'CREATE,SAVE,DELETE'
 ,p_process_when_type=>'REQUEST_IN_CONDITION'
@@ -2549,6 +2830,43 @@ wwv_flow_imp_page.create_page_process(
   'next_primary_key_items', '',
   'previous_primary_key_items', '')).to_clob
 ,p_internal_uid=>7761394745717922
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(13804198614393332)
+,p_process_sequence=>20
+,p_process_point=>'AFTER_SUBMIT'
+,p_region_id=>wwv_flow_imp.id(13801076874393301)
+,p_process_type=>'NATIVE_IG_DML'
+,p_process_name=>'Positions - Save Interactive Grid Data'
+,p_static_id=>'positions-save-interactive-grid-data'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'dml_plsql_code', wwv_flow_string.join(wwv_flow_t_varchar2(
+    'case :APEX$ROW_STATUS',
+    '    when ''C'' then',
+    '        :CONTACT_POSITION_ID := contact_api.create_position(',
+    '            in_contact_id => :P401_CONTACT_ID,',
+    '            in_company_id => :COMPANY_ID,',
+    '            in_job_id     => :JOB_ID,',
+    '            in_is_current => :IS_CURRENT',
+    '        );',
+    '    when ''U'' then',
+    '        contact_api.update_position(',
+    '            in_contact_position_id => :CONTACT_POSITION_ID,',
+    '            in_company_id          => :COMPANY_ID,',
+    '            in_job_id              => :JOB_ID,',
+    '            in_is_current          => :IS_CURRENT',
+    '        );',
+    '    when ''D'' then',
+    '        contact_api.delete_position(in_contact_position_id => :CONTACT_POSITION_ID);',
+    'end case;')),
+  'lock_row', 'Y',
+  'prevent_lost_updates', 'Y',
+  'target_type', 'PLSQL_CODE')).to_clob
+,p_error_display_location=>'INLINE_IN_NOTIFICATION'
+,p_process_when=>'CREATE,SAVE'
+,p_process_when_type=>'REQUEST_IN_CONDITION'
+,p_exec_cond_for_each_row=>'Y'
+,p_internal_uid=>13804198614393332
 );
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(7761768597717924)
@@ -2824,4 +3142,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"889c3c4fb1c97e7bb7396105bdb0e3a79fbe885a","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"ff7cdfeb55ad44fbd407b27db485279588c3f3ee","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

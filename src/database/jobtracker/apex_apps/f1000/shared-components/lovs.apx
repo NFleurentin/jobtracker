@@ -54,6 +54,18 @@ lov company-types-lov (
     }
 )
 
+lov jobs-lov (
+    name: JOBS_LOV
+    source {
+        tableName: UI_JOBS_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
 lov locations-lov (
     name: LOCATIONS_LOV
     source {

@@ -20,7 +20,7 @@ begin
 wwv_flow_imp.import_begin (
  p_version_yyyy_mm_dd=>'2026.03.30'
 ,p_release=>'26.1.0'
-,p_default_workspace_id=>5545883586040021
+,p_default_workspace_id=>6800164315863072
 ,p_default_application_id=>1000
 ,p_default_id_offset=>0
 ,p_default_owner=>'JOBTRACKER'
@@ -62,7 +62,7 @@ prompt APPLICATION 1000 - JobTracker
 --       E-Mail:
 --     Supporting Objects:  Excluded
 --   Version:         26.1.0
---   Instance ID:     1745857762556088
+--   Instance ID:     2400139363144436
 --
 
 prompt --application/delete_application
@@ -2099,6 +2099,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Contact Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
  p_id=>wwv_flow_imp.id(7764996710718294)
@@ -2262,6 +2263,7 @@ wwv_flow_imp_page.create_component_da_action(
 ,p_action_sequence=>10
 ,p_action=>'NATIVE_DIALOG_CANCEL'
 ,p_static_id=>'native-dialog-cancel'
+,p_stop_execution_on_error=>true
 );
 wwv_flow_imp_page.create_page_button(
  p_id=>wwv_flow_imp.id(7760968917717920)
@@ -2822,4 +2824,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"778054675d8ea0c49aa75091ff2910dd1096f779","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"889c3c4fb1c97e7bb7396105bdb0e3a79fbe885a","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

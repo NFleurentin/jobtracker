@@ -9,6 +9,7 @@ page 101 (
         templateOptions: #DEFAULT#
     }
     dialog {
+        width: 900
         chained: false
     }
     navigation {
@@ -32,6 +33,216 @@ page 101 (
         }
     )
 
+    region contacts (
+        name: Contacts
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: UI_COMPANY_CONTACTS_LIST
+            whereClause: company_id = :P101_COMPANY_ID
+            pageItemsToSubmit: P101_COMPANY_ID
+        }
+        layout {
+            sequence: 20
+            parentRegion: @onglets
+            slot: tabs
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        advanced {
+            htmlDomId: contacts
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        pagination {
+            showTotalCount: false
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function(config) {
+                    config.defaultGridViewOptions = { footer: false };
+                    return config;
+                }
+                ```
+        }
+        advanced {
+            savedReportMappingIdentifier: 10602579800081723
+        }
+
+        savedReport primary (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @CONTACT_POSITION_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @CONTACT_ID
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @JOB_ID
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @IS_CURRENT
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column CONTACT_ID (
+            type: popupLov
+            heading {
+                heading: Contact
+            }
+            lov {
+                type: sharedComponent
+                lov: @contacts-lov
+                displayNullValue: false
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: CONTACT_ID
+                dataType: number
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: useLov
+            }
+            readOnly {
+                type: itemIsNotNull
+                item: CONTACT_POSITION_ID
+                execute: forEachRow
+            }
+        )
+
+        column CONTACT_POSITION_ID (
+            type: hidden
+            heading {
+                heading: Contact Position Id
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: CONTACT_POSITION_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column IS_CURRENT (
+            type: switch
+            heading {
+                heading: Poste actuel
+            }
+            settings {
+                useDefaults: false
+                onLabel: Oui
+                offLabel: Non
+            }
+            layout {
+                sequence: 110
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: IS_CURRENT
+                dataType: boolean
+            }
+            sessionState {
+                dataType: boolean
+            }
+        )
+
+        column JOB_ID (
+            type: popupLov
+            heading {
+                heading: Poste
+            }
+            lov {
+                type: sharedComponent
+                lov: @jobs-lov
+                displayNullValue: false
+            }
+            layout {
+                sequence: 60
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: JOB_ID
+                dataType: number
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: useLov
+            }
+        )
+
+    )
+
     region entreprise (
         name: Entreprise
         type: form
@@ -41,7 +252,8 @@ page 101 (
         }
         layout {
             sequence: 10
-            slot: contentBody
+            parentRegion: @onglets
+            slot: tabs
         }
         appearance {
             template: @/blank-with-attributes
@@ -53,6 +265,22 @@ page 101 (
                 add
                 update
                 delete
+            ]
+        }
+    )
+
+    region onglets (
+        name: Onglets
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/tabs-container
+            templateOptions: [
+                #DEFAULT#
+                t-TabsRegion-mod--simple
             ]
         }
     )
@@ -223,7 +451,7 @@ page 101 (
         type: textarea
         label {
             label: Description
-            alignment: right
+            alignment: left
         }
         layout {
             sequence: 30
@@ -424,6 +652,24 @@ page 101 (
         }
     )
 
+    pageItem P101_POSITION_COUNT (
+        type: hidden
+        layout {
+            sequence: 180
+            region: @entreprise
+            slot: regionBody
+        }
+        source {
+            formRegion: @entreprise
+            column: POSITION_COUNT
+            dataType: number
+            queryOnly: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
     pageItem P101_SECTOR_ID (
         type: selectList
         label {
@@ -608,8 +854,37 @@ page 101 (
             style: danger
         }
         serverSideCondition {
-            type: itemIsNotNull
-            item: P101_COMPANY_ID
+            type: item=value
+            item: P101_POSITION_COUNT
+            value: 0
+        }
+    )
+
+    button delete-with-positions (
+        buttonName: DELETE_WITH_POSITIONS
+        label: Supprimer
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$COMPANY_DELETE_WITH_POSITIONS_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNullAndNotZero
+            item: P101_POSITION_COUNT
         }
     )
 
@@ -640,14 +915,54 @@ page 101 (
         name: Close Dialog
         type: closeDialog
         execution {
-            sequence: 50
+            sequence: 30
         }
         advanced {
             executionMappingIdentifier: 12219140419864027
         }
         serverSideCondition {
             type: requestIsContainedInValue
-            value: CREATE,SAVE,DELETE
+            value: CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS
+        }
+    )
+
+    process contacts-save-interactive-grid-data (
+        name: Contacts - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @contacts
+        target {
+            targetType: plsqlCode
+            dmlPlsqlCode:
+                ```plsql
+                case :APEX$ROW_STATUS
+                    when 'C' then
+                        :CONTACT_POSITION_ID := contact_api.create_position(
+                            in_contact_id => :CONTACT_ID,
+                            in_company_id => :P101_COMPANY_ID,
+                            in_job_id     => :JOB_ID,
+                            in_is_current => :IS_CURRENT
+                        );
+                    when 'U' then
+                        contact_api.update_position(
+                            in_contact_position_id => :CONTACT_POSITION_ID,
+                            in_company_id          => :P101_COMPANY_ID,
+                            in_job_id              => :JOB_ID,
+                            in_is_current          => :IS_CURRENT
+                        );
+                    when 'D' then
+                        contact_api.delete_position(in_contact_position_id => :CONTACT_POSITION_ID);
+                end case;
+                ```
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 14601126409473604
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE
         }
     )
 
@@ -710,6 +1025,8 @@ page 101 (
                         );
                     when 'DELETE' then
                         company_api.delete_company(in_company_id => :P101_COMPANY_ID);
+                    when 'DELETE_WITH_POSITIONS' then
+                        company_api.delete_company(in_company_id => :P101_COMPANY_ID, in_delete_positions => true);
                 end case;
                 ```
         }
@@ -721,7 +1038,7 @@ page 101 (
         }
         serverSideCondition {
             type: requestIsContainedInValue
-            value: CREATE,SAVE,DELETE
+            value: CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS
         }
     )
 

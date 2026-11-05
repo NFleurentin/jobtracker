@@ -37,10 +37,10 @@ prompt APPLICATION 1000 - JobTracker
 --   Flashback:       0
 --   Export Type:     Application Export
 --     Pages:                      7
---       Items:                   31
---       Processes:               11
---       Regions:                 11
---       Buttons:                 12
+--       Items:                   32
+--       Processes:               12
+--       Regions:                 13
+--       Buttons:                 13
 --       Dynamic Actions:          2
 --     Shared Components:
 --       Logic:
@@ -55,10 +55,10 @@ prompt APPLICATION 1000 - JobTracker
 --       User Interface:
 --         Themes:                 1
 --         Templates:
---         LOVs:                   8
+--         LOVs:                   9
 --       PWA:
 --       Globalization:
---         Messages:               1
+--         Messages:               2
 --       Reports:
 --       E-Mail:
 --     Supporting Objects:  Excluded
@@ -108,7 +108,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'7917963'
+,p_version_scn=>'9001822'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -922,6 +922,23 @@ wwv_flow_imp_shared.create_list_of_values(
 );
 end;
 /
+prompt --application/shared_components/user_interface/lovs/contacts_lov
+begin
+wwv_flow_imp_shared.create_list_of_values(
+ p_id=>wwv_flow_imp.id(14600366622418241)
+,p_lov_name=>'CONTACTS_LOV'
+,p_static_id=>'contacts-lov'
+,p_source_type=>'TABLE'
+,p_location=>'LOCAL'
+,p_query_table=>'UI_CONTACTS_LOV'
+,p_return_column_name=>'RETURN_VALUE'
+,p_display_column_name=>'DISPLAY_VALUE'
+,p_default_sort_column_name=>'DISPLAY_VALUE'
+,p_default_sort_direction=>'ASC'
+,p_version_scn=>'SH256:j3nr98A4LFS2SGPwkPFFxLc7qyRX4UviBGeDPaiUPkE'
+);
+end;
+/
 prompt --application/shared_components/user_interface/lovs/jobs_lov
 begin
 wwv_flow_imp_shared.create_list_of_values(
@@ -1134,6 +1151,13 @@ end;
 /
 prompt --application/shared_components/globalization/messages
 begin
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(14630582195780670)
+,p_name=>'COMPANY_DELETE_WITH_POSITIONS_MSG'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Cette entreprise a des postes de contacts, qui seront supprim\00E9s avec elle. Voulez-vous continuer ?')
+,p_version_scn=>'SH256:pin4BqeCBEB01Zu313sCX3x0p32RyHX8ROz5t3SSF8U'
+);
 wwv_flow_imp_shared.create_message(
  p_id=>wwv_flow_imp.id(14003424779129567)
 ,p_name=>'CONTACT_DELETE_WITH_POSITIONS_MSG'
@@ -1470,6 +1494,7 @@ wwv_flow_imp_page.create_page(
 ,p_group_id=>wwv_flow_imp.id(12237989066938779)
 ,p_step_template=>2101883943284197310
 ,p_page_template_options=>'#DEFAULT#'
+,p_dialog_width=>'900'
 ,p_dialog_chained=>'N'
 ,p_dialog_resizable=>'Y'
 ,p_protection_level=>'C'
@@ -1486,12 +1511,282 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_item_display_point=>'ABOVE'
 );
 wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(10602448029081722)
+,p_plug_name=>'Contacts'
+,p_static_id=>'contacts'
+,p_region_name=>'contacts'
+,p_parent_plug_id=>wwv_flow_imp.id(10602312890081721)
+,p_region_template_options=>'#DEFAULT#'
+,p_plug_template=>4502917002193490937
+,p_plug_display_sequence=>20
+,p_plug_display_point=>'SUB_REGIONS'
+,p_plug_item_display_point=>'ABOVE'
+,p_query_type=>'TABLE'
+,p_query_table=>'UI_COMPANY_CONTACTS_LIST'
+,p_query_where=>'company_id = :P101_COMPANY_ID'
+,p_include_rowid_column=>false
+,p_plug_source_type=>'NATIVE_IG'
+,p_ajax_items_to_submit=>'P101_COMPANY_ID'
+,p_prn_units=>'MILLIMETERS'
+,p_prn_paper_size=>'A4'
+,p_prn_width=>297
+,p_prn_height=>210
+,p_prn_orientation=>'HORIZONTAL'
+,p_prn_page_header_font_color=>'#000000'
+,p_prn_page_header_font_family=>'Helvetica'
+,p_prn_page_header_font_weight=>'normal'
+,p_prn_page_header_font_size=>'12'
+,p_prn_page_footer_font_color=>'#000000'
+,p_prn_page_footer_font_family=>'Helvetica'
+,p_prn_page_footer_font_weight=>'normal'
+,p_prn_page_footer_font_size=>'12'
+,p_prn_header_bg_color=>'#EEEEEE'
+,p_prn_header_font_color=>'#000000'
+,p_prn_header_font_family=>'Helvetica'
+,p_prn_header_font_weight=>'bold'
+,p_prn_header_font_size=>'10'
+,p_prn_body_bg_color=>'#FFFFFF'
+,p_prn_body_font_color=>'#000000'
+,p_prn_body_font_family=>'Helvetica'
+,p_prn_body_font_weight=>'normal'
+,p_prn_body_font_size=>'10'
+,p_prn_border_width=>.5
+,p_prn_page_header_alignment=>'CENTER'
+,p_prn_page_footer_alignment=>'CENTER'
+,p_prn_border_color=>'#666666'
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(14600938069473602)
+,p_name=>'APEX$ROW_ACTION'
+,p_session_state_data_type=>'VARCHAR2'
+,p_item_type=>'NATIVE_ROW_ACTION'
+,p_display_sequence=>20
+,p_use_as_row_header=>false
+,p_include_in_export=>true
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(10604709400081745)
+,p_name=>'CONTACT_ID'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'CONTACT_ID'
+,p_data_type=>'NUMBER'
+,p_session_state_data_type=>'VARCHAR2'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_POPUP_LOV'
+,p_heading=>'Contact'
+,p_heading_alignment=>'LEFT'
+,p_display_sequence=>50
+,p_value_alignment=>'LEFT'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'case_sensitive', 'N',
+  'display_as', 'POPUP',
+  'fetch_on_search', 'N',
+  'initial_fetch', 'FIRST_ROWSET',
+  'manual_entry', 'N',
+  'match_type', 'CONTAINS',
+  'min_chars', '0')).to_clob
+,p_is_required=>true
+,p_lov_type=>'SHARED'
+,p_lov_id=>wwv_flow_imp.id(14600366622418241)
+,p_lov_display_extra=>true
+,p_lov_display_null=>false
+,p_enable_filter=>true
+,p_filter_operators=>'C:S:CASE_INSENSITIVE:REGEXP'
+,p_filter_text_case=>'MIXED'
+,p_filter_exact_match=>true
+,p_filter_lov_type=>'LOV'
+,p_use_as_row_header=>false
+,p_enable_sort_group=>true
+,p_enable_control_break=>true
+,p_enable_hide=>true
+,p_is_primary_key=>false
+,p_duplicate_value=>true
+,p_include_in_export=>true
+,p_readonly_condition_type=>'ITEM_IS_NOT_NULL'
+,p_readonly_condition=>'CONTACT_POSITION_ID'
+,p_readonly_for_each_row=>true
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(10604535692081743)
+,p_name=>'CONTACT_POSITION_ID'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'CONTACT_POSITION_ID'
+,p_data_type=>'NUMBER'
+,p_session_state_data_type=>'VARCHAR2'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_HIDDEN'
+,p_heading=>'Contact Position Id'
+,p_display_sequence=>30
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+,p_use_as_row_header=>false
+,p_is_primary_key=>true
+,p_duplicate_value=>true
+,p_include_in_export=>false
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(10605237400081750)
+,p_name=>'IS_CURRENT'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'IS_CURRENT'
+,p_data_type=>'BOOLEAN'
+,p_session_state_data_type=>'BOOLEAN'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_YES_NO'
+,p_heading=>'Poste actuel'
+,p_heading_alignment=>'LEFT'
+,p_display_sequence=>110
+,p_value_alignment=>'LEFT'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'off_label', 'Non',
+  'on_label', 'Oui',
+  'use_defaults', 'N')).to_clob
+,p_is_required=>true
+,p_enable_filter=>true
+,p_filter_lov_type=>'DISTINCT'
+,p_use_as_row_header=>false
+,p_enable_hide=>true
+,p_is_primary_key=>false
+,p_duplicate_value=>true
+,p_include_in_export=>true
+);
+wwv_flow_imp_page.create_region_column(
+ p_id=>wwv_flow_imp.id(10605044724081748)
+,p_name=>'JOB_ID'
+,p_source_type=>'DB_COLUMN'
+,p_source_expression=>'JOB_ID'
+,p_data_type=>'NUMBER'
+,p_session_state_data_type=>'VARCHAR2'
+,p_is_query_only=>false
+,p_item_type=>'NATIVE_POPUP_LOV'
+,p_heading=>'Poste'
+,p_heading_alignment=>'LEFT'
+,p_display_sequence=>60
+,p_value_alignment=>'LEFT'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'case_sensitive', 'N',
+  'display_as', 'POPUP',
+  'fetch_on_search', 'N',
+  'initial_fetch', 'FIRST_ROWSET',
+  'manual_entry', 'N',
+  'match_type', 'CONTAINS',
+  'min_chars', '0')).to_clob
+,p_is_required=>true
+,p_lov_type=>'SHARED'
+,p_lov_id=>wwv_flow_imp.id(13800527686387507)
+,p_lov_display_extra=>true
+,p_lov_display_null=>false
+,p_enable_filter=>true
+,p_filter_operators=>'C:S:CASE_INSENSITIVE:REGEXP'
+,p_filter_text_case=>'MIXED'
+,p_filter_exact_match=>true
+,p_filter_lov_type=>'LOV'
+,p_use_as_row_header=>false
+,p_enable_sort_group=>true
+,p_enable_control_break=>true
+,p_enable_hide=>true
+,p_is_primary_key=>false
+,p_duplicate_value=>true
+,p_include_in_export=>true
+);
+wwv_flow_imp_page.create_interactive_grid(
+ p_id=>wwv_flow_imp.id(10602579800081723)
+,p_internal_uid=>10602579800081723
+,p_is_editable=>true
+,p_edit_operations=>'i:u:d'
+,p_lost_update_check_type=>'VALUES'
+,p_add_row_if_empty=>true
+,p_lazy_loading=>false
+,p_requires_filter=>false
+,p_select_first_row=>true
+,p_fixed_row_height=>true
+,p_pagination_type=>'SCROLL'
+,p_show_total_row_count=>false
+,p_show_toolbar=>true
+,p_toolbar_buttons=>null
+,p_enable_save_public_report=>false
+,p_enable_subscriptions=>true
+,p_enable_flashback=>true
+,p_define_chart_view=>true
+,p_enable_download=>true
+,p_download_formats=>null
+,p_enable_mail_download=>true
+,p_fixed_header=>'PAGE'
+,p_show_icon_view=>false
+,p_show_detail_view=>false
+,p_javascript_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'function(config) {',
+'    config.defaultGridViewOptions = { footer: false };',
+'    return config;',
+'}'))
+);
+wwv_flow_imp_page.create_ig_report(
+ p_id=>wwv_flow_imp.id(14613252740551462)
+,p_interactive_grid_id=>wwv_flow_imp.id(10602579800081723)
+,p_static_id=>'primary'
+,p_type=>'PRIMARY'
+,p_default_view=>'GRID'
+,p_show_row_number=>false
+,p_settings_area_expanded=>true
+);
+wwv_flow_imp_page.create_ig_report_view(
+ p_id=>wwv_flow_imp.id(14613324060551462)
+,p_report_id=>wwv_flow_imp.id(14613252740551462)
+,p_view_type=>'GRID'
+,p_stretch_columns=>true
+,p_srv_exclude_null_values=>false
+,p_srv_only_display_columns=>true
+,p_edit_mode=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(14613852124551465)
+,p_view_id=>wwv_flow_imp.id(14613324060551462)
+,p_display_seq=>1
+,p_column_id=>wwv_flow_imp.id(10604535692081743)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(14614729430551466)
+,p_view_id=>wwv_flow_imp.id(14613324060551462)
+,p_display_seq=>2
+,p_column_id=>wwv_flow_imp.id(10604709400081745)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(14615612183551467)
+,p_view_id=>wwv_flow_imp.id(14613324060551462)
+,p_display_seq=>3
+,p_column_id=>wwv_flow_imp.id(10605044724081748)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(14616573740551468)
+,p_view_id=>wwv_flow_imp.id(14613324060551462)
+,p_display_seq=>4
+,p_column_id=>wwv_flow_imp.id(10605237400081750)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_ig_report_column(
+ p_id=>wwv_flow_imp.id(14617437383551468)
+,p_view_id=>wwv_flow_imp.id(14613324060551462)
+,p_display_seq=>0
+,p_column_id=>wwv_flow_imp.id(14600938069473602)
+,p_is_visible=>true
+,p_is_frozen=>false
+);
+wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(12202706244864013)
 ,p_plug_name=>'Entreprise'
 ,p_static_id=>'entreprise'
+,p_parent_plug_id=>wwv_flow_imp.id(10602312890081721)
 ,p_region_template_options=>'#DEFAULT#'
 ,p_plug_template=>4502917002193490937
 ,p_plug_display_sequence=>10
+,p_plug_display_point=>'SUB_REGIONS'
 ,p_plug_item_display_point=>'ABOVE'
 ,p_query_type=>'TABLE'
 ,p_query_table=>'UI_COMPANIES_FORM'
@@ -1500,6 +1795,19 @@ wwv_flow_imp_page.create_page_plug(
 ,p_edit_operations=>'i:u:d'
 ,p_lost_update_check_type=>'VALUES'
 ,p_plug_source_type=>'NATIVE_FORM'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(10602312890081721)
+,p_plug_name=>'Onglets'
+,p_static_id=>'onglets'
+,p_region_template_options=>'#DEFAULT#:t-TabsRegion-mod--simple'
+,p_plug_template=>3224648155363603145
+,p_plug_display_sequence=>10
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'expand_shortcuts', 'N',
+  'output_as', 'HTML')).to_clob
 );
 wwv_flow_imp_page.create_page_button(
  p_id=>wwv_flow_imp.id(12216226105864022)
@@ -1555,8 +1863,28 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_execute_validations=>'N'
 ,p_confirm_message=>'&APP_TEXT$DELETE_MSG!RAW.'
 ,p_confirm_style=>'danger'
-,p_button_condition=>'P101_COMPANY_ID'
-,p_button_condition_type=>'ITEM_IS_NOT_NULL'
+,p_button_condition=>'P101_POSITION_COUNT'
+,p_button_condition2=>'0'
+,p_button_condition_type=>'VAL_OF_ITEM_IN_COND_EQ_COND2'
+,p_database_action=>'DELETE'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(14601320127473606)
+,p_button_sequence=>30
+,p_button_plug_id=>wwv_flow_imp.id(12215892896864022)
+,p_button_name=>'DELETE_WITH_POSITIONS'
+,p_static_id=>'delete-with-positions'
+,p_show_as_disabled=>false
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_image_alt=>'Supprimer'
+,p_button_position=>'DELETE'
+,p_button_execute_validations=>'N'
+,p_confirm_message=>'&APP_TEXT$COMPANY_DELETE_WITH_POSITIONS_MSG!RAW.'
+,p_confirm_style=>'danger'
+,p_button_condition=>'P101_POSITION_COUNT'
+,p_button_condition_type=>'ITEM_NOT_NULL_OR_ZERO'
 ,p_database_action=>'DELETE'
 );
 wwv_flow_imp_page.create_page_button(
@@ -1710,7 +2038,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_display_as=>'NATIVE_TEXTAREA'
 ,p_cSize=>60
 ,p_cHeight=>4
-,p_label_alignment=>'RIGHT'
 ,p_field_template=>1610598304472262251
 ,p_item_template_options=>'#DEFAULT#'
 ,p_is_persistent=>'N'
@@ -1860,6 +2187,21 @@ wwv_flow_imp_page.create_page_item(
   'trim_spaces', 'BOTH')).to_clob
 );
 wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(14601285677473605)
+,p_name=>'P101_POSITION_COUNT'
+,p_source_data_type=>'NUMBER'
+,p_is_query_only=>true
+,p_item_sequence=>180
+,p_item_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_item_source_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_source=>'POSITION_COUNT'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_is_persistent=>'N'
+,p_protection_level=>'S'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(12205543431864019)
 ,p_name=>'P101_SECTOR_ID'
 ,p_source_data_type=>'NUMBER'
@@ -1945,15 +2287,54 @@ wwv_flow_imp_page.create_page_item(
 );
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(12219140419864027)
-,p_process_sequence=>50
+,p_process_sequence=>30
 ,p_process_point=>'AFTER_SUBMIT'
 ,p_process_type=>'NATIVE_CLOSE_WINDOW'
 ,p_process_name=>'Close Dialog'
 ,p_static_id=>'close-dialog'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'show_success_messages', 'Y')).to_clob
 ,p_error_display_location=>'INLINE_IN_NOTIFICATION'
-,p_process_when=>'CREATE,SAVE,DELETE'
+,p_process_when=>'CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS'
 ,p_process_when_type=>'REQUEST_IN_CONDITION'
 ,p_internal_uid=>12219140419864027
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(14601126409473604)
+,p_process_sequence=>20
+,p_process_point=>'AFTER_SUBMIT'
+,p_region_id=>wwv_flow_imp.id(10602448029081722)
+,p_process_type=>'NATIVE_IG_DML'
+,p_process_name=>'Contacts - Save Interactive Grid Data'
+,p_static_id=>'contacts-save-interactive-grid-data'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'dml_plsql_code', wwv_flow_string.join(wwv_flow_t_varchar2(
+    'case :APEX$ROW_STATUS',
+    '    when ''C'' then',
+    '        :CONTACT_POSITION_ID := contact_api.create_position(',
+    '            in_contact_id => :CONTACT_ID,',
+    '            in_company_id => :P101_COMPANY_ID,',
+    '            in_job_id     => :JOB_ID,',
+    '            in_is_current => :IS_CURRENT',
+    '        );',
+    '    when ''U'' then',
+    '        contact_api.update_position(',
+    '            in_contact_position_id => :CONTACT_POSITION_ID,',
+    '            in_company_id          => :P101_COMPANY_ID,',
+    '            in_job_id              => :JOB_ID,',
+    '            in_is_current          => :IS_CURRENT',
+    '        );',
+    '    when ''D'' then',
+    '        contact_api.delete_position(in_contact_position_id => :CONTACT_POSITION_ID);',
+    'end case;')),
+  'lock_row', 'Y',
+  'prevent_lost_updates', 'Y',
+  'target_type', 'PLSQL_CODE')).to_clob
+,p_error_display_location=>'INLINE_IN_NOTIFICATION'
+,p_process_when=>'CREATE,SAVE'
+,p_process_when_type=>'REQUEST_IN_CONDITION'
+,p_exec_cond_for_each_row=>'Y'
+,p_internal_uid=>14601126409473604
 );
 wwv_flow_imp_page.create_page_process(
  p_id=>wwv_flow_imp.id(12218336986864026)
@@ -2017,12 +2398,14 @@ wwv_flow_imp_page.create_page_process(
     '        );',
     '    when ''DELETE'' then',
     '        company_api.delete_company(in_company_id => :P101_COMPANY_ID);',
+    '    when ''DELETE_WITH_POSITIONS'' then',
+    '        company_api.delete_company(in_company_id => :P101_COMPANY_ID, in_delete_positions => true);',
     'end case;')),
   'lock_row', 'Y',
   'prevent_lost_updates', 'Y',
   'target_type', 'PLSQL_CODE')).to_clob
 ,p_error_display_location=>'INLINE_IN_NOTIFICATION'
-,p_process_when=>'CREATE,SAVE,DELETE'
+,p_process_when=>'CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS'
 ,p_process_when_type=>'REQUEST_IN_CONDITION'
 ,p_internal_uid=>12218708193864026
 );
@@ -3188,4 +3571,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"d35cdbfd06c41e58061f86bca5f739bb7f6e7481","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"279d9d0a33234835509fac275fe0a9e86761ccb9","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

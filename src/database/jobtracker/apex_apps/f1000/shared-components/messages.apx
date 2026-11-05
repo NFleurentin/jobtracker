@@ -1,3 +1,10 @@
+textMessage COMPANY_DELETE_WITH_POSITIONS_MSG (
+    message {
+        text: Cette entreprise a des postes de contacts, qui seront supprimés avec elle. Voulez-vous continuer ?
+        language: fr
+    }
+)
+
 textMessage CONTACT_DELETE_WITH_POSITIONS_MSG (
     message {
         text: Ce contact a des postes, qui seront supprimés avec lui. Voulez-vous continuer ?

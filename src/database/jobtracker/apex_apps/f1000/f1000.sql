@@ -37,10 +37,10 @@ prompt APPLICATION 1000 - JobTracker
 --   Flashback:       0
 --   Export Type:     Application Export
 --     Pages:                      7
---       Items:                   31
+--       Items:                   32
 --       Processes:               12
 --       Regions:                 13
---       Buttons:                 12
+--       Buttons:                 13
 --       Dynamic Actions:          2
 --     Shared Components:
 --       Logic:
@@ -58,7 +58,7 @@ prompt APPLICATION 1000 - JobTracker
 --         LOVs:                   9
 --       PWA:
 --       Globalization:
---         Messages:               1
+--         Messages:               2
 --       Reports:
 --       E-Mail:
 --     Supporting Objects:  Excluded
@@ -108,7 +108,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'8992122'
+,p_version_scn=>'9001822'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -1152,6 +1152,13 @@ end;
 prompt --application/shared_components/globalization/messages
 begin
 wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(14630582195780670)
+,p_name=>'COMPANY_DELETE_WITH_POSITIONS_MSG'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Cette entreprise a des postes de contacts, qui seront supprim\00E9s avec elle. Voulez-vous continuer ?')
+,p_version_scn=>'SH256:pin4BqeCBEB01Zu313sCX3x0p32RyHX8ROz5t3SSF8U'
+);
+wwv_flow_imp_shared.create_message(
  p_id=>wwv_flow_imp.id(14003424779129567)
 ,p_name=>'CONTACT_DELETE_WITH_POSITIONS_MSG'
 ,p_message_language=>'fr'
@@ -1554,6 +1561,8 @@ wwv_flow_imp_page.create_region_column(
 ,p_session_state_data_type=>'VARCHAR2'
 ,p_item_type=>'NATIVE_ROW_ACTION'
 ,p_display_sequence=>20
+,p_use_as_row_header=>false
+,p_include_in_export=>true
 );
 wwv_flow_imp_page.create_region_column(
  p_id=>wwv_flow_imp.id(10604709400081745)
@@ -1854,8 +1863,28 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_execute_validations=>'N'
 ,p_confirm_message=>'&APP_TEXT$DELETE_MSG!RAW.'
 ,p_confirm_style=>'danger'
-,p_button_condition=>'P101_COMPANY_ID'
-,p_button_condition_type=>'ITEM_IS_NOT_NULL'
+,p_button_condition=>'P101_POSITION_COUNT'
+,p_button_condition2=>'0'
+,p_button_condition_type=>'VAL_OF_ITEM_IN_COND_EQ_COND2'
+,p_database_action=>'DELETE'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(14601320127473606)
+,p_button_sequence=>30
+,p_button_plug_id=>wwv_flow_imp.id(12215892896864022)
+,p_button_name=>'DELETE_WITH_POSITIONS'
+,p_static_id=>'delete-with-positions'
+,p_show_as_disabled=>false
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_image_alt=>'Supprimer'
+,p_button_position=>'DELETE'
+,p_button_execute_validations=>'N'
+,p_confirm_message=>'&APP_TEXT$COMPANY_DELETE_WITH_POSITIONS_MSG!RAW.'
+,p_confirm_style=>'danger'
+,p_button_condition=>'P101_POSITION_COUNT'
+,p_button_condition_type=>'ITEM_NOT_NULL_OR_ZERO'
 ,p_database_action=>'DELETE'
 );
 wwv_flow_imp_page.create_page_button(
@@ -2158,6 +2187,21 @@ wwv_flow_imp_page.create_page_item(
   'trim_spaces', 'BOTH')).to_clob
 );
 wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(14601285677473605)
+,p_name=>'P101_POSITION_COUNT'
+,p_source_data_type=>'NUMBER'
+,p_is_query_only=>true
+,p_item_sequence=>180
+,p_item_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_item_source_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_source=>'POSITION_COUNT'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_is_persistent=>'N'
+,p_protection_level=>'S'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(12205543431864019)
 ,p_name=>'P101_SECTOR_ID'
 ,p_source_data_type=>'NUMBER'
@@ -2251,7 +2295,7 @@ wwv_flow_imp_page.create_page_process(
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'show_success_messages', 'Y')).to_clob
 ,p_error_display_location=>'INLINE_IN_NOTIFICATION'
-,p_process_when=>'CREATE,SAVE,DELETE'
+,p_process_when=>'CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS'
 ,p_process_when_type=>'REQUEST_IN_CONDITION'
 ,p_internal_uid=>12219140419864027
 );
@@ -2354,12 +2398,14 @@ wwv_flow_imp_page.create_page_process(
     '        );',
     '    when ''DELETE'' then',
     '        company_api.delete_company(in_company_id => :P101_COMPANY_ID);',
+    '    when ''DELETE_WITH_POSITIONS'' then',
+    '        company_api.delete_company(in_company_id => :P101_COMPANY_ID, in_delete_positions => true);',
     'end case;')),
   'lock_row', 'Y',
   'prevent_lost_updates', 'Y',
   'target_type', 'PLSQL_CODE')).to_clob
 ,p_error_display_location=>'INLINE_IN_NOTIFICATION'
-,p_process_when=>'CREATE,SAVE,DELETE'
+,p_process_when=>'CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS'
 ,p_process_when_type=>'REQUEST_IN_CONDITION'
 ,p_internal_uid=>12218708193864026
 );
@@ -3525,4 +3571,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"d104ddbb3d83228ed9278197e60ebc76633c7bee","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"279d9d0a33234835509fac275fe0a9e86761ccb9","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

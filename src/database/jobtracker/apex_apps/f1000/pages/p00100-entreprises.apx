@@ -104,6 +104,17 @@ page 100 (
             layout {
                 sequence: 2
             }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    #COMPANY_NAME#
+                    {if IS_GENERIC/}
+                      <span class="fa fa-eye-slash u-margin-left-sm" title="Entreprise générique" aria-hidden="true"></span>
+                      <span class="u-VisuallyHidden">(entreprise générique)</span>
+                    {endif/}
+                    
+                    ```
+            }
             source {
                 dataType: STRING
             }
@@ -175,6 +186,22 @@ page 100 (
             }
             advanced {
                 endUserAlias: O
+            }
+        )
+
+        column IS_GENERIC (
+            type: hidden
+            heading {
+                heading: Générique
+            }
+            layout {
+                sequence: 87
+            }
+            source {
+                dataType: BOOLEAN
+            }
+            advanced {
+                endUserAlias: X
             }
         )
 

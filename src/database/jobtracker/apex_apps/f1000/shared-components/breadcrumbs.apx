@@ -40,5 +40,21 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry postes (
+        name: Postes
+        pageNumber: 9010
+        execution {
+            sequence: 10
+        }
+        appearance {
+            parentEntry: @home
+        }
+        link {
+            target: {
+                page: 9010
+            }
+        }
+    )
+
 )
 

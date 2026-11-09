@@ -5,7 +5,7 @@
 - `OFFERS` porte l'annonce, `APPLICATIONS` le suivi. L'entreprise de l'offre est celle où s'exerce le poste, celle de la candidature son destinataire : pour une ESN, le client et l'ESN. Si le client est confidentiel, `OFFERS.company_id` reste null ; une candidature a toujours un destinataire, au besoin l'entreprise générique « Confidentielle ».
 - `JOBBOARDS` désigne où l'offre est diffusée, sur un ou plusieurs sites.
 - Les colonnes `VARCHAR2` sont en sémantique `CHAR`. `TIMESTAMP_TZ` signifie `TIMESTAMP WITH TIME ZONE`. Mermaid n'accepte pas de virgule dans un type : la précision de ces colonnes figure dans leur commentaire.
-- Une candidature suit une offre et a son propre statut. Plusieurs missions proposées par une ESN sont des candidatures distinctes, chacune avec son offre, même saisie pour une mission proposée à l'oral, regroupées sous une candidature parente qui porte le salaire et les échanges communs. La hiérarchie a un seul niveau, contrôlé par le package. Le funnel ne compte que les candidatures sans parent.
+- Une candidature suit une offre et a son propre statut. Le statut courant n'est pas stocké : c'est le changement le plus récent de `APPLICATION_STATUS_CHANGES` (`changed_at`, puis la clé en cas d'égalité), calculé par la vue `application_details`. Plusieurs missions proposées par une ESN sont des candidatures distinctes, chacune avec son offre, même saisie pour une mission proposée à l'oral, regroupées sous une candidature parente qui porte le salaire et les échanges communs. La hiérarchie a un seul niveau, contrôlé par le package. Le funnel ne compte que les candidatures sans parent.
 - Les tables de collecte `OFFER_SOURCES`, `COLLECT_RUNS` et `COLLECT_REQUESTS` ne changent pas et ne figurent pas ici.
 
 ## Diagramme
@@ -175,6 +175,7 @@ erDiagram
         VARCHAR2(254) email "email"
         VARCHAR2(30) phone "numéro de téléphone"
         NUMBER(4) creation_year "année de création de l'entreprise"
+        BOOLEAN is_generic "entreprise générique « Confidentielle », destinataire d'une candidature sans entreprise connue"
         TIMESTAMP_TZ created_at "date d'enregistrement"
         TIMESTAMP_TZ updated_at "date de dernière mise à jour"
     }
@@ -202,7 +203,6 @@ erDiagram
         NUMBER offer_id FK "offre, null pour une candidature spontanée ou une démarche parente"
         NUMBER company_id FK "entreprise à laquelle la candidature est adressée : l'ESN ou le cabinet, sinon l'employeur"
         NUMBER application_type_id FK "type de candidature"
-        NUMBER application_status_id FK "statut courant"
         VARCHAR2(200) job_title "poste visé, obligatoire sans offre"
         NUMBER(9) annual_salary_proposed_euros "salaire annuel proposé, sur la candidature enfant seulement s'il diffère du parent"
         NUMBER(5) daily_rate_proposed_euros "TJM proposé, sur la candidature enfant seulement s'il diffère du parent"
@@ -327,7 +327,6 @@ erDiagram
     COMPANIES ||--o{ APPLICATIONS : "reçoit"
     COMPANIES |o--o{ OFFERS : "accueille le poste"
     APPLICATION_TYPES ||--o{ APPLICATIONS : "classe"
-    APPLICATION_STATUSES ||--o{ APPLICATIONS : "statut courant"
     APPLICATIONS ||--o{ APPLICATION_BENEFITS : "propose"
     BENEFITS ||--o{ APPLICATION_BENEFITS : "proposé par"
     APPLICATIONS ||--o{ APPLICATION_STATUS_CHANGES : "historise"
@@ -347,10 +346,10 @@ Le diagramme ne montre pas les contraintes suivantes.
 | Table | Contrainte |
 |---|---|
 | `OFFERS` | `job_title` obligatoire ; salaire et TJM : minimum inférieur ou égal au maximum, montants positifs ; `remote_days_per_week` entre 0 et 5 ; `contract_duration_months` positif ; `experience_years` positif ou nul |
-| `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` obligatoire, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 |
-| `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire |
+| `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` obligatoire, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 ; une seule candidature ouverte (statut courant non final) par entreprise, l'entreprise générique exceptée, contrôlée par le package sous verrou de l'entreprise |
+| `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire ; `application_id` indexé avec `changed_at` et la clé, pour lire le changement le plus récent dans l'index ; supprimé avec sa candidature (`on delete cascade`) ; historique non réécrit : le package ne corrige ou n'annule que le changement le plus récent, et jamais le seul |
 | `EDUCATIONS` | `(education_level_id, education_domain_id)` unique |
-| `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace |
+| `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace ; au plus une entreprise générique, par un index unique sur `case when is_generic then 1 end` ; l'entreprise générique, créée par migration, n'est pas supprimable |
 | `CONTACTS` | `last_name` obligatoire ; `linkedin_slug` sans `/` ni espace |
 | `INTERVIEWS` | `scheduled_at` obligatoire ; `duration_minutes` positif |
 | `LOCATIONS` | `location_type_id` et `location_name` obligatoires ; `(parent_location_id, location_name)` unique ; `latitude` entre -90 et 90, `longitude` entre -180 et 180 |

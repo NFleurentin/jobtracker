@@ -42,6 +42,24 @@ create or replace package body jobtracker.company_api is
         return l_count > 0;
     end has_positions;
 
+    /** Vrai pour l'entreprise générique « Confidentielle ». */
+    function is_generic (
+        in_company_id in companies.company_id%type
+    ) return boolean is
+        l_count pls_integer;
+    begin
+        select
+            count(*)
+        into l_count
+        from
+            companies
+        where
+                company_id = in_company_id
+            and is_generic = true;
+
+        return l_count > 0;
+    end is_generic;
+
     /**
      * Refuse un parent qui créerait un cycle, l'entreprise elle-même comprise.
      * Remonte la hiérarchie depuis le parent demandé : l'entreprise ne doit pas
@@ -180,6 +198,12 @@ create or replace package body jobtracker.company_api is
         in_delete_positions in boolean default false
     ) is
     begin
+        if is_generic(in_company_id) then
+            app_message.raise_error(app_errors.co_protected_row,
+                                    'COMPANY_GENERIC_UNDELETABLE',
+                                    name_of(in_company_id));
+        end if;
+
         -- Un refus après la suppression des postes (filiale...) doit les
         -- rétablir : l'erreur n'annule que l'instruction en échec
         savepoint before_delete_company;
@@ -214,4 +238,4 @@ end company_api;
 /
 
 
--- sqlcl_snapshot {"hash":"821be1eb6a5d2ce680390f485b97586d7297226c","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"098ac5d7dfa81e9c84d665bfb4c6dee07a328f28","type":"PACKAGE_BODY","name":"COMPANY_API","schemaName":"JOBTRACKER","sxml":""}

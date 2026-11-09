@@ -65,8 +65,19 @@ create or replace package jobtracker.app_errors authid definer is
     co_duplicate_value constant pls_integer := -20202;
     e_duplicate_value exception;
     pragma exception_init ( e_duplicate_value, -20202 );
+
+    -- Ligne protégée par l'application, non supprimable (entreprise générique,
+    -- seul statut d'une candidature...)
+    co_protected_row constant pls_integer := -20203;
+    e_protected_row exception;
+    pragma exception_init ( e_protected_row, -20203 );
+
+    -- Ligne verrouillée par un autre traitement au-delà du délai d'attente
+    co_row_locked constant pls_integer := -20204;
+    e_row_locked exception;
+    pragma exception_init ( e_row_locked, -20204 );
 end app_errors;
 /
 
 
--- sqlcl_snapshot {"hash":"2dfef3d80768248c63575fa575721a948529aa46","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"91d3a55d6038f9592fb51d6a2d5345b44463c230","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}

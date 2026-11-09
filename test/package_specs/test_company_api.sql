@@ -81,6 +81,30 @@ create or replace package jobtracker.test_company_api authid definer is
     --%test(garde les postes si une filiale bloque la suppression)
     procedure delete_company_parent_keeps_positions;
 
+    --%test(refuse de supprimer l'entreprise générique)
+    --%throws(app_errors.co_protected_row)
+    procedure delete_company_generic;
+
+    --%test(explique le refus de supprimer l'entreprise générique)
+    procedure delete_company_generic_readable_error;
+
+    --%endcontext
+
+    --%context(entreprise générique)
+
+    --%test(existe, créée par la migration)
+    procedure generic_company_exists;
+
+    --%test(se renomme comme une autre entreprise)
+    procedure generic_company_renamable;
+
+    --%test(refuse une deuxième entreprise générique)
+    --%throws(-1)
+    procedure generic_company_unique;
+
+    --%test(une entreprise créée n'est pas générique)
+    procedure create_company_not_generic;
+
     --%endcontext
 
     --%context(contraintes de la table)

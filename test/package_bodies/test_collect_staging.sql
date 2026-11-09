@@ -26,7 +26,7 @@ create or replace package body jobtracker.test_collect_staging is
     begin
         l_run_id := new_run;
         select
-         *
+            *
         into r_run
         from
             collect_runs
@@ -52,7 +52,7 @@ create or replace package body jobtracker.test_collect_staging is
         l_run_id := new_run;
         collect_staging.close_run(l_run_id, collect_staging.co_status_failed, 150, 'HTTP 500');
         select
-         *
+            *
         into r_run
         from
             collect_runs
@@ -121,7 +121,7 @@ create or replace package body jobtracker.test_collect_staging is
                           ),
                                       '{"resultats":[{"id":"1"}]}');
         select
-         *
+            *
         into r_request
         from
             collect_requests
@@ -144,7 +144,7 @@ create or replace package body jobtracker.test_collect_staging is
         l_request_id := new_request(new_run);
         collect_staging.close_request(l_request_id, 502, null, '<html>Bad Gateway</html>', 'HTTP 502');
         select
-         *
+            *
         into r_request
         from
             collect_requests
@@ -164,7 +164,7 @@ create or replace package body jobtracker.test_collect_staging is
         l_request_id := new_request(new_run);
         collect_staging.close_request(l_request_id, 204, null, null);
         select
-         *
+            *
         into r_request
         from
             collect_requests
@@ -191,7 +191,7 @@ create or replace package body jobtracker.test_collect_staging is
 
         collect_staging.close_request(l_request_id, 502, null, l_body);
         select
-         *
+            *
         into r_request
         from
             collect_requests

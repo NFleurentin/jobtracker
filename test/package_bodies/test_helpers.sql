@@ -8,6 +8,7 @@ create or replace package body jobtracker.test_helpers is
             p_page_id  => 1,
             p_username => 'TEST'
         );
+
         apex_util.set_session_lang('en');
         commit;
     end start_english_session;

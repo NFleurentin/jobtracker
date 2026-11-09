@@ -1,0 +1,283 @@
+page 9010 (
+    name: Postes
+    alias: POSTES
+    title: Postes
+    pageGroup: @administration
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region postes (
+        name: Postes
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: UI_JOBS_LIST
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                excel
+                pdf
+            ]
+        }
+        advanced {
+            savedReportMappingIdentifier: 15202326584630735
+        }
+
+        savedReport primary (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @JOB_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @JOB_NAME_FR
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @JOB_NAME_EN
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @POSITION_COUNT
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APEX$ROW_SELECTOR (
+            type: rowSelector
+            layout {
+                sequence: 10
+            }
+        )
+
+        column JOB_ID (
+            type: hidden
+            heading {
+                heading: Job Id
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: JOB_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column JOB_NAME_EN (
+            type: textField
+            heading {
+                heading: Libellé anglais
+            }
+            layout {
+                sequence: 50
+            }
+            validation {
+                valueRequired: true
+                maxLength: 100
+            }
+            source {
+                databaseColumn: JOB_NAME_EN
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column JOB_NAME_FR (
+            type: textField
+            heading {
+                heading: Libellé français
+            }
+            layout {
+                sequence: 40
+            }
+            validation {
+                valueRequired: true
+                maxLength: 100
+            }
+            source {
+                databaseColumn: JOB_NAME_FR
+                dataType: varchar2
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column POSITION_COUNT (
+            type: displayOnly
+            heading {
+                heading: Nombre de contacts
+            }
+            layout {
+                sequence: 60
+                columnAlignment: end
+            }
+            source {
+                databaseColumn: POSITION_COUNT
+                dataType: number
+                queryOnly: true
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+    )
+
+    process postes-save-interactive-grid-data (
+        name: Postes - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @postes
+        target {
+            targetType: plsqlCode
+            dmlPlsqlCode:
+                ```plsql
+                case :APEX$ROW_STATUS
+                    when 'C' then
+                        :JOB_ID := job_api.create_job(
+                            in_job_name_en => :JOB_NAME_EN,
+                            in_job_name_fr => :JOB_NAME_FR
+                        );
+                    when 'U' then
+                        job_api.update_job(
+                            in_job_id => :JOB_ID,
+                            in_job_name_en => :JOB_NAME_EN,
+                            in_job_name_fr => :JOB_NAME_FR
+                        );
+                    when 'D' then
+                        job_api.delete_job(in_job_id => :JOB_ID);
+                end case;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 14601644964473609
+        }
+    )
+
+)
+

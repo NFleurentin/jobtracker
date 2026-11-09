@@ -121,5 +121,24 @@ list navigation-menu (
         }
     )
 
+    entry postes (
+        label: Postes
+        icon {
+            imageIconCssClasses: fa-briefcase
+        }
+        layout {
+            sequence: 40
+        }
+        isCurrent {
+            type: pages
+            pages: 9010
+        }
+        link {
+            target: {
+                page: 9010
+            }
+        }
+    )
+
 )
 

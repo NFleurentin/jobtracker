@@ -20,5 +20,6 @@
 <include file="changes/feat/contact-positions-views/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/manage-contact-positions/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/manage-company-contacts/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/jobs-maintenance-page/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

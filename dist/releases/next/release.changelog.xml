@@ -24,5 +24,6 @@
 <include file="changes/feat/application-types/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/application-statuses/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/application-storage/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/flag-generic-company-page/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

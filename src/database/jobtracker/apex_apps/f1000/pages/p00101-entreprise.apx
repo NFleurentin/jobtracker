@@ -269,6 +269,36 @@ page 101 (
         }
     )
 
+    region entreprise-generique (
+        name: Entreprise générique
+        type: staticContent
+        source {
+            htmlCode: Entreprise réservée aux candidatures sans entreprise connue. Elle peut être renommée, pas supprimée.
+        }
+        layout {
+            sequence: 5
+            slot: contentBody
+        }
+        appearance {
+            template: @/alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--info
+                t-Alert--removeHeading js-removeLandmark
+            ]
+        }
+        advanced {
+            htmlDomId: entreprise-generique
+        }
+        serverSideCondition {
+            type: item=value
+            item: P101_IS_GENERIC
+            value: TRUE
+        }
+    )
+
     region onglets (
         name: Onglets
         type: staticContent
@@ -447,6 +477,24 @@ page 101 (
         }
     )
 
+    pageItem P101_DELETE_MODE (
+        type: hidden
+        layout {
+            sequence: 200
+            region: @entreprise
+            slot: regionBody
+        }
+        source {
+            formRegion: @entreprise
+            column: DELETE_MODE
+            dataType: varchar2
+            queryOnly: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
     pageItem P101_DESCRIPTION (
         type: textarea
         label {
@@ -502,6 +550,24 @@ page 101 (
             formRegion: @entreprise
             column: EMAIL
             dataType: varchar2
+        }
+    )
+
+    pageItem P101_IS_GENERIC (
+        type: hidden
+        layout {
+            sequence: 190
+            region: @entreprise
+            slot: regionBody
+        }
+        source {
+            formRegion: @entreprise
+            column: IS_GENERIC
+            dataType: boolean
+            queryOnly: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
         }
     )
 
@@ -649,24 +715,6 @@ page 101 (
             formRegion: @entreprise
             column: PHONE
             dataType: varchar2
-        }
-    )
-
-    pageItem P101_POSITION_COUNT (
-        type: hidden
-        layout {
-            sequence: 180
-            region: @entreprise
-            slot: regionBody
-        }
-        source {
-            formRegion: @entreprise
-            column: POSITION_COUNT
-            dataType: number
-            queryOnly: true
-        }
-        security {
-            sessionStateProtection: checksumRequiredSessionLevel
         }
     )
 
@@ -855,8 +903,8 @@ page 101 (
         }
         serverSideCondition {
             type: item=value
-            item: P101_POSITION_COUNT
-            value: 0
+            item: P101_DELETE_MODE
+            value: SIMPLE
         }
     )
 
@@ -883,8 +931,9 @@ page 101 (
             style: danger
         }
         serverSideCondition {
-            type: itemIsNotNullAndNotZero
-            item: P101_POSITION_COUNT
+            type: item=value
+            item: P101_DELETE_MODE
+            value: WITH_POSITIONS
         }
     )
 

@@ -1,6 +1,7 @@
 create or replace force editionable view jobtracker.company_details (
     company_id,
     company_name,
+    is_generic,
     description,
     note_text,
     parent_company_id,
@@ -28,6 +29,7 @@ create or replace force editionable view jobtracker.company_details (
     select
         c.company_id,
         c.company_name,
+        c.is_generic,
         c.description,
         c.note_text,
         c.parent_company_id,
@@ -108,4 +110,4 @@ create or replace force editionable view jobtracker.company_details (
 with read only;
 
 
--- sqlcl_snapshot {"hash":"3684f88f515237510b9f0678e5a7de0c280d4a12","type":"VIEW","name":"COMPANY_DETAILS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"996267b222ebcb41896073552f74a56e4ab74f83","type":"VIEW","name":"COMPANY_DETAILS","schemaName":"JOBTRACKER","sxml":""}

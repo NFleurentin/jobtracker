@@ -20,7 +20,7 @@ begin
 wwv_flow_imp.import_begin (
  p_version_yyyy_mm_dd=>'2026.03.30'
 ,p_release=>'26.1.0'
-,p_default_workspace_id=>6800164315863072
+,p_default_workspace_id=>5545883586040021
 ,p_default_application_id=>1000
 ,p_default_id_offset=>0
 ,p_default_owner=>'JOBTRACKER'
@@ -37,9 +37,9 @@ prompt APPLICATION 1000 - JobTracker
 --   Flashback:       0
 --   Export Type:     Application Export
 --     Pages:                      8
---       Items:                   32
+--       Items:                   33
 --       Processes:               13
---       Regions:                 15
+--       Regions:                 16
 --       Buttons:                 13
 --       Dynamic Actions:          2
 --     Shared Components:
@@ -63,7 +63,7 @@ prompt APPLICATION 1000 - JobTracker
 --       E-Mail:
 --     Supporting Objects:  Excluded
 --   Version:         26.1.0
---   Instance ID:     2400139363144436
+--   Instance ID:     1745857762556088
 --
 
 prompt --application/delete_application
@@ -108,7 +108,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'10079625'
+,p_version_scn=>'9695148'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -1355,6 +1355,13 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_display_order=>2
 ,p_column_identifier=>'B'
 ,p_column_label=>'Nom'
+,p_column_html_expression=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'#COMPANY_NAME#',
+'{if IS_GENERIC/}',
+unistr('  <span class="fa fa-eye-slash u-margin-left-sm" title="Entreprise g\00E9n\00E9rique" aria-hidden="true"></span>'),
+unistr('  <span class="u-VisuallyHidden">(entreprise g\00E9n\00E9rique)</span>'),
+'{endif/}',
+''))
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
 ,p_use_as_row_header=>'N'
@@ -1403,6 +1410,16 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_heading_alignment=>'RIGHT'
 ,p_column_alignment=>'RIGHT'
 ,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(7149290603187805)
+,p_db_column_name=>'IS_GENERIC'
+,p_display_order=>87
+,p_column_identifier=>'X'
+,p_column_label=>unistr('G\00E9n\00E9rique')
+,p_column_type=>'BOOLEAN'
+,p_display_text_as=>'HIDDEN_ESCAPE_SC'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -1815,6 +1832,24 @@ wwv_flow_imp_page.create_page_plug(
 ,p_plug_source_type=>'NATIVE_FORM'
 );
 wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(9146561227287503)
+,p_plug_name=>unistr('Entreprise g\00E9n\00E9rique')
+,p_static_id=>'entreprise-generique'
+,p_region_name=>'entreprise-generique'
+,p_region_template_options=>'#DEFAULT#:t-Alert--horizontal:t-Alert--defaultIcons:t-Alert--info:t-Alert--removeHeading js-removeLandmark'
+,p_plug_template=>2042159785845301134
+,p_plug_display_sequence=>5
+,p_plug_item_display_point=>'ABOVE'
+,p_location=>null
+,p_plug_source=>unistr('Entreprise r\00E9serv\00E9e aux candidatures sans entreprise connue. Elle peut \00EAtre renomm\00E9e, pas supprim\00E9e.')
+,p_plug_display_condition_type=>'VAL_OF_ITEM_IN_COND_EQ_COND2'
+,p_plug_display_when_condition=>'P101_IS_GENERIC'
+,p_plug_display_when_cond2=>'TRUE'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'expand_shortcuts', 'N',
+  'output_as', 'HTML')).to_clob
+);
+wwv_flow_imp_page.create_page_plug(
  p_id=>wwv_flow_imp.id(10602312890081721)
 ,p_plug_name=>'Onglets'
 ,p_static_id=>'onglets'
@@ -1881,8 +1916,8 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_execute_validations=>'N'
 ,p_confirm_message=>'&APP_TEXT$DELETE_MSG!RAW.'
 ,p_confirm_style=>'danger'
-,p_button_condition=>'P101_POSITION_COUNT'
-,p_button_condition2=>'0'
+,p_button_condition=>'P101_DELETE_MODE'
+,p_button_condition2=>'SIMPLE'
 ,p_button_condition_type=>'VAL_OF_ITEM_IN_COND_EQ_COND2'
 ,p_database_action=>'DELETE'
 );
@@ -1901,8 +1936,9 @@ wwv_flow_imp_page.create_page_button(
 ,p_button_execute_validations=>'N'
 ,p_confirm_message=>'&APP_TEXT$COMPANY_DELETE_WITH_POSITIONS_MSG!RAW.'
 ,p_confirm_style=>'danger'
-,p_button_condition=>'P101_POSITION_COUNT'
-,p_button_condition_type=>'ITEM_NOT_NULL_OR_ZERO'
+,p_button_condition=>'P101_DELETE_MODE'
+,p_button_condition2=>'WITH_POSITIONS'
+,p_button_condition_type=>'VAL_OF_ITEM_IN_COND_EQ_COND2'
 ,p_database_action=>'DELETE'
 );
 wwv_flow_imp_page.create_page_button(
@@ -2044,6 +2080,21 @@ wwv_flow_imp_page.create_page_item(
   'virtual_keyboard', 'decimal')).to_clob
 );
 wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(9146414141287502)
+,p_name=>'P101_DELETE_MODE'
+,p_source_data_type=>'VARCHAR2'
+,p_is_query_only=>true
+,p_item_sequence=>200
+,p_item_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_item_source_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_source=>'DELETE_MODE'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_is_persistent=>'N'
+,p_protection_level=>'S'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(12203987759864017)
 ,p_name=>'P101_DESCRIPTION'
 ,p_data_type=>'CLOB'
@@ -2085,6 +2136,21 @@ wwv_flow_imp_page.create_page_item(
   'submit_when_enter_pressed', 'N',
   'subtype', 'EMAIL',
   'trim_spaces', 'BOTH')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(9146361174287501)
+,p_name=>'P101_IS_GENERIC'
+,p_source_data_type=>'BOOLEAN'
+,p_is_query_only=>true
+,p_item_sequence=>190
+,p_item_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_item_source_plug_id=>wwv_flow_imp.id(12202706244864013)
+,p_source=>'IS_GENERIC'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_is_persistent=>'N'
+,p_protection_level=>'S'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(12207563461864019)
@@ -2203,21 +2269,6 @@ wwv_flow_imp_page.create_page_item(
   'submit_when_enter_pressed', 'N',
   'subtype', 'TEL',
   'trim_spaces', 'BOTH')).to_clob
-);
-wwv_flow_imp_page.create_page_item(
- p_id=>wwv_flow_imp.id(14601285677473605)
-,p_name=>'P101_POSITION_COUNT'
-,p_source_data_type=>'NUMBER'
-,p_is_query_only=>true
-,p_item_sequence=>180
-,p_item_plug_id=>wwv_flow_imp.id(12202706244864013)
-,p_item_source_plug_id=>wwv_flow_imp.id(12202706244864013)
-,p_source=>'POSITION_COUNT'
-,p_display_as=>'NATIVE_HIDDEN'
-,p_is_persistent=>'N'
-,p_protection_level=>'S'
-,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
-  'value_protected', 'Y')).to_clob
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(12205543431864019)
@@ -3900,4 +3951,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"1e141d26ec6c6837428957dbeff3b5031784be09","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"8d288d3bf40328e537c3f80502a49164aad757b6","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

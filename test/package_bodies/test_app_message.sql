@@ -11,9 +11,10 @@ create or replace package body jobtracker.test_app_message is
             message_key,
             language_code,
             message_text
-        ) values ( in_message_key,
-                   in_language_code,
-                   in_message_text );
+        ) values
+            ( in_message_key,
+              in_language_code,
+              in_message_text );
 
     end add_message;
 
@@ -38,13 +39,17 @@ create or replace package body jobtracker.test_app_message is
     begin
         add_message('TEST_GREETING', 'fr', 'Bonjour');
         add_message('TEST_GREETING', 'en', 'Hello');
-        ut.expect(app_message.get_text('TEST_GREETING', in_language => 'en')).to_equal('Hello');
+        ut.expect(app_message.get_text('TEST_GREETING',
+                                       in_language => 'en')).to_equal('Hello');
+
     end text_in_requested_language;
 
     procedure fallback_to_default_language is
     begin
         add_message('TEST_GREETING', 'fr', 'Bonjour');
-        ut.expect(app_message.get_text('TEST_GREETING', in_language => 'en')).to_equal('Bonjour');
+        ut.expect(app_message.get_text('TEST_GREETING',
+                                       in_language => 'en')).to_equal('Bonjour');
+
     end fallback_to_default_language;
 
     procedure unknown_key_returned is
@@ -56,12 +61,14 @@ create or replace package body jobtracker.test_app_message is
     begin
         add_message('TEST_PARAMS', 'fr', '{2} avant {1}, {2} encore');
         ut.expect(app_message.get_text('TEST_PARAMS', 'A', 'B')).to_equal('B avant A, B encore');
+
     end params_in_text_order;
 
     procedure param_value_not_substituted is
     begin
         add_message('TEST_PARAMS', 'fr', '{1} et {2}');
         ut.expect(app_message.get_text('TEST_PARAMS', 'nom {2}', 'B')).to_equal('nom {2} et B');
+
     end param_value_not_substituted;
 
     procedure missing_param_empty is
@@ -88,8 +95,18 @@ create or replace package body jobtracker.test_app_message is
             count(*)
         into l_missing_count
         from
-                 ( select distinct message_key from app_messages ) k
-            cross join ( select distinct language_code from app_messages ) l
+                 (
+                select distinct
+                    message_key
+                from
+                    app_messages
+            ) k
+            cross join (
+                select distinct
+                    language_code
+                from
+                    app_messages
+            ) l
         where
             not exists (
                 select

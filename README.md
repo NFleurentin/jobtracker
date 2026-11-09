@@ -244,10 +244,21 @@ Collecte manuelle en dev (appels réels à l'API, résultat validé en base) :
 printf 'exec collect_france_travail.run\nexit\n' | env/local/dev.sh sql -S
 ```
 
-Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. Ils se compilent en dev par `@fichier` (spec puis body), puis `ut.run`, sans argument comme en CI, lance toutes les suites du schéma applicatif :
+Les packages de test utPLSQL sont dans [`test/`](test/), hors de `src/` : le filtre `TEST_%` de [`ddl.filters`](.dbtools/filters/ddl.filters) les écarte de `project export`, donc de `dist/` et de la prod. `dev.sh test` les recompile tous (specs puis bodies), échoue si un objet du schéma est invalide, puis lance utPLSQL. La compilation et ce contrôle sont ceux de la CI ([`env/common.sh`](env/common.sh)) :
 
 ```bash
-printf "set serveroutput on\nexec ut.run\nexit\n" | env/local/dev.sh sql -S
+env/local/dev.sh test                                   # toutes les suites du schéma, comme en CI
+env/local/dev.sh test test_job_api                      # une suite
+env/local/dev.sh test test_job_api test_company_api     # plusieurs suites, ou des tests (suite.test)
+```
+
+La commande échoue si un test échoue, est en erreur, ou si aucun test ne s'exécute. `ut.run` ne signale pas lui-même un échec : le résultat se lit sur la ligne de bilan du rapport.
+
+Les packages de test se formatent avec les règles de `project export`, qui ne les traite pas. Sans argument, tout `test/` ; un chemin hors de `test/` est refusé :
+
+```bash
+env/local/dev.sh format                                          # tout test/
+env/local/dev.sh format test/package_bodies/test_job_api.sql    # un fichier
 ```
 
 Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du staging sont testées, utPLSQL annulant les écritures à la fin de chaque test.
@@ -282,6 +293,7 @@ env/ci/run.sh down
 - [x] Projet SQLcl initialisé
 - [x] Mise à niveau d'une base de dev vide ou en retard par les migrations (`dev.sh migrate`)
 - [x] Évolution du schéma en une commande (`dev.sh stage`) : export, changesets, alignement du journal Liquibase du dev sur confirmation
+- [x] Tests et formatage de `test/` en une commande (`dev.sh test`, `dev.sh format`), compilation et contrôle des objets invalides communs avec la CI
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
 - [ ] Sauvegarde des données de suivi (export régulier, l'offre Always Free n'en propose pas)
@@ -322,6 +334,7 @@ env/ci/run.sh down
 
 ```
 env/local/      Conteneurs du dev (Oracle Database Free, ORDS)
+env/common.sh   Contrôles communs au dev et à la CI (compilation de test/, objets invalides)
 env/ci/         Image de base de la CI et étapes du workflow de CI
 env/bootstrap/  Amorçages manuels (SYS en local, ADMIN sur ADB)
 .dbtools/       Configuration du projet SQLcl (schéma exporté, filtres, format)
@@ -342,6 +355,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Dev en conteneurs locaux (images officielles Oracle Database Free et ORDS ; l'image ORDS installe APEX à partir des fichiers d'APEX qu'on lui monte) | même moteur que la CI, aucune limite cloud en dev (veille, utilisateurs, wallet), données fictives uniquement, instance Always Free libérée. Limites : versions d'APEX et de la base à aligner sur la prod (un export APEX ne s'importe pas dans une version plus ancienne), deux amorçages à maintenir (`SYS` en local, `ADMIN` sur ADB), certificats HTTPS à fournir en local, ressources du poste | dev sur une seconde instance ADB (pas de maintenance locale, mais limites cloud en dev et CI sans base identique), APEX seulement sur ADB (impossible : l'application se développe en dev) |
 | Conteneurs du dev pilotés par un script Bash (`env/local/dev.sh`) : un pod Podman rootless, deux conteneurs, deux volumes, deux secrets Podman, versions figées (APEX 26.1, une version de marge sous la plus récente pour rester inférieure ou égale à celle d'ADB) | chaque conteneur peut être recréé sans perte (données et configuration dans des volumes), mots de passe hors du dépôt, absents des lignes de commande et de `podman inspect`, arrêt propre de la base (`SHUTDOWN IMMEDIATE` avec 120 s de délai au lieu des 10 s de Podman, qui finissent en `SIGKILL`), ports limités à `127.0.0.1` et surchargeables en cas de conflit. Limites : script à maintenir ; les secrets Podman ne sont pas chiffrés (protégés par les droits du compte Linux), suffisant pour un dev à données fictives | `podman kube play` (déclaratif, mais secrets moins directs), Quadlet (adapté à un service permanent, pas à un environnement de dev), conteneur unique avec ORDS installé à la main (installation perdue à la recréation du conteneur, versions non maîtrisées) |
 | Versions figées des outils (images de la base et d'ORDS, APEX, Logger, utPLSQL, SQLcl : versions, URL, empreintes SHA-256) dans un seul fichier, `env/versions.env`, au format `KEY=value` à valeurs littérales, sourcé par `dev.sh` ; les chemins du cache local restent dans `dev.sh` | une seule source pour le dev et la CI : une montée de version ne peut pas en oublier un ; valeurs sans `$` ni guillemets, donc lisibles telles quelles par Bash (`source`), Podman (`--env-file`) et GitHub Actions (`$GITHUB_ENV`, commentaires filtrés). Limite : une version se répète dans son URL, à changer ensemble (un oubli se voit au téléchargement : 404 ou empreinte refusée) | versions dans `dev.sh` (script d'actions, ne peut pas être sourcé par la CI : versions recopiées), URL construites par chaque consommateur à partir des versions (gabarit d'URL dupliqué), variables `$` dans le fichier (non interprétées par `$GITHUB_ENV` ni `--env-file`) |
+| Compilation de `test/` et contrôle des objets invalides dans `env/common.sh`, sourcé par `dev.sh` et par `env/ci/run.sh`, qui fournissent chacun leur fonction `sqlcl` (connexion propre à chaque environnement) ; en dev, résultat des tests lu sur la ligne de bilan du reporter documentation | dev et CI compilent et contrôlent de la même façon : un test vert en local l'est pour la même raison en CI. Rapport lisible en dev (reporter documentation), JUnit en CI pour l'artefact du run. Limite : le code de sortie du dev dépend du texte de la ligne de bilan d'utPLSQL, à revérifier à une montée de version (une ligne introuvable fait échouer la commande, sans faux succès) | logique recopiée dans les deux scripts (divergence probable), `ut_runner.run` avec `a_fail_on_errors` (lève une erreur sur un test en échec, mais le rapport se lit alors par le tampon de sortie des reporters), rapport JUnit aussi en dev (illisible au terminal) |
 | Image de base de la CI préconstruite (`env/ci/build_image.sh`) : image de la base du dev, APEX installé par le conteneur ORDS comme en dev, utPLSQL ; arrêt propre, `podman commit`, puis squash en une couche. Logger et l'amorçage du projet restent hors de l'image | installer APEX prend 10 à 20 minutes, à chaque run sans image ; avec l'image, la base est prête en une vingtaine de secondes, sans crash recovery (arrêt `SHUTDOWN IMMEDIATE` explicite avant le commit) ; mêmes versions et même chemin d'installation que le dev ; Logger et l'amorçage, joués à chaque run, restent testés ; le squash retire les 4 Go de datafiles de l'image de base, recopiés en entier par le commit. Limites : image de 11 Go décompressée (3,6 Go compressée, sous la limite de 10 Go par couche de GHCR), environ 23 Go consommés au pic du build, au-delà des 14 Go garantis par GitHub (88 Go libres constatés sur `ubuntu-26.04`, sans engagement : l'espace est libéré par le workflow, en 2 minutes) ; image à reconstruire à chaque montée de version | installation d'APEX à chaque run (durée), `apexins.sql` joué directement (plus léger, mais chemin différent du dev), image `gvenzl/oracle-free` (éditeur tiers, différente du dev), commit sans squash (environ 16 Go dont 4 Go morts) |
 | Image publiée sur GHCR par un workflow manuel (`ci-image.yml`), depuis `main` seulement, seul job avec `packages: write` ; tag immuable portant les versions et le commit, référencé par digest ; package privé | construction reproductible, sans identifiant de registry dans le script ; une branche non relue ne publie rien ; image Oracle non redistribuée publiquement (dépôt public, package à garder privé). Stockage gratuit à ce jour (préavis d'un mois annoncé). Limites : un package lié à un dépôt public est créé public, donc passé en privé à la main après la première publication (vérifié par un accès anonyme refusé) ; digest à reporter dans `env/versions.env` après chaque construction ; le workflow ne se lance qu'une fois sur `main` | build et push depuis le poste (non reproductible, jeton personnel), registry d'Oracle ou d'un cloud (compte et coût en plus) |
 | Migrations avec SQLcl (Liquibase intégré, SQLcl Projects), version figée dans le dépôt | gratuit, un seul outil pour les objets de la base et l'application APEX (export découpé en fichiers versionnables), changesets générés depuis le schéma. Limites : SQLcl Projects est récent et ses commandes évoluent, Java 17 ou plus requis | Flyway Community (gratuit, plus simple, mais ne gère pas APEX : il faudrait SQLcl en plus), scripts SQL joués à la main (aucun suivi de ce qui est déployé) |

@@ -61,6 +61,21 @@ create or replace package body jobtracker.test_company_api is
         return r_company;
     end get_company;
 
+    /** Identifiant de l'entreprise générique, créée par la migration. */
+    function generic_company_id return companies.company_id%type is
+        l_company_id companies.company_id%type;
+    begin
+        select
+            company_id
+        into l_company_id
+        from
+            companies
+        where
+            is_generic = true;
+
+        return l_company_id;
+    end generic_company_id;
+
     /** Change le parent d'une entreprise, les autres colonnes étant vidées. */
     procedure set_parent (
         in_company_id        in companies.company_id%type,
@@ -344,6 +359,68 @@ create or replace package body jobtracker.test_company_api is
         when app_errors.e_row_referenced then
             ut.expect(count_positions(l_parent_id)).to_equal(1);
     end delete_company_parent_keeps_positions;
+
+    procedure delete_company_generic is
+    begin
+        company_api.delete_company(generic_company_id);
+    end delete_company_generic;
+
+    procedure delete_company_generic_readable_error is
+    begin
+        company_api.delete_company(generic_company_id);
+        ut.fail('Suppression acceptée');
+    exception
+        when app_errors.e_protected_row then
+            ut.expect(sqlerrm).to_be_like('%ne peut pas être supprimée%');
+    end delete_company_generic_readable_error;
+
+    procedure generic_company_exists is
+    begin
+        ut.expect(generic_company_id).to_be_not_null();
+    end generic_company_exists;
+
+    procedure generic_company_renamable is
+        l_company_id companies.company_id%type;
+    begin
+        l_company_id := generic_company_id;
+        company_api.update_company(
+            in_company_id        => l_company_id,
+            in_company_name      => 'Anonyme',
+            in_description       => null,
+            in_note_text         => null,
+            in_parent_company_id => null,
+            in_company_type_id   => null,
+            in_sector_id         => null,
+            in_company_size_id   => null,
+            in_location_id       => null,
+            in_siren             => null,
+            in_website_url       => null,
+            in_linkedin_slug     => null,
+            in_email             => null,
+            in_phone             => null,
+            in_creation_year     => null
+        );
+
+        ut.expect(get_company(l_company_id).company_name).to_equal('Anonyme');
+        ut.expect(get_company(l_company_id).is_generic).to_be_true();
+    end generic_company_renamable;
+
+    procedure generic_company_unique is
+        l_company_id companies.company_id%type;
+    begin
+        l_company_id := new_company;
+        update companies
+        set
+            is_generic = true
+        where
+            company_id = l_company_id;
+
+    end generic_company_unique;
+
+    procedure create_company_not_generic is
+    begin
+        ut.expect(get_company(new_company).is_generic).to_be_false();
+    end create_company_not_generic;
 
     procedure company_name_required is
         l_company_id companies.company_id%type;

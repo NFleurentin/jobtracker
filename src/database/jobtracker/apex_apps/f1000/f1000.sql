@@ -3434,6 +3434,8 @@ wwv_flow_imp_page.create_region_column(
 ,p_session_state_data_type=>'VARCHAR2'
 ,p_item_type=>'NATIVE_ROW_ACTION'
 ,p_display_sequence=>20
+,p_use_as_row_header=>false
+,p_include_in_export=>true
 );
 wwv_flow_imp_page.create_region_column(
  p_id=>wwv_flow_imp.id(14601548079473608)
@@ -3445,6 +3447,8 @@ wwv_flow_imp_page.create_region_column(
   'enable_multi_select', 'Y',
   'hide_control', 'N',
   'show_select_all', 'Y')).to_clob
+,p_use_as_row_header=>false
+,p_include_in_export=>true
 );
 wwv_flow_imp_page.create_region_column(
  p_id=>wwv_flow_imp.id(15203599324630741)
@@ -3896,4 +3900,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"e338e7c7d4e2ad2f6101b0b025351b9aacc5954f","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"1e141d26ec6c6837428957dbeff3b5031784be09","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

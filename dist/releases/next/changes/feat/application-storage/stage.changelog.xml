@@ -9,5 +9,21 @@
 <include file="jobtracker/package_bodies/company_api.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/comments/companies.sql" relativeToChangelogFile="true"/>
 <include file="jobtracker/indexes/companies_is_generic_uk.sql" relativeToChangelogFile="true"/>
+<include file="_custom/applications_messages_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/applications.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/application_status_changes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/application_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/application_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/application_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/applications.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/application_status_changes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/applications_application_type_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/applications_company_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/application_status_changes_application_id_changed_at_application_status_change_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/application_status_changes_application_status_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/applications_application_types_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/applications_companies_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/application_status_changes_applications_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/application_status_changes_application_statuses_fk.sql" relativeToChangelogFile="true"/>
 <include file="_custom/generic_company_data.sql" relativeToChangelogFile="true"/>
 </databaseChangeLog>

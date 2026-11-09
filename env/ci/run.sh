@@ -29,6 +29,9 @@ set -euo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/../versions.env"
 readonly CI_DB_IMAGE LOGGER_VERSION LOGGER_URL LOGGER_SHA256 \
   SQLCL_VERSION SQLCL_URL SQLCL_SHA256
+# Contrôles communs avec le dev (compilation de test/, objets invalides)
+# shellcheck source=SCRIPTDIR/../common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 
 # Noms distincts de ceux du dev et du build de l'image
 readonly DB_CTR=jobtracker-ci-db
@@ -126,22 +129,6 @@ sqlcl() {
       3< <(printf 'connect jobtracker_deploy[jobtracker]/"%s"@//127.0.0.1:%s/%s\n' \
              "$(secret_value "$DEPLOY_SECRET")" "$(db_port)" "$PDB")
   )
-}
-
-# Objets invalides du schéma applicatif, avec leurs erreurs de compilation
-check_invalid() {
-  local invalid
-  invalid="$(printf "set heading off feedback off pagesize 0
-select count(*) from user_objects where status <> 'VALID';
-exit\n" | sqlcl | tr -d '[:space:]')"
-  [[ "$invalid" =~ ^[0-9]+$ ]] || die "Contrôle des objets invalides impossible : $invalid"
-  (( invalid == 0 )) && return
-  printf 'set linesize 200 pagesize 100
-column name format a30
-column text format a120
-select name, type, line, text from user_errors order by name, type, sequence;
-exit\n' | sqlcl >&2
-  die "$invalid objets invalides dans JOBTRACKER"
 }
 
 # Application importée : lb status ne regarde que le journal Liquibase, pas APEX
@@ -269,15 +256,7 @@ exit\n' | sqlcl
 cmd_test() {
   require_db
   info "Compilation des packages de test"
-  {
-    echo 'whenever sqlerror exit failure'
-    local f
-    for f in "$REPO_DIR"/test/package_specs/*.sql "$REPO_DIR"/test/package_bodies/*.sql; do
-      echo "@${f#"$REPO_DIR"/}"
-    done
-    echo exit
-  } | sqlcl
-  check_invalid
+  compile_tests
 
   info "Exécution des tests utPLSQL"
   mkdir -p "$REPORT_DIR"

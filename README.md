@@ -309,6 +309,7 @@ env/ci/run.sh down
 - [x] Contacts : postes dans l'application APEX, fiche du contact (grille éditable, saisie avec le contact en une fois, confirmation avant suppression avec les postes)
 - [x] Contacts : postes dans l'application APEX, fiche de l'entreprise (grille éditable dans un onglet, saisie avec l'entreprise en une fois, confirmation avant suppression avec les postes)
 - [x] Contacts : écran de maintenance des postes (grille éditable des libellés français et anglais, nombre de contacts par poste, suppression d'un poste occupé refusée)
+- [x] Référentiel des types de candidature selon l'initiative (`application_types`), liste fixe bilingue chargée par migration, tests des contraintes
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)

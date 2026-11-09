@@ -14,8 +14,13 @@
 # migrate    : changesets de dist/ en attente ; --apply les joue
 # stage      : évolution du schéma (project export et stage, alignement du
 #              journal Liquibase du dev après confirmation)
+# test       : compile test/ et lance utPLSQL, toutes les suites ou celles
+#              données (chemins utPLSQL : test_job_api, test_job_api.<test>)
+# format     : formate test/, ou les fichiers de test/ donnés, avec les règles
+#              du projet (src/ est formaté par project export)
 #
-# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage | down | status | destroy
+# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage
+#                          | test [suite...] | format [fichier...] | down | status | destroy
 # =============================================================================
 set -euo pipefail
 
@@ -26,6 +31,9 @@ readonly DB_IMAGE ORDS_IMAGE APEX_VERSION APEX_URL \
   LOGGER_VERSION LOGGER_URL LOGGER_SHA256 \
   UTPLSQL_VERSION UTPLSQL_URL UTPLSQL_SHA256 \
   SQLCL_VERSION SQLCL_URL SQLCL_SHA256
+# Contrôles communs avec la CI (compilation de test/, objets invalides)
+# shellcheck source=SCRIPTDIR/../common.sh
+source "$(dirname "${BASH_SOURCE[0]}")/../common.sh"
 
 readonly POD=jobtracker
 readonly DB_CTR=jobtracker-db
@@ -498,6 +506,14 @@ cmd_apex_admin() {
   (( rc == 0 )) || die "apxchpwd.sql en échec"
 }
 
+# SQLcl de la version figée, téléchargé au premier usage, et Java requis
+require_sqlcl() {
+  local java_major
+  java_major="$(java -XshowSettings:properties -version 2>&1 | sed -n 's/^ *java.specification.version = //p')"
+  [[ "${java_major:-0}" -ge 17 ]] 2>/dev/null || die "SQLcl demande Java 17 ou plus : sudo dnf install java-21-openjdk"
+  fetch_zip "$SQLCL_DIR" "$SQLCL_URL" "$SQLCL_SHA256"
+}
+
 # Session SQLcl en proxy (jobtracker_deploy[jobtracker]), depuis la racine du
 # dépôt. Le CONNECT passe par un script lu sur le descripteur 3 : le mot de
 # passe n'apparaît ni dans la ligne de commande ni sur disque, et l'entrée
@@ -506,10 +522,7 @@ cmd_sql() {
   if ! running "$DB_CTR" || ! db_ready >/dev/null 2>&1; then
     die "La base n'est pas prête : env/local/dev.sh up"
   fi
-  local java_major
-  java_major="$(java -XshowSettings:properties -version 2>&1 | sed -n 's/^ *java.specification.version = //p')"
-  [[ "${java_major:-0}" -ge 17 ]] 2>/dev/null || die "SQLcl demande Java 17 ou plus : sudo dnf install java-21-openjdk"
-  fetch_zip "$SQLCL_DIR" "$SQLCL_URL" "$SQLCL_SHA256"
+  require_sqlcl
   cd "$REPO_DIR"
   exec "$SQLCL_DIR/sqlcl/bin/sql" "$@" -L /nolog @/dev/fd/3 \
     3< <(printf 'connect jobtracker_deploy[jobtracker]/"%s"@//localhost:%s/%s\n' \
@@ -545,6 +558,59 @@ exit\n" | cmd_sql -S | tr -d '[:space:]')"
     *)
       die "Usage : $0 migrate [--apply]" ;;
   esac
+}
+
+# sqlcl attendu par env/common.sh. Sous-shell : cmd_sql se termine par exec.
+sqlcl() { ( cmd_sql -S ); }
+
+# Tests utPLSQL en dev : test/ recompilé à chaque lancement, pour ne jamais
+# tester une version périmée d'un package de test. Sans argument, toutes les
+# suites du schéma, comme en CI ; sinon les chemins utPLSQL donnés. ut.run ne
+# rend pas d'erreur sur un test en échec : le code de sortie se déduit de la
+# ligne de bilan du reporter documentation.
+cmd_test() {
+  local path paths="" out summary
+  for path in "$@"; do
+    [[ "$path" =~ ^[A-Za-z0-9_.:]+$ ]] || die "Chemin utPLSQL invalide : $path"
+    paths+="${paths:+, }'$path'"
+  done
+  info "Compilation des packages de test"
+  compile_tests
+
+  info "Exécution des tests utPLSQL"
+  out="$(printf "whenever sqlerror exit failure
+set heading off feedback off pagesize 0 linesize 4000 trimspool on
+select * from table(ut.run(%s ut_documentation_reporter(), a_color_console => true));
+exit\n" "${paths:+ut_varchar2_list($paths),}" | sqlcl)" || { printf '%s\n' "$out" >&2; die "Exécution d'utPLSQL en échec"; }
+  printf '%s\n' "$out"
+
+  summary="$(grep -o '[0-9]* tests\?, [0-9]* failed, [0-9]* errored' <<<"$out" | tail -1)" \
+    || die "Ligne de bilan d'utPLSQL introuvable"
+  [[ "$summary" =~ ^([0-9]+)\ tests?,\ ([0-9]+)\ failed,\ ([0-9]+)\ errored$ ]] \
+    || die "Ligne de bilan d'utPLSQL illisible : $summary"
+  (( BASH_REMATCH[1] > 0 )) || die "Aucun test exécuté"
+  (( BASH_REMATCH[2] + BASH_REMATCH[3] == 0 )) || die "Tests utPLSQL en échec"
+}
+
+# Formatage de test/ avec les règles de project export, en place. Pas de base
+# requise : SQLcl sans connexion. src/ est refusé : project export le formate,
+# un second formatage y créerait des diffs.
+cmd_format() {
+  local targets=("$@") target rel script=""
+  (( ${#targets[@]} > 0 )) || targets=("$REPO_DIR/test")
+  for target in "${targets[@]}"; do
+    # Chemin résolu depuis le répertoire courant de l'appelant, avant le cd ;
+    # -e : échec si le chemin n'existe pas
+    rel="$(realpath -e --relative-to="$REPO_DIR" -- "$target" 2>/dev/null)" || die "Chemin introuvable : $target"
+    [[ "$rel" == test || "$rel" == test/* ]] || die "Hors de test/ : $target (src/ est formaté par project export)"
+    script+="format file $rel $rel"$'\n'
+  done
+  require_sqlcl
+  cd "$REPO_DIR"
+  info "Formatage de ${#targets[@]} chemin(s) de test/"
+  printf 'whenever sqlerror exit failure\nformat rules .dbtools/project.sqlformat.xml\n%sexit\n' "$script" \
+    | "$SQLCL_DIR/sqlcl/bin/sql" -S -L /nolog
+  git -C "$REPO_DIR" status --short -- test
 }
 
 # Fichiers de src/database/ dont seul le commentaire sqlcl_snapshot a changé, à
@@ -720,8 +786,10 @@ case "${1:-}" in
   sql)        shift; cmd_sql "$@" ;;
   migrate)    shift; cmd_migrate "$@" ;;
   stage)      cmd_stage ;;
+  test)       shift; cmd_test "$@" ;;
+  format)     shift; cmd_format "$@" ;;
   down)       cmd_down ;;
   status)     cmd_status ;;
   destroy)    cmd_destroy ;;
-  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage | down | status | destroy" >&2; exit 2 ;;
+  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage | test [suite...] | format [fichier...] | down | status | destroy" >&2; exit 2 ;;
 esac

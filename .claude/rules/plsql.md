@@ -18,7 +18,7 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 
 ## Style
 
-- Style imposé par le formateur du projet (`.dbtools/project.sqlformat.xml`), qu'applique `project export` : écrire en 4 espaces, commentaires alignés sur le code (le formateur ne les déplace pas). `test/`, hors export, se formate avec les mêmes règles (`format rules .dbtools/project.sqlformat.xml`, puis `format file`).
+- Style imposé par le formateur du projet (`.dbtools/project.sqlformat.xml`), qu'applique `project export` : écrire en 4 espaces, commentaires alignés sur le code (le formateur ne les déplace pas). `test/`, hors export, se formate avec les mêmes règles par `env/local/dev.sh format`.
 - Pas d'esperluette littérale dans le source, commentaires compris : SQL*Plus et SQLcl la prennent pour une variable de substitution (constaté en dev ; les déploiements passent aussi par SQLcl). Écrire `chr(38)`.
 
 ## Packages

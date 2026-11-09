@@ -181,7 +181,9 @@ erDiagram
 
     APPLICATION_TYPES {
         NUMBER application_type_id PK "clé du type de candidature"
-        VARCHAR2(100) application_type_name "type de candidature (Spontanée, Offre, Démarche ESN...)"
+        VARCHAR2(20) application_type_code "code stable, selon l'initiative (SPONTANEOUS, JOB_OFFER, APPROACHED)"
+        VARCHAR2(50) application_type_name_fr "type de candidature (Candidature spontanée, Réponse à une offre, Approche de l'entreprise)"
+        VARCHAR2(50) application_type_name_en "type de candidature anglais (Unsolicited application, Job offer response, Approached by company)"
     }
 
     APPLICATION_STATUSES {

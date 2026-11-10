@@ -1,6 +1,19 @@
 breadcrumb breadcrumb (
     name: Breadcrumb
 
+    entry candidatures (
+        name: Candidatures
+        pageNumber: 300
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 300
+            }
+        }
+    )
+
     entry contacts (
         name: Contacts
         pageNumber: 400

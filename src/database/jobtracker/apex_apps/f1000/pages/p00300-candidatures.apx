@@ -1,0 +1,389 @@
+page 300 (
+    name: Candidatures
+    alias: CANDIDATURES
+    title: Candidatures
+    pageGroup: @candidatures
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region candidatures (
+        name: Candidatures
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: UI_APPLICATIONS_LIST
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        link {
+            linkColumn: customTarget
+            target: {
+                page: 301
+                items: {
+                    P301_APPLICATION_ID: \#APPLICATION_ID#\
+                }
+                clearCache: 301
+                action: resetPagination
+            }
+            linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Aucune candidature.
+            whenMoreDataFound: Le rapport est limité à #MAX_ROW_COUNT# lignes. Appliquez un filtre pour réduire le nombre de résultats.
+        }
+        advanced {
+            savedReportMappingIdentifier: 16020050616449230
+        }
+
+        column APPLICATION_ID (
+            type: hidden
+            heading {
+                heading: Application Id
+            }
+            layout {
+                sequence: 0
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column APPLICATION_STATUS_DISPLAY_ORDER (
+            type: plainText
+            heading {
+                heading: Ordre du statut
+            }
+            layout {
+                sequence: 80
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: T
+            }
+        )
+
+        column APPLICATION_STATUS_NAME (
+            type: plainText
+            heading {
+                heading: Statut courant
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column APPLICATION_TYPE_NAME (
+            type: plainText
+            heading {
+                heading: Type de candidature
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column COMPANY_ID (
+            type: hidden
+            heading {
+                heading: Company Id
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: S
+            }
+        )
+
+        column COMPANY_NAME (
+            type: plainText
+            heading {
+                heading: Entreprise
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column INTEREST_RATING (
+            type: plainText
+            heading {
+                heading: Intérêt
+                alignment: end
+            }
+            layout {
+                sequence: 100
+                columnAlignment: end
+            }
+            columnFormatting {
+                htmlExpression:
+                    ```html
+                    <span title="#INTEREST_RATING# / 5" aria-label="Intérêt #INTEREST_RATING# sur 5">{case INTEREST_RATING/}{when 1/}★☆☆☆☆{when 2/}★★☆☆☆{when 3/}★★★☆☆{when 4/}★★★★☆{when 5/}★★★★★{endcase/}</span>
+                    
+                    ```
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column IS_FINAL (
+            type: plainText
+            heading {
+                heading: Statut final
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                dataType: BOOLEAN
+            }
+            advanced {
+                endUserAlias: U
+            }
+        )
+
+        column IS_GENERIC_COMPANY (
+            type: hidden
+            heading {
+                heading: Is Generic Company
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: BOOLEAN
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        column JOB_TITLE (
+            type: plainText
+            heading {
+                heading: Poste
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column STATUS_CHANGED_AT (
+            type: plainText
+            heading {
+                heading: Date statut courant
+            }
+            layout {
+                sequence: 110
+            }
+            source {
+                dataType: DATE
+                timezoneAware: Y
+            }
+            advanced {
+                endUserAlias: V
+            }
+        )
+
+        column UPDATED_AT (
+            type: plainText
+            heading {
+                heading: Modifiée le
+            }
+            layout {
+                sequence: 120
+            }
+            source {
+                dataType: DATE
+                timezoneAware: Y
+            }
+            advanced {
+                endUserAlias: W
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn APPLICATION_STATUS_NAME (
+                sequence: 4
+            )
+
+            displayColumn APPLICATION_TYPE_NAME (
+                sequence: 1
+            )
+
+            displayColumn COMPANY_NAME (
+                sequence: 2
+            )
+
+            displayColumn INTEREST_RATING (
+                sequence: 5
+            )
+
+            displayColumn JOB_TITLE (
+                sequence: 3
+            )
+
+            sort (
+                column: APPLICATION_STATUS_DISPLAY_ORDER
+                sort {
+                    sequence: 1
+                }
+            )
+
+            sort (
+                column: COMPANY_NAME
+                sort {
+                    sequence: 2
+                }
+            )
+
+            filter ir-condition (
+                column: IS_FINAL
+                value: FALSE
+            )
+
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Créer
+        layout {
+            sequence: 10
+            region: @candidatures
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: redirectThisApp
+            target: {
+                page: 301
+                clearCache: 301
+            }
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    dynamicAction edit-report-dialog-closed (
+        name: Edit Report - Dialog Closed
+        execution {
+            sequence: 10
+        }
+        when {
+            event: apexafterclosedialog
+            selectionType: region
+            region: @candidatures
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @candidatures
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+)
+

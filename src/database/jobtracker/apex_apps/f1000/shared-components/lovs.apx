@@ -1,3 +1,27 @@
+lov application-statuses-lov (
+    name: APPLICATION_STATUSES_LOV
+    source {
+        tableName: UI_APPLICATION_STATUSES_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_ORDER
+    }
+)
+
+lov application-types-lov (
+    name: APPLICATION_TYPES_LOV
+    source {
+        tableName: UI_APPLICATION_TYPES_LOV
+    }
+    columnMapping {
+        return: RETURN_VALUE
+        display: DISPLAY_VALUE
+        defaultSort: DISPLAY_VALUE
+    }
+)
+
 lov boolean (
     name: BOOLEAN
     source {

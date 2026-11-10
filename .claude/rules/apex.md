@@ -19,8 +19,8 @@ Ces règles couvrent l'application `JobTracker` (ID `1000`). Le schéma et les m
 
 - Lectures : uniquement par les vues `ui_` (`sql.md`), LOV et rapports compris, chaque région et chaque LOV par la sienne. Une page ne lit ni table ni vue de base et ne porte pas de SQL métier : une condition à changer se change dans la vue.
 - Écritures : toutes par les packages. Un formulaire est une Form region sur sa vue `ui_<entité>_form`, avec un process Form - Automatic Row Processing en Target Type « PL/SQL Code » qui appelle le package. Jamais d'Automatic Row Processing sur une table ou une vue : il contournerait les contrôles du package.
-- Grille éditable (Interactive Grid) : même principe, process Interactive Grid - Automatic Row Processing en « PL/SQL Code » aiguillé sur `:APEX$ROW_STATUS`. La clé du parent se lit dans l'item du formulaire, pas dans une colonne de la grille. Une grille enfant d'un formulaire n'a pas son propre bouton Save : elle s'enregistre avec la page. Une grille seule sur sa page (référentiel) garde le bouton Save de sa barre d'outils.
-- Colonne `BOOLEAN` dans une grille : type Switch, Session State en `BOOLEAN` (sinon le bind arrive en `VARCHAR2`). Une Checkbox ne s'affiche jamais cochée sur une source `BOOLEAN` (constaté en APEX 26.1).
+- Grille éditable (Interactive Grid) : même principe, process Interactive Grid - Automatic Row Processing en « PL/SQL Code » aiguillé sur `:APEX$ROW_STATUS`. La clé du parent se lit dans l'item du formulaire, pas dans une colonne de la grille : item en Storage « Per Session (Persistent) », jamais dans Page Items to Submit de la grille (l'Advisor signale l'envoi en Ajax d'un item protégé). Avec le Storage par défaut d'un item de Form region, « Per Request », la grille se vide au premier tri (constaté en APEX 26.1). Tout lien vers la page du formulaire en vide le cache (Clear Cache). Une grille enfant d'un formulaire n'a pas son propre bouton Save : elle s'enregistre avec la page. Une grille seule sur sa page (référentiel) garde le bouton Save de sa barre d'outils.
+- Colonne `BOOLEAN` dans une grille : type Switch, Session State en `BOOLEAN` (sinon le bind arrive en `VARCHAR2`). Une Checkbox ne s'affiche jamais cochée sur une source `BOOLEAN` (constaté en APEX 26.1). L'Advisor signale alors `PLS-00306` sur l'appel du package : faux positif, il compile les binds en `VARCHAR2` (vérifié à l'exécution en APEX 26.1).
 - Ailleurs, `BOOLEAN` s'emploie tel quel (constaté en APEX 26.1) : une condition Item = Value sur un item `BOOLEAN` compare à `TRUE`, un Interactive Report accepte la colonne et `{if COLONNE/}` y traite `false` comme faux. Pour qu'une colonne ajoutée à la vue apparaisse dans l'IR, Synchronize Columns n'a pas suffi : basculer la source en SQL Query, revenir en Table / View, puis Save.
 - Validations de page : confort de saisie seulement (champ requis, format). Une règle métier est dans le package, testée sans APEX.
 - Un bloc PL/SQL de page (process, action dynamique, calcul) se limite à l'appel d'un package.
@@ -29,7 +29,9 @@ Ces règles couvrent l'application `JobTracker` (ID `1000`). Le schéma et les m
 ## Interface
 
 - Application en français : libellés, messages et langue principale de l'application (`fr`).
-- Toutes les pages exigent une authentification, sauf le login (page 9999).
+- Toutes les pages exigent une authentification, sauf le login (page 9999). Pas d'Authorization Scheme (README, « Choix techniques et compromis ») : l'avertissement de l'Advisor est attendu.
+- Chaque Interactive Report et Interactive Grid a une colonne Value Identifies Row (section Accessibility) : un libellé visible qui nomme la ligne, jamais un ID technique.
+- Avant un export, l'Advisor ne remonte que les avertissements justifiés par ces règles.
 
 ## Nommage
 

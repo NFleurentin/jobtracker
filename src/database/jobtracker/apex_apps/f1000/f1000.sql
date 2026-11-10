@@ -108,7 +108,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'11308174'
+,p_version_scn=>'11346237'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -1428,7 +1428,7 @@ unistr('  <span class="u-VisuallyHidden">(entreprise g\00E9n\00E9rique)</span>')
 ''))
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
-,p_use_as_row_header=>'N'
+,p_use_as_row_header=>'Y'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -1626,7 +1626,6 @@ wwv_flow_imp_page.create_page_plug(
 ,p_query_where=>'company_id = :P101_COMPANY_ID'
 ,p_include_rowid_column=>false
 ,p_plug_source_type=>'NATIVE_IG'
-,p_ajax_items_to_submit=>'P101_COMPANY_ID'
 ,p_prn_units=>'MILLIMETERS'
 ,p_prn_paper_size=>'A4'
 ,p_prn_width=>297
@@ -1695,7 +1694,7 @@ wwv_flow_imp_page.create_region_column(
 ,p_filter_text_case=>'MIXED'
 ,p_filter_exact_match=>true
 ,p_filter_lov_type=>'LOV'
-,p_use_as_row_header=>false
+,p_use_as_row_header=>true
 ,p_enable_sort_group=>true
 ,p_enable_control_break=>true
 ,p_enable_hide=>true
@@ -2033,7 +2032,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_item_source_plug_id=>wwv_flow_imp.id(12202706244864013)
 ,p_source=>'COMPANY_ID'
 ,p_display_as=>'NATIVE_HIDDEN'
-,p_is_persistent=>'N'
 ,p_protection_level=>'S'
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'value_protected', 'Y')).to_clob
@@ -2640,6 +2638,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Application Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
  p_id=>wwv_flow_imp.id(14602412086473617)
@@ -2682,6 +2681,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Company Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -2692,7 +2692,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Entreprise'
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
-,p_use_as_row_header=>'N'
+,p_use_as_row_header=>'Y'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -2729,6 +2729,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Is Generic Company'
 ,p_column_type=>'BOOLEAN'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -2896,6 +2897,7 @@ wwv_flow_imp_page.create_component_da_action(
 ,p_action_sequence=>10
 ,p_action=>'NATIVE_DIALOG_CANCEL'
 ,p_static_id=>'native-dialog-cancel'
+,p_stop_execution_on_error=>true
 );
 wwv_flow_imp_page.create_page_button(
  p_id=>wwv_flow_imp.id(16045608674623531)
@@ -3365,7 +3367,7 @@ wwv_flow_imp_page.create_worksheet(
 ,p_show_notify=>'Y'
 ,p_download_formats=>'CSV:HTML:XLSX:PDF'
 ,p_enable_mail_download=>'Y'
-,p_detail_link=>'f?p=&APP_ID.:401:&APP_SESSION.::&DEBUG.:RP:P401_CONTACT_ID:\#CONTACT_ID#\'
+,p_detail_link=>'f?p=&APP_ID.:401:&SESSION.::&DEBUG.:RP,401:P401_CONTACT_ID:\#CONTACT_ID#\'
 ,p_detail_link_text=>'<span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>'
 ,p_internal_uid=>7763381621718246
 );
@@ -3399,7 +3401,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Nom'
 ,p_column_type=>'STRING'
 ,p_heading_alignment=>'LEFT'
-,p_use_as_row_header=>'N'
+,p_use_as_row_header=>'Y'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -3536,7 +3538,6 @@ wwv_flow_imp_page.create_page_plug(
 ,p_query_where=>'contact_id = :P401_CONTACT_ID'
 ,p_include_rowid_column=>false
 ,p_plug_source_type=>'NATIVE_IG'
-,p_ajax_items_to_submit=>'P401_CONTACT_ID'
 ,p_prn_units=>'MILLIMETERS'
 ,p_prn_paper_size=>'A4'
 ,p_prn_width=>297
@@ -3605,7 +3606,7 @@ wwv_flow_imp_page.create_region_column(
 ,p_filter_text_case=>'MIXED'
 ,p_filter_exact_match=>true
 ,p_filter_lov_type=>'LOV'
-,p_use_as_row_header=>false
+,p_use_as_row_header=>true
 ,p_enable_sort_group=>true
 ,p_enable_control_break=>true
 ,p_enable_hide=>true
@@ -3891,7 +3892,6 @@ wwv_flow_imp_page.create_page_item(
 ,p_item_source_plug_id=>wwv_flow_imp.id(7750639553717852)
 ,p_source=>'CONTACT_ID'
 ,p_display_as=>'NATIVE_HIDDEN'
-,p_is_persistent=>'N'
 ,p_protection_level=>'S'
 ,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
   'value_protected', 'Y')).to_clob
@@ -4374,7 +4374,7 @@ wwv_flow_imp_page.create_region_column(
 ,p_filter_text_case=>'MIXED'
 ,p_filter_exact_match=>true
 ,p_filter_lov_type=>'DISTINCT'
-,p_use_as_row_header=>false
+,p_use_as_row_header=>true
 ,p_enable_sort_group=>true
 ,p_enable_control_break=>true
 ,p_enable_hide=>true
@@ -4754,4 +4754,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"79605377ab12d267699bb447ed318164fb9c4fba","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"b196c66aff63a753c4f010ab30590b337eacbbd8","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

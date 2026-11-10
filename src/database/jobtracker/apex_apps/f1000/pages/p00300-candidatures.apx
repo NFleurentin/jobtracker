@@ -168,6 +168,9 @@ page 300 (
             layout {
                 sequence: 30
             }
+            accessibility {
+                valueIdentifiesRow: true
+            }
             source {
                 dataType: STRING
             }

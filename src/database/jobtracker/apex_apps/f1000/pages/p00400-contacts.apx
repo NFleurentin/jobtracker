@@ -63,6 +63,7 @@ page 400 (
                 items: {
                     P401_CONTACT_ID: \#CONTACT_ID#\
                 }
+                clearCache: 401
                 action: resetPagination
             }
             linkIcon: <span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>
@@ -118,6 +119,9 @@ page 400 (
             }
             layout {
                 sequence: 20
+            }
+            accessibility {
+                valueIdentifiesRow: true
             }
             source {
                 dataType: STRING

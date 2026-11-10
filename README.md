@@ -314,6 +314,7 @@ env/ci/run.sh down
 - [x] Entreprise générique « Confidentielle », destinataire d'une candidature sans entreprise connue : créée par migration, modifiable mais pas supprimable ; signalée dans l'application APEX (alerte sur la fiche, sans bouton de suppression, icône dans la liste)
 - [x] Candidatures : tables (candidatures, historique des statuts), vue de base `application_details` avec le statut courant calculé, package d'écriture `application_api` (une seule candidature ouverte par entreprise) et tests ; sans offre ni candidature parente, à ajouter avec la table des offres
 - [x] Candidatures : vues de lecture pour APEX (vues `ui_` de la liste, du formulaire et de l'historique des statuts, LOV des statuts triée par `display_order` et des types ; vue de base `application_status_change_details` qui repère le dernier changement, seul corrigeable ; tests)
+- [x] Candidatures dans l'application APEX : liste avec recherche (statut courant, candidatures en cours par défaut, intérêt en étoiles), formulaire de création, modification et suppression par le package (statut initial à la création, confirmation avant suppression avec l'historique) ; gestion de l'historique des statuts à venir
 - [ ] Modèle de données (offres, statuts, candidatures, entretiens, contacts)
 - [x] Collecte France Travail en PL/SQL vers le staging (authentification OAuth2, pagination, gestion des erreurs et des quotas), lancée à la main ; recherches en dur, provisoirement
 - [ ] Chargement des offres (staging, contrôles, `MERGE`, garde-fou de volume)

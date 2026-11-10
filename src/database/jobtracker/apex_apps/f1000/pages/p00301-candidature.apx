@@ -1,0 +1,587 @@
+page 301 (
+    name: Candidature
+    alias: CANDIDATURE
+    title: Candidature
+    pageGroup: @candidatures
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region candidature (
+        name: Candidature
+        type: form
+        source {
+            location: localDatabase
+            tableName: UI_APPLICATIONS_FORM
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    pageItem P301_ANN_SALARY_PROPOSED_EUROS (
+        type: numberField
+        label {
+            label: Salaire annuel proposé (€)
+            alignment: left
+        }
+        settings {
+            minValue: 1
+        }
+        layout {
+            sequence: 90
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @candidature
+            column: ANNUAL_SALARY_PROPOSED_EUROS
+            dataType: number
+        }
+    )
+
+    pageItem P301_APPLICATION_ID (
+        type: hidden
+        layout {
+            sequence: 40
+            region: @candidature
+            slot: regionBody
+        }
+        source {
+            formRegion: @candidature
+            column: APPLICATION_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P301_APPLICATION_STATUS_ID (
+        type: selectList
+        label {
+            label: Statut courant
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @application-statuses-lov
+            nullDisplayValue: - Choisir -
+        }
+        layout {
+            sequence: 70
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @candidature
+            column: APPLICATION_STATUS_ID
+            dataType: number
+        }
+        readOnly {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    pageItem P301_APPLICATION_TYPE_ID (
+        type: selectList
+        label {
+            label: Type de candidature
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @application-types-lov
+            nullDisplayValue: - Choisir -
+        }
+        layout {
+            sequence: 20
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+        validation {
+            valueRequired: true
+        }
+        source {
+            formRegion: @candidature
+            column: APPLICATION_TYPE_ID
+            dataType: number
+        }
+    )
+
+    pageItem P301_COMPANY_ID (
+        type: popupLov
+        label {
+            label: Entreprise
+            alignment: left
+        }
+        lov {
+            type: sharedComponent
+            lov: @companies-lov
+            displayNullValue: false
+        }
+        layout {
+            sequence: 30
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @candidature
+            column: COMPANY_ID
+            dataType: number
+        }
+    )
+
+    pageItem P301_CREATED_AT (
+        type: displayOnly
+        label {
+            label: Créée le
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @candidature
+            column: CREATED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    pageItem P301_DAILY_RATE_PROPOSED_EUROS (
+        type: numberField
+        label {
+            label: Salaire journalier proposé (€)
+            alignment: left
+        }
+        settings {
+            minValue: 1
+        }
+        layout {
+            sequence: 100
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            maxLength: 255
+        }
+        source {
+            formRegion: @candidature
+            column: DAILY_RATE_PROPOSED_EUROS
+            dataType: number
+        }
+    )
+
+    pageItem P301_INTEREST_RATING (
+        type: starRating
+        label {
+            label: Intérêt
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @candidature
+            slot: regionBody
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @candidature
+            column: INTEREST_RATING
+            dataType: number
+        }
+    )
+
+    pageItem P301_JOB_TITLE (
+        type: textField
+        label {
+            label: Poste
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 200
+        }
+        source {
+            formRegion: @candidature
+            column: JOB_TITLE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P301_NOTE_TEXT (
+        type: textarea
+        label {
+            label: Notes
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        source {
+            formRegion: @candidature
+            column: NOTE_TEXT
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+    )
+
+    pageItem P301_STATUS_CHANGED_AT (
+        type: datePicker
+        label {
+            label: Date statut courant
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+            width: 32
+        }
+        validation {
+            valueRequired: true
+            maxLength: 255
+        }
+        source {
+            formRegion: @candidature
+            column: STATUS_CHANGED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+        default {
+            type: expression
+            plsqlExpression: systimestamp
+        }
+        readOnly {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    pageItem P301_UPDATED_AT (
+        type: displayOnly
+        label {
+            label: Modifiée le
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @candidature
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @candidature
+            column: UPDATED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Annuler
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    button create (
+        buttonName: CREATE
+        label: Créer
+        layout {
+            sequence: 40
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: insert
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    button delete (
+        buttonName: DELETE
+        label: Supprimer
+        layout {
+            sequence: 20
+            region: @buttons
+            slot: delete
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            executeValidations: false
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: delete
+            requiresConfirmation: true
+        }
+        confirmation {
+            message: &APP_TEXT$APPLICATION_DELETE_MSG!RAW.
+            style: danger
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    button save (
+        buttonName: SAVE
+        label: Enregistrer
+        layout {
+            sequence: 30
+            region: @buttons
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+            databaseAction: update
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
+    process close-dialog (
+        name: Close Dialog
+        type: closeDialog
+        execution {
+            sequence: 50
+        }
+        advanced {
+            executionMappingIdentifier: 16056717500623544
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+    process initialize-form-candidature (
+        name: Initialize form Candidature
+        type: formInitialization
+        formRegion: @candidature
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 16054648196623537
+        }
+    )
+
+    process process-form-candidature (
+        name: Process form Candidature
+        type: formAutoRowProcessing
+        formRegion: @candidature
+        target {
+            targetType: plsqlCode
+            plsqlCode:
+                ```plsql
+                case :REQUEST
+                    when 'CREATE' then
+                        :P301_APPLICATION_ID := application_api.create_application(
+                            in_company_id                   => :P301_COMPANY_ID,
+                            in_application_type_id          => :P301_APPLICATION_TYPE_ID,
+                            in_job_title                    => :P301_JOB_TITLE,
+                            in_application_status_id        => :P301_APPLICATION_STATUS_ID,
+                            in_changed_at                   => :P301_STATUS_CHANGED_AT,
+                            in_annual_salary_proposed_euros => :P301_ANN_SALARY_PROPOSED_EUROS,
+                            in_daily_rate_proposed_euros    => :P301_DAILY_RATE_PROPOSED_EUROS,
+                            in_interest_rating              => :P301_INTEREST_RATING,
+                            in_note_text                    => :P301_NOTE_TEXT
+                        );
+                    when 'SAVE' then
+                        application_api.update_application(
+                            in_application_id               => :P301_APPLICATION_ID,
+                            in_company_id                   => :P301_COMPANY_ID,
+                            in_application_type_id          => :P301_APPLICATION_TYPE_ID,
+                            in_job_title                    => :P301_JOB_TITLE,
+                            in_annual_salary_proposed_euros => :P301_ANN_SALARY_PROPOSED_EUROS,
+                            in_daily_rate_proposed_euros    => :P301_DAILY_RATE_PROPOSED_EUROS,
+                            in_interest_rating              => :P301_INTEREST_RATING,
+                            in_note_text                    => :P301_NOTE_TEXT
+                        );
+                    when 'DELETE' then
+                        application_api.delete_application(in_application_id => :P301_APPLICATION_ID);
+                end case;
+                ```
+        }
+        lockRow {
+            lockRow: false
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 16055041045623537
+        }
+        serverSideCondition {
+            type: requestIsContainedInValue
+            value: CREATE,SAVE,DELETE
+        }
+    )
+
+)
+

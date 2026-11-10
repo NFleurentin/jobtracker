@@ -36,29 +36,29 @@ prompt APPLICATION 1000 - JobTracker
 --   Exported By:     JOBTRACKER
 --   Flashback:       0
 --   Export Type:     Application Export
---     Pages:                      8
---       Items:                   33
---       Processes:               13
---       Regions:                 16
---       Buttons:                 13
---       Dynamic Actions:          2
+--     Pages:                     10
+--       Items:                   45
+--       Processes:               16
+--       Regions:                 20
+--       Buttons:                 18
+--       Dynamic Actions:          3
 --     Shared Components:
 --       Logic:
 --         Build Options:          1
 --       Navigation:
 --         Lists:                  2
 --         Breadcrumbs:            1
---           Entries:              4
+--           Entries:              5
 --       Security:
 --         Authentication:         1
 --         Authorization:          1
 --       User Interface:
 --         Themes:                 1
 --         Templates:
---         LOVs:                   9
+--         LOVs:                  11
 --       PWA:
 --       Globalization:
---         Messages:               2
+--         Messages:               3
 --       Reports:
 --       E-Mail:
 --     Supporting Objects:  Excluded
@@ -108,7 +108,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'9695148'
+,p_version_scn=>'11308174'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -286,7 +286,17 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10000203478844198)
 ,p_name=>'Navigation Menu'
 ,p_static_id=>'navigation-menu'
-,p_version_scn=>'SH256:GAr0cs25smJbPmRA7_g-yKKfUbmsYlk5SW6OxGKmr5g'
+,p_version_scn=>'SH256:zjbvTZ9jlHKkFY5-oOlEsMaS4QXQYFIgX5xOalFuUao'
+);
+wwv_flow_imp_shared.create_list_item(
+ p_id=>wwv_flow_imp.id(16019575952449171)
+,p_list_item_display_sequence=>50
+,p_list_item_link_text=>'Candidatures'
+,p_static_id=>'candidatures'
+,p_list_item_link_target=>'f?p=&APP_ID.:300:&SESSION.::&DEBUG.::::'
+,p_list_item_icon=>'fa-paper-plane'
+,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
+,p_list_item_current_for_pages=>'300,301'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(7762837111717927)
@@ -856,6 +866,40 @@ begin
 null;
 end;
 /
+prompt --application/shared_components/user_interface/lovs/application_statuses_lov
+begin
+wwv_flow_imp_shared.create_list_of_values(
+ p_id=>wwv_flow_imp.id(16003654857386832)
+,p_lov_name=>'APPLICATION_STATUSES_LOV'
+,p_static_id=>'application-statuses-lov'
+,p_source_type=>'TABLE'
+,p_location=>'LOCAL'
+,p_query_table=>'UI_APPLICATION_STATUSES_LOV'
+,p_return_column_name=>'RETURN_VALUE'
+,p_display_column_name=>'DISPLAY_VALUE'
+,p_default_sort_column_name=>'DISPLAY_ORDER'
+,p_default_sort_direction=>'ASC'
+,p_version_scn=>'SH256:UXiVAFDNUdrlnLAqEIQ-d7fJR_Mo0vgJ81yN9cPaS5E'
+);
+end;
+/
+prompt --application/shared_components/user_interface/lovs/application_types_lov
+begin
+wwv_flow_imp_shared.create_list_of_values(
+ p_id=>wwv_flow_imp.id(16003417820384067)
+,p_lov_name=>'APPLICATION_TYPES_LOV'
+,p_static_id=>'application-types-lov'
+,p_source_type=>'TABLE'
+,p_location=>'LOCAL'
+,p_query_table=>'UI_APPLICATION_TYPES_LOV'
+,p_return_column_name=>'RETURN_VALUE'
+,p_display_column_name=>'DISPLAY_VALUE'
+,p_default_sort_column_name=>'DISPLAY_VALUE'
+,p_default_sort_direction=>'ASC'
+,p_version_scn=>'SH256:HbHF0AHnx0A-QutImsvcIX1SzqwgJNp5jU9XWJGmO48'
+);
+end;
+/
 prompt --application/shared_components/user_interface/lovs/boolean
 begin
 wwv_flow_imp_shared.create_list_of_values(
@@ -1025,6 +1069,12 @@ wwv_flow_imp_page.create_page_group(
 ,p_static_id=>'administration'
 );
 wwv_flow_imp_page.create_page_group(
+ p_id=>wwv_flow_imp.id(16002989598377399)
+,p_group_name=>'Candidatures'
+,p_static_id=>'candidatures'
+,p_group_desc=>'Liste et formulaire des candidatures'
+);
+wwv_flow_imp_page.create_page_group(
  p_id=>wwv_flow_imp.id(12237989066938779)
 ,p_group_name=>'Entreprises'
 ,p_static_id=>'companies'
@@ -1044,6 +1094,13 @@ wwv_flow_imp_shared.create_menu(
  p_id=>wwv_flow_imp.id(10004043825844231)
 ,p_name=>'Breadcrumb'
 ,p_static_id=>'breadcrumb'
+);
+wwv_flow_imp_shared.create_menu_option(
+ p_id=>wwv_flow_imp.id(16027678084449253)
+,p_short_name=>'Candidatures'
+,p_static_id=>'candidatures'
+,p_link=>'f?p=&APP_ID.:300:&APP_SESSION.::&DEBUG.:::'
+,p_page_id=>300
 );
 wwv_flow_imp_shared.create_menu_option(
  p_id=>wwv_flow_imp.id(7770088108718335)
@@ -1169,6 +1226,13 @@ end;
 /
 prompt --application/shared_components/globalization/messages
 begin
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(16004307566408313)
+,p_name=>'APPLICATION_DELETE_MSG'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Cette candidature et l''historique de ses statuts seront supprim\00E9s. Voulez-vous continuer ?')
+,p_version_scn=>'SH256:i2ElEn7dafR46FYfvnG5prndW1NUNyppaIgvBuPeVfo'
+);
 wwv_flow_imp_shared.create_message(
  p_id=>wwv_flow_imp.id(14630582195780670)
 ,p_name=>'COMPANY_DELETE_WITH_POSITIONS_MSG'
@@ -2478,6 +2542,744 @@ wwv_flow_imp_page.create_page_process(
 ,p_process_when=>'CREATE,SAVE,DELETE,DELETE_WITH_POSITIONS'
 ,p_process_when_type=>'REQUEST_IN_CONDITION'
 ,p_internal_uid=>12218708193864026
+);
+end;
+/
+prompt --application/pages/page_00300
+begin
+wwv_flow_imp_page.create_page(
+ p_id=>300
+,p_name=>'Candidatures'
+,p_alias=>'CANDIDATURES'
+,p_step_title=>'Candidatures'
+,p_autocomplete_on_off=>'OFF'
+,p_group_id=>wwv_flow_imp.id(16002989598377399)
+,p_step_template=>4073832297226169690
+,p_page_template_options=>'#DEFAULT#'
+,p_protection_level=>'C'
+,p_page_component_map=>'18'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(16027737208449253)
+,p_plug_name=>'Breadcrumb'
+,p_static_id=>'breadcrumb'
+,p_region_template_options=>'#DEFAULT#:t-BreadcrumbRegion--useBreadcrumbTitle'
+,p_component_template_options=>'#DEFAULT#'
+,p_plug_template=>2532939663579242476
+,p_plug_display_sequence=>10
+,p_plug_display_point=>'REGION_POSITION_01'
+,p_plug_item_display_point=>'ABOVE'
+,p_menu_id=>wwv_flow_imp.id(10004043825844231)
+,p_plug_source_type=>'NATIVE_BREADCRUMB'
+,p_menu_template_id=>4073839682315169711
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(16019966752449230)
+,p_plug_name=>'Candidatures'
+,p_static_id=>'candidatures'
+,p_region_template_options=>'#DEFAULT#:t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc'
+,p_plug_template=>2102002977963900996
+,p_plug_display_sequence=>10
+,p_plug_item_display_point=>'ABOVE'
+,p_query_type=>'TABLE'
+,p_query_table=>'UI_APPLICATIONS_LIST'
+,p_include_rowid_column=>false
+,p_plug_source_type=>'NATIVE_IR'
+,p_prn_content_disposition=>'ATTACHMENT'
+,p_prn_units=>'INCHES'
+,p_prn_paper_size=>'LETTER'
+,p_prn_width=>11
+,p_prn_height=>8.5
+,p_prn_orientation=>'HORIZONTAL'
+,p_prn_page_header_font_color=>'#000000'
+,p_prn_page_header_font_family=>'Helvetica'
+,p_prn_page_header_font_weight=>'normal'
+,p_prn_page_header_font_size=>'12'
+,p_prn_page_footer_font_color=>'#000000'
+,p_prn_page_footer_font_family=>'Helvetica'
+,p_prn_page_footer_font_weight=>'normal'
+,p_prn_page_footer_font_size=>'12'
+,p_prn_header_bg_color=>'#EEEEEE'
+,p_prn_header_font_color=>'#000000'
+,p_prn_header_font_family=>'Helvetica'
+,p_prn_header_font_weight=>'bold'
+,p_prn_header_font_size=>'10'
+,p_prn_body_bg_color=>'#FFFFFF'
+,p_prn_body_font_color=>'#000000'
+,p_prn_body_font_family=>'Helvetica'
+,p_prn_body_font_weight=>'normal'
+,p_prn_body_font_size=>'10'
+,p_prn_border_width=>.5
+,p_prn_page_header_alignment=>'CENTER'
+,p_prn_page_footer_alignment=>'CENTER'
+,p_prn_border_color=>'#666666'
+,p_ai_enabled=>false
+);
+wwv_flow_imp_page.create_worksheet(
+ p_id=>wwv_flow_imp.id(16020050616449230)
+,p_max_row_count_message=>unistr('Le rapport est limit\00E9 \00E0 #MAX_ROW_COUNT# lignes. Appliquez un filtre pour r\00E9duire le nombre de r\00E9sultats.')
+,p_no_data_found_message=>'Aucune candidature.'
+,p_pagination_type=>'ROWS_X_TO_Y'
+,p_pagination_display_pos=>'BOTTOM_RIGHT'
+,p_report_list_mode=>'TABS'
+,p_lazy_loading=>false
+,p_show_detail_link=>'C'
+,p_show_notify=>'Y'
+,p_download_formats=>'CSV:HTML:XLSX:PDF'
+,p_enable_mail_download=>'Y'
+,p_detail_link=>'f?p=&APP_ID.:301:&SESSION.::&DEBUG.:RP,301:P301_APPLICATION_ID:\#APPLICATION_ID#\'
+,p_detail_link_text=>'<span role="img" aria-label="Edit" class="fa fa-edit" title="Edit"></span>'
+,p_internal_uid=>16020050616449230
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(16021233674449238)
+,p_db_column_name=>'APPLICATION_ID'
+,p_display_order=>0
+,p_is_primary_key=>'Y'
+,p_column_identifier=>'A'
+,p_column_label=>'Application Id'
+,p_column_type=>'NUMBER'
+,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14602412086473617)
+,p_db_column_name=>'APPLICATION_STATUS_DISPLAY_ORDER'
+,p_display_order=>80
+,p_column_identifier=>'T'
+,p_column_label=>'Ordre du statut'
+,p_column_type=>'NUMBER'
+,p_heading_alignment=>'LEFT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14602070645473613)
+,p_db_column_name=>'APPLICATION_STATUS_NAME'
+,p_display_order=>60
+,p_column_identifier=>'P'
+,p_column_label=>'Statut courant'
+,p_column_type=>'STRING'
+,p_heading_alignment=>'LEFT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14601981176473612)
+,p_db_column_name=>'APPLICATION_TYPE_NAME'
+,p_display_order=>10
+,p_column_identifier=>'O'
+,p_column_label=>'Type de candidature'
+,p_column_type=>'STRING'
+,p_heading_alignment=>'LEFT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14602358550473616)
+,p_db_column_name=>'COMPANY_ID'
+,p_display_order=>20
+,p_column_identifier=>'S'
+,p_column_label=>'Company Id'
+,p_column_type=>'NUMBER'
+,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14601780344473610)
+,p_db_column_name=>'COMPANY_NAME'
+,p_display_order=>30
+,p_column_identifier=>'M'
+,p_column_label=>'Entreprise'
+,p_column_type=>'STRING'
+,p_heading_alignment=>'LEFT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(16023695756449246)
+,p_db_column_name=>'INTEREST_RATING'
+,p_display_order=>100
+,p_column_identifier=>'G'
+,p_column_label=>unistr('Int\00E9r\00EAt')
+,p_column_html_expression=>wwv_flow_string.join(wwv_flow_t_varchar2(
+unistr('<span title="#INTEREST_RATING# / 5" aria-label="Int\00E9r\00EAt #INTEREST_RATING# sur 5">{case INTEREST_RATING/}{when 1/}\2605\2606\2606\2606\2606{when 2/}\2605\2605\2606\2606\2606{when 3/}\2605\2605\2605\2606\2606{when 4/}\2605\2605\2605\2605\2606{when 5/}\2605\2605\2605\2605\2605{endcase/}</span>'),
+''))
+,p_column_type=>'NUMBER'
+,p_heading_alignment=>'RIGHT'
+,p_column_alignment=>'RIGHT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14602557926473618)
+,p_db_column_name=>'IS_FINAL'
+,p_display_order=>90
+,p_column_identifier=>'U'
+,p_column_label=>'Statut final'
+,p_column_type=>'BOOLEAN'
+,p_heading_alignment=>'LEFT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14601877764473611)
+,p_db_column_name=>'IS_GENERIC_COMPANY'
+,p_display_order=>40
+,p_column_identifier=>'N'
+,p_column_label=>'Is Generic Company'
+,p_column_type=>'BOOLEAN'
+,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(16022434240449243)
+,p_db_column_name=>'JOB_TITLE'
+,p_display_order=>50
+,p_column_identifier=>'D'
+,p_column_label=>'Poste'
+,p_column_type=>'STRING'
+,p_heading_alignment=>'LEFT'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14602881369473621)
+,p_db_column_name=>'STATUS_CHANGED_AT'
+,p_display_order=>110
+,p_column_identifier=>'V'
+,p_column_label=>'Date statut courant'
+,p_column_type=>'DATE'
+,p_heading_alignment=>'LEFT'
+,p_tz_dependent=>'Y'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_column(
+ p_id=>wwv_flow_imp.id(14602944305473622)
+,p_db_column_name=>'UPDATED_AT'
+,p_display_order=>120
+,p_column_identifier=>'W'
+,p_column_label=>unistr('Modifi\00E9e le')
+,p_column_type=>'DATE'
+,p_heading_alignment=>'LEFT'
+,p_tz_dependent=>'Y'
+,p_use_as_row_header=>'N'
+,p_available_clientside=>'N'
+);
+wwv_flow_imp_page.create_worksheet_rpt(
+ p_id=>wwv_flow_imp.id(16042437148558282)
+,p_application_user=>'APXWS_DEFAULT'
+,p_report_seq=>10
+,p_report_alias=>'primary'
+,p_status=>'PUBLIC'
+,p_is_default=>'Y'
+,p_report_columns=>'APPLICATION_TYPE_NAME:COMPANY_NAME:JOB_TITLE:APPLICATION_STATUS_NAME:INTEREST_RATING'
+,p_sort_column_1=>'APPLICATION_STATUS_DISPLAY_ORDER'
+,p_sort_direction_1=>'ASC'
+,p_sort_column_2=>'COMPANY_NAME'
+,p_sort_direction_2=>'ASC'
+);
+wwv_flow_imp_page.create_worksheet_condition(
+ p_id=>wwv_flow_imp.id(16074090731863197)
+,p_report_id=>wwv_flow_imp.id(16042437148558282)
+,p_static_id=>'ir-condition'
+,p_condition_type=>'FILTER'
+,p_allow_delete=>'Y'
+,p_column_name=>'IS_FINAL'
+,p_operator=>'='
+,p_expr=>'FALSE'
+,p_condition_sql=>'"IS_FINAL" = #APXWS_EXPR#'
+,p_condition_display=>'#APXWS_COL_NAME# = ''FALSE''  '
+,p_enabled=>'Y'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(16026058862449250)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(16019966752449230)
+,p_button_name=>'CREATE'
+,p_static_id=>'create'
+,p_show_as_disabled=>false
+,p_button_action=>'REDIRECT_PAGE'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>unistr('Cr\00E9er')
+,p_button_position=>'RIGHT_OF_IR_SEARCH_BAR'
+,p_button_redirect_url=>'f?p=&APP_ID.:301:&SESSION.::&DEBUG.:301::'
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(16026405715449251)
+,p_name=>'Edit Report - Dialog Closed'
+,p_static_id=>'edit-report-dialog-closed'
+,p_event_sequence=>10
+,p_triggering_element_type=>'REGION'
+,p_triggering_region_id=>wwv_flow_imp.id(16019966752449230)
+,p_bind_type=>'bind'
+,p_execution_type=>'IMMEDIATE'
+,p_bind_event_type=>'apexafterclosedialog'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(16026821893449252)
+,p_event_id=>wwv_flow_imp.id(16026405715449251)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_execute_on_page_init=>'N'
+,p_static_id=>'native-refresh'
+,p_action=>'NATIVE_REFRESH'
+,p_affected_elements_type=>'REGION'
+,p_affected_region_id=>wwv_flow_imp.id(16019966752449230)
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'maintain_pagination', 'N')).to_clob
+);
+end;
+/
+prompt --application/pages/page_00301
+begin
+wwv_flow_imp_page.create_page(
+ p_id=>301
+,p_name=>'Candidature'
+,p_alias=>'CANDIDATURE'
+,p_page_mode=>'MODAL'
+,p_step_title=>'Candidature'
+,p_autocomplete_on_off=>'OFF'
+,p_group_id=>wwv_flow_imp.id(16002989598377399)
+,p_step_template=>2101883943284197310
+,p_page_template_options=>'#DEFAULT#'
+,p_dialog_chained=>'N'
+,p_dialog_resizable=>'Y'
+,p_protection_level=>'C'
+,p_page_component_map=>'02'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(32059310692072690)
+,p_plug_name=>'Buttons'
+,p_static_id=>'buttons'
+,p_region_template_options=>'#DEFAULT#'
+,p_plug_template=>2127905476394690047
+,p_plug_display_sequence=>20
+,p_plug_display_point=>'REGION_POSITION_03'
+,p_plug_item_display_point=>'ABOVE'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(32049395366072682)
+,p_plug_name=>'Candidature'
+,p_static_id=>'candidature'
+,p_region_template_options=>'#DEFAULT#'
+,p_plug_template=>4502917002193490937
+,p_plug_display_sequence=>10
+,p_plug_item_display_point=>'ABOVE'
+,p_query_type=>'TABLE'
+,p_query_table=>'UI_APPLICATIONS_FORM'
+,p_include_rowid_column=>false
+,p_is_editable=>true
+,p_edit_operations=>'i:u:d'
+,p_lost_update_check_type=>'VALUES'
+,p_plug_source_type=>'NATIVE_FORM'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(16044797958623530)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(32059310692072690)
+,p_button_name=>'CANCEL'
+,p_static_id=>'cancel'
+,p_show_as_disabled=>false
+,p_button_action=>'DEFINED_BY_DA_ACTION'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_image_alt=>'Annuler'
+,p_button_position=>'CLOSE'
+,p_warn_on_unsaved_changes=>null
+);
+wwv_flow_imp_page.create_component_da_action(
+ p_id=>wwv_flow_imp.id(16045189422623531)
+,p_button_id=>wwv_flow_imp.id(16044797958623530)
+,p_action_sequence=>10
+,p_action=>'NATIVE_DIALOG_CANCEL'
+,p_static_id=>'native-dialog-cancel'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(16045608674623531)
+,p_button_sequence=>40
+,p_button_plug_id=>wwv_flow_imp.id(32059310692072690)
+,p_button_name=>'CREATE'
+,p_static_id=>'create'
+,p_show_as_disabled=>false
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>unistr('Cr\00E9er')
+,p_button_position=>'NEXT'
+,p_button_condition=>'P301_APPLICATION_ID'
+,p_button_condition_type=>'ITEM_IS_NULL'
+,p_database_action=>'INSERT'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(16046055317623531)
+,p_button_sequence=>20
+,p_button_plug_id=>wwv_flow_imp.id(32059310692072690)
+,p_button_name=>'DELETE'
+,p_static_id=>'delete'
+,p_show_as_disabled=>false
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_image_alt=>'Supprimer'
+,p_button_position=>'DELETE'
+,p_button_execute_validations=>'N'
+,p_confirm_message=>'&APP_TEXT$APPLICATION_DELETE_MSG!RAW.'
+,p_confirm_style=>'danger'
+,p_button_condition=>'P301_APPLICATION_ID'
+,p_button_condition_type=>'ITEM_IS_NOT_NULL'
+,p_database_action=>'DELETE'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(16046498459623531)
+,p_button_sequence=>30
+,p_button_plug_id=>wwv_flow_imp.id(32059310692072690)
+,p_button_name=>'SAVE'
+,p_static_id=>'save'
+,p_show_as_disabled=>false
+,p_button_action=>'SUBMIT'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>'Enregistrer'
+,p_button_position=>'NEXT'
+,p_button_condition=>'P301_APPLICATION_ID'
+,p_button_condition_type=>'ITEM_IS_NOT_NULL'
+,p_database_action=>'UPDATE'
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32054880139072697)
+,p_name=>'P301_ANN_SALARY_PROPOSED_EUROS'
+,p_source_data_type=>'NUMBER'
+,p_item_sequence=>90
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>unistr('Salaire annuel propos\00E9 (\20AC)')
+,p_source=>'ANNUAL_SALARY_PROPOSED_EUROS'
+,p_display_as=>'NATIVE_NUMBER_FIELD'
+,p_cSize=>32
+,p_cMaxlength=>255
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'min_value', '1',
+  'number_alignment', 'left',
+  'virtual_keyboard', 'decimal')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32053232514072694)
+,p_name=>'P301_APPLICATION_ID'
+,p_source_data_type=>'NUMBER'
+,p_is_primary_key=>true
+,p_item_sequence=>40
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_source=>'APPLICATION_ID'
+,p_display_as=>'NATIVE_HIDDEN'
+,p_is_persistent=>'N'
+,p_protection_level=>'S'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'value_protected', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32056477216072697)
+,p_name=>'P301_APPLICATION_STATUS_ID'
+,p_source_data_type=>'NUMBER'
+,p_is_required=>true
+,p_item_sequence=>70
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>'Statut courant'
+,p_source=>'APPLICATION_STATUS_ID'
+,p_display_as=>'NATIVE_SELECT_LIST'
+,p_named_lov=>'APPLICATION_STATUSES_LOV'
+,p_lov_display_null=>'YES'
+,p_lov_null_text=>'- Choisir -'
+,p_cHeight=>1
+,p_read_only_when=>'P301_APPLICATION_ID'
+,p_read_only_when_type=>'ITEM_IS_NOT_NULL'
+,p_field_template=>1610598484065263269
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_lov_display_extra=>'YES'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'page_action_on_selection', 'NONE')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32054076754072697)
+,p_name=>'P301_APPLICATION_TYPE_ID'
+,p_source_data_type=>'NUMBER'
+,p_is_required=>true
+,p_item_sequence=>20
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>'Type de candidature'
+,p_source=>'APPLICATION_TYPE_ID'
+,p_display_as=>'NATIVE_SELECT_LIST'
+,p_named_lov=>'APPLICATION_TYPES_LOV'
+,p_lov_display_null=>'YES'
+,p_lov_null_text=>'- Choisir -'
+,p_cHeight=>1
+,p_field_template=>1610598484065263269
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_lov_display_extra=>'YES'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'page_action_on_selection', 'NONE')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32053640493072696)
+,p_name=>'P301_COMPANY_ID'
+,p_source_data_type=>'NUMBER'
+,p_is_required=>true
+,p_item_sequence=>30
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>'Entreprise'
+,p_source=>'COMPANY_ID'
+,p_display_as=>'NATIVE_POPUP_LOV'
+,p_named_lov=>'COMPANIES_LOV'
+,p_cSize=>32
+,p_cMaxlength=>255
+,p_field_template=>1610598484065263269
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_lov_display_extra=>'YES'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'case_sensitive', 'N',
+  'display_as', 'POPUP',
+  'fetch_on_search', 'N',
+  'initial_fetch', 'FIRST_ROWSET',
+  'manual_entry', 'N',
+  'match_type', 'CONTAINS',
+  'min_chars', '0')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32057665319072699)
+,p_name=>'P301_CREATED_AT'
+,p_source_data_type=>'TIMESTAMP_LTZ'
+,p_item_sequence=>130
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>unistr('Cr\00E9\00E9e le')
+,p_source=>'CREATED_AT'
+,p_display_as=>'NATIVE_DISPLAY_ONLY'
+,p_display_when=>'P301_APPLICATION_ID'
+,p_display_when_type=>'ITEM_IS_NOT_NULL'
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'based_on', 'VALUE',
+  'format', 'PLAIN',
+  'send_on_page_submit', 'Y',
+  'show_line_breaks', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32055224036072697)
+,p_name=>'P301_DAILY_RATE_PROPOSED_EUROS'
+,p_source_data_type=>'NUMBER'
+,p_item_sequence=>100
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>unistr('Salaire journalier propos\00E9 (\20AC)')
+,p_source=>'DAILY_RATE_PROPOSED_EUROS'
+,p_display_as=>'NATIVE_NUMBER_FIELD'
+,p_cSize=>32
+,p_cMaxlength=>255
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'min_value', '1',
+  'number_alignment', 'left',
+  'virtual_keyboard', 'decimal')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32055636112072697)
+,p_name=>'P301_INTEREST_RATING'
+,p_source_data_type=>'NUMBER'
+,p_item_sequence=>110
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>unistr('Int\00E9r\00EAt')
+,p_source=>'INTEREST_RATING'
+,p_display_as=>'NATIVE_STAR_RATING'
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'number_of_stars', '5',
+  'use_defaults', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32054399636072697)
+,p_name=>'P301_JOB_TITLE'
+,p_source_data_type=>'VARCHAR2'
+,p_is_required=>true
+,p_item_sequence=>60
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>'Poste'
+,p_source=>'JOB_TITLE'
+,p_display_as=>'NATIVE_TEXT_FIELD'
+,p_cSize=>32
+,p_cMaxlength=>200
+,p_field_template=>1610598484065263269
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'disabled', 'N',
+  'submit_when_enter_pressed', 'N',
+  'subtype', 'TEXT',
+  'trim_spaces', 'BOTH')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32056080453072697)
+,p_name=>'P301_NOTE_TEXT'
+,p_data_type=>'CLOB'
+,p_source_data_type=>'CLOB'
+,p_item_sequence=>120
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>'Notes'
+,p_source=>'NOTE_TEXT'
+,p_display_as=>'NATIVE_TEXTAREA'
+,p_cSize=>60
+,p_cHeight=>4
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'auto_height', 'N',
+  'character_counter', 'N',
+  'resizable', 'Y',
+  'trim_spaces', 'BOTH')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32056883566072697)
+,p_name=>'P301_STATUS_CHANGED_AT'
+,p_source_data_type=>'TIMESTAMP_LTZ'
+,p_is_required=>true
+,p_item_sequence=>80
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_default=>'systimestamp'
+,p_item_default_type=>'EXPRESSION'
+,p_item_default_language=>'PLSQL'
+,p_prompt=>'Date statut courant'
+,p_source=>'STATUS_CHANGED_AT'
+,p_display_as=>'NATIVE_DATE_PICKER_APEX'
+,p_cSize=>32
+,p_cMaxlength=>255
+,p_read_only_when=>'P301_APPLICATION_ID'
+,p_read_only_when_type=>'ITEM_IS_NOT_NULL'
+,p_field_template=>1610598484065263269
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'display_as', 'POPUP',
+  'max_date', 'NONE',
+  'min_date', 'NONE',
+  'multiple_months', 'N',
+  'show_time', 'N',
+  'use_defaults', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_item(
+ p_id=>wwv_flow_imp.id(32058420152072699)
+,p_name=>'P301_UPDATED_AT'
+,p_source_data_type=>'TIMESTAMP_LTZ'
+,p_item_sequence=>140
+,p_item_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_item_source_plug_id=>wwv_flow_imp.id(32049395366072682)
+,p_prompt=>unistr('Modifi\00E9e le')
+,p_source=>'UPDATED_AT'
+,p_display_as=>'NATIVE_DISPLAY_ONLY'
+,p_display_when=>'P301_APPLICATION_ID'
+,p_display_when_type=>'ITEM_IS_NOT_NULL'
+,p_field_template=>1610598304472262251
+,p_item_template_options=>'#DEFAULT#'
+,p_is_persistent=>'N'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'based_on', 'VALUE',
+  'format', 'PLAIN',
+  'send_on_page_submit', 'Y',
+  'show_line_breaks', 'Y')).to_clob
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(16056717500623544)
+,p_process_sequence=>50
+,p_process_point=>'AFTER_SUBMIT'
+,p_process_type=>'NATIVE_CLOSE_WINDOW'
+,p_process_name=>'Close Dialog'
+,p_static_id=>'close-dialog'
+,p_error_display_location=>'INLINE_IN_NOTIFICATION'
+,p_process_when=>'CREATE,SAVE,DELETE'
+,p_process_when_type=>'REQUEST_IN_CONDITION'
+,p_internal_uid=>16056717500623544
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(16054648196623537)
+,p_process_sequence=>10
+,p_process_point=>'BEFORE_HEADER'
+,p_region_id=>wwv_flow_imp.id(32049395366072682)
+,p_process_type=>'NATIVE_FORM_INIT'
+,p_process_name=>'Initialize form Candidature'
+,p_static_id=>'initialize-form-candidature'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'current_row_total_item', '',
+  'next_primary_key_items', '',
+  'previous_primary_key_items', '')).to_clob
+,p_internal_uid=>16054648196623537
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(16055041045623537)
+,p_process_sequence=>10
+,p_process_point=>'AFTER_SUBMIT'
+,p_region_id=>wwv_flow_imp.id(32049395366072682)
+,p_process_type=>'NATIVE_FORM_DML'
+,p_process_name=>'Process form Candidature'
+,p_static_id=>'process-form-candidature'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'dml_plsql_code', wwv_flow_string.join(wwv_flow_t_varchar2(
+    'case :REQUEST',
+    '    when ''CREATE'' then',
+    '        :P301_APPLICATION_ID := application_api.create_application(',
+    '            in_company_id                   => :P301_COMPANY_ID,',
+    '            in_application_type_id          => :P301_APPLICATION_TYPE_ID,',
+    '            in_job_title                    => :P301_JOB_TITLE,',
+    '            in_application_status_id        => :P301_APPLICATION_STATUS_ID,',
+    '            in_changed_at                   => :P301_STATUS_CHANGED_AT,',
+    '            in_annual_salary_proposed_euros => :P301_ANN_SALARY_PROPOSED_EUROS,',
+    '            in_daily_rate_proposed_euros    => :P301_DAILY_RATE_PROPOSED_EUROS,',
+    '            in_interest_rating              => :P301_INTEREST_RATING,',
+    '            in_note_text                    => :P301_NOTE_TEXT',
+    '        );',
+    '    when ''SAVE'' then',
+    '        application_api.update_application(',
+    '            in_application_id               => :P301_APPLICATION_ID,',
+    '            in_company_id                   => :P301_COMPANY_ID,',
+    '            in_application_type_id          => :P301_APPLICATION_TYPE_ID,',
+    '            in_job_title                    => :P301_JOB_TITLE,',
+    '            in_annual_salary_proposed_euros => :P301_ANN_SALARY_PROPOSED_EUROS,',
+    '            in_daily_rate_proposed_euros    => :P301_DAILY_RATE_PROPOSED_EUROS,',
+    '            in_interest_rating              => :P301_INTEREST_RATING,',
+    '            in_note_text                    => :P301_NOTE_TEXT',
+    '        );',
+    '    when ''DELETE'' then',
+    '        application_api.delete_application(in_application_id => :P301_APPLICATION_ID);',
+    'end case;')),
+  'lock_row', 'N',
+  'prevent_lost_updates', 'Y',
+  'target_type', 'PLSQL_CODE')).to_clob
+,p_error_display_location=>'INLINE_IN_NOTIFICATION'
+,p_process_when=>'CREATE,SAVE,DELETE'
+,p_process_when_type=>'REQUEST_IN_CONDITION'
+,p_internal_uid=>16055041045623537
 );
 end;
 /
@@ -3952,4 +4754,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"f4f817c9e78e6448673e1d2776eea96b3e9da9de","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"79605377ab12d267699bb447ed318164fb9c4fba","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

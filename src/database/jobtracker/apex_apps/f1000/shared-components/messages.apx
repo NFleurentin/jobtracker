@@ -1,3 +1,10 @@
+textMessage APPLICATION_DELETE_MSG (
+    message {
+        text: Cette candidature et l'historique de ses statuts seront supprimés. Voulez-vous continuer ?
+        language: fr
+    }
+)
+
 textMessage COMPANY_DELETE_WITH_POSITIONS_MSG (
     message {
         text: Cette entreprise a des postes de contacts, qui seront supprimés avec elle. Voulez-vous continuer ?

@@ -2,6 +2,13 @@ pageGroup administration (
     name: Administration
 )
 
+pageGroup candidatures (
+    name: Candidatures
+    description {
+        description: Liste et formulaire des candidatures
+    }
+)
+
 pageGroup companies (
     name: Entreprises
     description {

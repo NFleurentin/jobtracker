@@ -19,6 +19,272 @@ page 301 (
         formAutoComplete: false
     }
 
+    region application-status-changes (
+        name: application-status-changes
+        title: Historique des statuts
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: UI_APPLICATION_STATUS_CHANGES_LIST
+            whereClause: application_id = :P301_APPLICATION_ID
+            orderByClause: changed_at desc
+        }
+        layout {
+            sequence: 20
+            slot: contentBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noPadding
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                excel
+                pdf
+            ]
+        }
+        componentAdvanced {
+            initJavaScriptFunction:
+                ```javascript-browser
+                function(config) {
+                    config.defaultGridViewOptions = { footer: false };
+                    return config;
+                }
+                ```
+        }
+        advanced {
+            savedReportMappingIdentifier: 14603177717473624
+        }
+
+        savedReport primary (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @APPLICATION_STATUS_CHANGE_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @APPLICATION_STATUS_ID
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @CHANGED_AT
+                layout {
+                    sequence: 6
+                }
+            )
+
+            displayColumn (
+                column: @NOTE_TEXT
+                layout {
+                    sequence: 7
+                }
+            )
+
+            displayColumn (
+                column: @IS_LATEST
+                layout {
+                    sequence: 8
+                }
+            )
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column APPLICATION_STATUS_CHANGE_ID (
+            type: hidden
+            heading {
+                heading: Application Status Change Id
+            }
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: APPLICATION_STATUS_CHANGE_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column APPLICATION_STATUS_ID (
+            type: selectList
+            heading {
+                heading: Statut
+            }
+            lov {
+                type: sharedComponent
+                lov: @application-statuses-lov
+                nullDisplayValue: - Choisir -
+            }
+            layout {
+                sequence: 50
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: APPLICATION_STATUS_ID
+                dataType: number
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: useLov
+            }
+            readOnly {
+                type: functionBody
+                plsqlFunctionBody: return nvl(:IS_LATEST = false, false);
+                execute: forEachRow
+            }
+        )
+
+        column CHANGED_AT (
+            type: datePicker
+            heading {
+                heading: Date
+            }
+            layout {
+                sequence: 80
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: CHANGED_AT
+                dataType: timestampWithLocalTimeZone
+            }
+            readOnly {
+                type: functionBody
+                plsqlFunctionBody: return nvl(:IS_LATEST = false, false);
+                execute: forEachRow
+            }
+        )
+
+        column IS_LATEST (
+            type: hidden
+            heading {
+                heading: Is Latest
+            }
+            settings {
+                valueProtected: false
+            }
+            layout {
+                sequence: 100
+            }
+            source {
+                databaseColumn: IS_LATEST
+                dataType: boolean
+            }
+            sessionState {
+                dataType: boolean
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column NOTE_TEXT (
+            type: textarea
+            heading {
+                heading: Note
+            }
+            layout {
+                sequence: 90
+            }
+            source {
+                databaseColumn: NOTE_TEXT
+                dataType: clob
+            }
+            sessionState {
+                dataType: clob
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+                lovType: none
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: Historique des statuts
+        }
+    )
+
     region buttons (
         name: Buttons
         type: staticContent
@@ -90,7 +356,7 @@ page 301 (
     pageItem P301_APPLICATION_ID (
         type: hidden
         layout {
-            sequence: 40
+            sequence: 50
             region: @candidature
             slot: regionBody
         }
@@ -99,6 +365,9 @@ page 301 (
             column: APPLICATION_ID
             dataType: number
             primaryKey: true
+        }
+        sessionState {
+            storage: session
         }
         security {
             sessionStateProtection: checksumRequiredSessionLevel
@@ -135,6 +404,10 @@ page 301 (
             column: APPLICATION_STATUS_ID
             dataType: number
         }
+        serverSideCondition {
+            type: itemIsNull
+            item: P301_APPLICATION_ID
+        }
         readOnly {
             type: itemIsNotNull
             item: P301_APPLICATION_ID
@@ -153,7 +426,7 @@ page 301 (
             nullDisplayValue: - Choisir -
         }
         layout {
-            sequence: 20
+            sequence: 30
             region: @candidature
             slot: regionBody
             alignment: left
@@ -185,7 +458,7 @@ page 301 (
             displayNullValue: false
         }
         layout {
-            sequence: 30
+            sequence: 40
             region: @candidature
             slot: regionBody
             alignment: left
@@ -213,7 +486,7 @@ page 301 (
             alignment: left
         }
         layout {
-            sequence: 130
+            sequence: 10
             region: @candidature
             slot: regionBody
             alignment: left
@@ -371,6 +644,10 @@ page 301 (
             type: expression
             plsqlExpression: systimestamp
         }
+        serverSideCondition {
+            type: itemIsNull
+            item: P301_APPLICATION_ID
+        }
         readOnly {
             type: itemIsNotNull
             item: P301_APPLICATION_ID
@@ -384,7 +661,7 @@ page 301 (
             alignment: left
         }
         layout {
-            sequence: 140
+            sequence: 20
             region: @candidature
             slot: regionBody
             alignment: left
@@ -503,11 +780,62 @@ page 301 (
         }
     )
 
+    process application-status-changes-save-interactive-grid-data (
+        name: application-status-changes - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @application-status-changes
+        target {
+            targetType: plsqlCode
+            dmlPlsqlCode:
+                ```plsql
+                case :APEX$ROW_STATUS
+                    when 'C' then
+                        :APPLICATION_STATUS_CHANGE_ID := application_api.add_status_change(
+                            in_application_id        => :P301_APPLICATION_ID,
+                            in_application_status_id => :APPLICATION_STATUS_ID,
+                            in_changed_at            => :CHANGED_AT,
+                            in_note_text             => :NOTE_TEXT
+                        );
+                    when 'U' then
+                        if :IS_LATEST then
+                            application_api.correct_latest_status_change(
+                                in_application_status_change_id => :APPLICATION_STATUS_CHANGE_ID,
+                                in_application_status_id        => :APPLICATION_STATUS_ID,
+                                in_changed_at                   => :CHANGED_AT,
+                                in_note_text                    => :NOTE_TEXT
+                            );
+                        else
+                            application_api.update_status_note(
+                                in_application_status_change_id => :APPLICATION_STATUS_CHANGE_ID,
+                                in_note_text                    => :NOTE_TEXT
+                            );
+                        end if;
+                    when 'D' then
+                        application_api.delete_status_change(in_application_status_change_id => :APPLICATION_STATUS_CHANGE_ID);
+                end case;
+                ```
+        }
+        lockRow {
+            preventLostUpdates: false
+            lockRow: false
+        }
+        execution {
+            sequence: 20
+        }
+        advanced {
+            executionMappingIdentifier: 16207304217161904
+        }
+        serverSideCondition {
+            type: request=Value
+            value: SAVE
+        }
+    )
+
     process close-dialog (
         name: Close Dialog
         type: closeDialog
         execution {
-            sequence: 50
+            sequence: 30
         }
         advanced {
             executionMappingIdentifier: 16056717500623544

@@ -2,10 +2,13 @@
 
 - Ce schéma couvre la saisie manuelle dans l'application. Le chargement automatique des offres (source, entreprise telle que publiée, dates de chargement, score de pertinence) reste à ajouter : il passera par une migration.
 - Chaque objet suivi (offre, entreprise, candidature, entretien, contact) porte sa note dans une colonne `note_text`.
-- `OFFERS` porte l'annonce, `APPLICATIONS` le suivi. L'entreprise de l'offre est celle où s'exerce le poste, celle de la candidature son destinataire : pour une ESN, le client et l'ESN. Si le client est confidentiel, `OFFERS.company_id` reste null ; une candidature a toujours un destinataire, au besoin l'entreprise générique « Confidentielle ».
+- `OFFERS` porte l'annonce, `APPLICATIONS` le suivi. L'entreprise de l'offre est celle où s'exerce le poste, celle de la candidature son destinataire : pour une ESN, le client et l'ESN. Si le client est confidentiel, `OFFERS.company_id` reste null ; une candidature a toujours un destinataire, au besoin l'entreprise générique « Confidentielle ». Le destinataire est stocké sur une candidature sans parent, même quand il est aussi l'entreprise de l'offre : ce sont deux faits indépendants, qui diffèrent pour un cabinet ou une ESN ; l'application le pré-remplit avec l'entreprise de l'offre. Il n'est jamais stocké sur une candidature enfant, dont le destinataire est toujours celui du parent.
 - `JOBBOARDS` désigne où l'offre est diffusée, sur un ou plusieurs sites.
 - Les colonnes `VARCHAR2` sont en sémantique `CHAR`. `TIMESTAMP_TZ` signifie `TIMESTAMP WITH TIME ZONE`. Mermaid n'accepte pas de virgule dans un type : la précision de ces colonnes figure dans leur commentaire.
 - Une candidature suit une offre et a son propre statut. Le statut courant n'est pas stocké : c'est le changement le plus récent de `APPLICATION_STATUS_CHANGES` (`changed_at`, puis la clé en cas d'égalité), calculé par la vue `application_details`. Plusieurs missions proposées par une ESN sont des candidatures distinctes, chacune avec son offre, même saisie pour une mission proposée à l'oral, regroupées sous une candidature parente qui porte le salaire et les échanges communs. La hiérarchie a un seul niveau, contrôlé par le package. Le funnel ne compte que les candidatures sans parent.
+- Le parent est facultatif : il n'existe que pour regrouper plusieurs missions. Un parent n'a pas d'offre, un enfant en a toujours une. Un enfant n'a ni entreprise ni type de candidature : il hérite de ceux du parent et lit l'entreprise de la mission sur son offre. Le salaire, le TJM et les avantages sont lus sur l'enfant, sinon sur le parent ; pour les avantages, ceux de l'enfant remplacent ceux du parent dès qu'il en a. La note et l'intérêt sont propres à chaque niveau. Ces valeurs héritées sont calculées par la vue `application_details`.
+- Le statut d'un enfant ne se propage pas au parent : le statut du parent se tient à la main. Une mission déclinée passe à `WITHDRAWN`.
+- Une candidature simple devient l'enfant d'un nouveau parent par une procédure de `application_api` : le parent reçoit l'entreprise, le type, le salaire, le TJM et les avantages, déplacés depuis la candidature, et une copie de son historique des statuts, pour que le funnel garde la date d'origine. Les entretiens restent sur l'enfant.
 - Les tables de collecte `OFFER_SOURCES`, `COLLECT_RUNS` et `COLLECT_REQUESTS` ne changent pas et ne figurent pas ici.
 
 ## Diagramme
@@ -105,12 +108,14 @@ erDiagram
 
     WORK_MODES {
         NUMBER work_mode_id PK "clé du mode de travail"
-        VARCHAR2(100) work_mode_name "mode de travail (Présentiel, Hybride...)"
+        VARCHAR2(100) work_mode_name_fr "mode de travail (Présentiel, Hybride, Télétravail complet)"
+        VARCHAR2(100) work_mode_name_en "libellé anglais (On-site, Hybrid, Full remote)"
     }
 
     CONTRACT_TYPES {
         NUMBER contract_type_id PK "clé du type de contrat"
-        VARCHAR2(100) contract_type_name "type de contrat (CDI, CDD, Freelance...)"
+        VARCHAR2(100) contract_type_name_fr "type de contrat (CDI, CDD, Freelance...)"
+        VARCHAR2(100) contract_type_name_en "libellé anglais (Permanent, Fixed-term, Freelance...)"
     }
 
     LOCATION_TYPES {
@@ -200,9 +205,9 @@ erDiagram
     APPLICATIONS {
         NUMBER application_id PK "clé de la candidature"
         NUMBER parent_application_id FK "candidature parente (démarche auprès d'une ESN...), null dans le cas général"
-        NUMBER offer_id FK "offre, null pour une candidature spontanée ou une démarche parente"
-        NUMBER company_id FK "entreprise à laquelle la candidature est adressée : l'ESN ou le cabinet, sinon l'employeur"
-        NUMBER application_type_id FK "type de candidature"
+        NUMBER offer_id FK "offre, obligatoire sur un enfant, null pour une candidature spontanée ou un parent"
+        NUMBER company_id FK "entreprise à laquelle la candidature est adressée : l'ESN ou le cabinet, sinon l'employeur ; null sur un enfant (hérité du parent)"
+        NUMBER application_type_id FK "type de candidature, null sur un enfant (hérité du parent)"
         VARCHAR2(200) job_title "poste visé, obligatoire sans offre"
         NUMBER(9) annual_salary_proposed_euros "salaire annuel proposé, sur la candidature enfant seulement s'il diffère du parent"
         NUMBER(5) daily_rate_proposed_euros "TJM proposé, sur la candidature enfant seulement s'il diffère du parent"
@@ -324,9 +329,9 @@ erDiagram
 
     OFFERS |o--o| APPLICATIONS : "suivie par"
     APPLICATIONS |o--o{ APPLICATIONS : "regroupe"
-    COMPANIES ||--o{ APPLICATIONS : "reçoit"
+    COMPANIES |o--o{ APPLICATIONS : "reçoit"
     COMPANIES |o--o{ OFFERS : "accueille le poste"
-    APPLICATION_TYPES ||--o{ APPLICATIONS : "classe"
+    APPLICATION_TYPES |o--o{ APPLICATIONS : "classe"
     APPLICATIONS ||--o{ APPLICATION_BENEFITS : "propose"
     BENEFITS ||--o{ APPLICATION_BENEFITS : "proposé par"
     APPLICATIONS ||--o{ APPLICATION_STATUS_CHANGES : "historise"
@@ -346,7 +351,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | Table | Contrainte |
 |---|---|
 | `OFFERS` | `job_title` obligatoire ; salaire et TJM : minimum inférieur ou égal au maximum, montants positifs ; `remote_days_per_week` entre 0 et 5 ; `contract_duration_months` positif ; `experience_years` positif ou nul |
-| `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` obligatoire, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 ; une seule candidature ouverte (statut courant non final) par entreprise, l'entreprise générique exceptée, contrôlée par le package sous verrou de l'entreprise |
+| `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` et `application_type_id` renseignés si et seulement si `parent_application_id` est null, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; un parent n'a pas d'offre, contrôlé par le package ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 ; une seule candidature ouverte (statut courant non final) par entreprise parmi les candidatures sans parent, l'entreprise générique exceptée, contrôlée par le package sous verrou de l'entreprise (celle du parent pour un enfant) |
 | `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire ; `application_id` indexé avec `changed_at` et la clé, pour lire le changement le plus récent dans l'index ; supprimé avec sa candidature (`on delete cascade`) ; historique non réécrit : le package ne corrige ou n'annule que le changement le plus récent, et jamais le seul |
 | `EDUCATIONS` | `(education_level_id, education_domain_id)` unique |
 | `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace ; au plus une entreprise générique, par un index unique sur `case when is_generic then 1 end` ; l'entreprise générique, créée par migration, n'est pas supprimable |
@@ -364,7 +369,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | `CONTACT_POSITIONS` | `(contact_id, company_id, job_id)` unique : plusieurs postes par contact, y compris dans une même entreprise, sans limite de postes actuels ; `company_id` et `job_id` indexés ; clés étrangères sans cascade |
 | Référentiels, sauf `LOCATIONS` et les référentiels traduits (ligne suivante) | `<entité>_name` obligatoire et unique |
-| `SECTORS`, `COMPANY_TYPES`, `COMPANY_SIZES`, `LOCATION_TYPES`, `SALUTATIONS` | libellés français (`_fr`) et anglais (`_en`) obligatoires et uniques |
+| `SECTORS`, `COMPANY_TYPES`, `COMPANY_SIZES`, `LOCATION_TYPES`, `SALUTATIONS`, `WORK_MODES`, `CONTRACT_TYPES` | libellés français (`_fr`) et anglais (`_en`) obligatoires et uniques |
 | Tables hiérarchiques (`APPLICATIONS`, `COMPANIES`, `LOCATIONS`, `SKILL_CATEGORIES`) | une ligne n'est pas son propre parent ; les cycles plus longs sont contrôlés par le package |
 | Toutes les tables | clés étrangères obligatoires là où le diagramme montre `\|\|` côté parent ; `created_at` et `updated_at` obligatoires |
 | Colonnes `BOOLEAN` | `NOT NULL` : un `BOOLEAN` accepte aussi `NULL` |

@@ -64,7 +64,6 @@ page 401 (
             location: localDatabase
             tableName: UI_CONTACT_POSITIONS_LIST
             whereClause: contact_id = :P401_CONTACT_ID
-            pageItemsToSubmit: P401_CONTACT_ID
         }
         layout {
             sequence: 20
@@ -172,6 +171,9 @@ page 401 (
             layout {
                 sequence: 50
             }
+            accessibility {
+                valueIdentifiesRow: true
+            }
             validation {
                 valueRequired: true
             }
@@ -275,6 +277,9 @@ page 401 (
             column: CONTACT_ID
             dataType: number
             primaryKey: true
+        }
+        sessionState {
+            storage: session
         }
         security {
             sessionStateProtection: checksumRequiredSessionLevel

@@ -197,6 +197,9 @@ page 9010 (
             layout {
                 sequence: 40
             }
+            accessibility {
+                valueIdentifiesRow: true
+            }
             validation {
                 valueRequired: true
                 maxLength: 100

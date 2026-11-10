@@ -104,6 +104,9 @@ page 100 (
             layout {
                 sequence: 2
             }
+            accessibility {
+                valueIdentifiesRow: true
+            }
             columnFormatting {
                 htmlExpression:
                     ```html

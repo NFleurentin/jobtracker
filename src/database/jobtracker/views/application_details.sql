@@ -14,6 +14,7 @@ create or replace force editionable view jobtracker.application_details (
     application_status_id,
     application_status_code,
     application_status_name,
+    application_status_display_order,
     is_final,
     funnel_step,
     status_changed_at,
@@ -24,7 +25,7 @@ create or replace force editionable view jobtracker.application_details (
         a.application_id,
         a.company_id,
         co.company_name,
-        co.is_generic as is_generic_company,
+        co.is_generic   as is_generic_company,
         a.application_type_id,
         t.application_type_code,
         case (
@@ -37,7 +38,7 @@ create or replace force editionable view jobtracker.application_details (
                 t.application_type_name_en
             else
                 t.application_type_name_fr
-        end           as application_type_name,
+        end             as application_type_name,
         a.job_title,
         a.annual_salary_proposed_euros,
         a.daily_rate_proposed_euros,
@@ -55,10 +56,11 @@ create or replace force editionable view jobtracker.application_details (
                 s.application_status_name_en
             else
                 s.application_status_name_fr
-        end           as application_status_name,
+        end             as application_status_name,
+        s.display_order as application_status_display_order,
         s.is_final,
         s.funnel_step,
-        cs.changed_at as status_changed_at,
+        cs.changed_at   as status_changed_at,
         a.created_at,
         a.updated_at
     from
@@ -84,4 +86,4 @@ create or replace force editionable view jobtracker.application_details (
 with read only;
 
 
--- sqlcl_snapshot {"hash":"2d66fb78529f429609c239227347bbb1b43829cb","type":"VIEW","name":"APPLICATION_DETAILS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"fc33f21e9526b404f45ca7400e2ae2d28e113a70","type":"VIEW","name":"APPLICATION_DETAILS","schemaName":"JOBTRACKER","sxml":""}

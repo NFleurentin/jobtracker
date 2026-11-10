@@ -98,6 +98,8 @@ create or replace package body jobtracker.test_application_details is
         ut.expect(r_details.application_type_code).to_equal('JOB_OFFER');
         ut.expect(r_details.job_title).to_equal('Data engineer');
         ut.expect(r_details.application_status_code).to_equal('REJECTED');
+        ut.expect(r_details.application_status_display_order).to_equal(get_status('REJECTED').display_order);
+
         ut.expect(r_details.is_final).to_be_true();
         ut.expect(r_details.status_changed_at).to_be_not_null();
     end application_with_company_type_and_status;

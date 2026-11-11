@@ -108,8 +108,9 @@ erDiagram
 
     WORK_MODES {
         NUMBER work_mode_id PK "clé du mode de travail"
-        VARCHAR2(100) work_mode_name_fr "mode de travail (Présentiel, Hybride, Télétravail complet)"
-        VARCHAR2(100) work_mode_name_en "libellé anglais (On-site, Hybrid, Full remote)"
+        VARCHAR2(20) work_mode_code "code stable (ON_SITE, HYBRID, FULL_REMOTE)"
+        VARCHAR2(50) work_mode_name_fr "mode de travail (Présentiel, Hybride, Télétravail complet)"
+        VARCHAR2(50) work_mode_name_en "libellé anglais (On-site, Hybrid, Full remote)"
     }
 
     CONTRACT_TYPES {
@@ -363,6 +364,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `COMPANY_SIZES` | `company_size_short_name`, `company_size_long_name` et `display_order` obligatoires et uniques |
 | `LOCATION_TYPES` | `location_type_code` obligatoire et unique |
 | `SALUTATIONS` | `salutation_code` obligatoire et unique |
+| `WORK_MODES` | `work_mode_code` obligatoire et unique |
 | `APPLICATION_STATUSES` | `application_status_code`, `application_status_name_fr`, `application_status_name_en` et `display_order` obligatoires et uniques ; `funnel_step` unique quand il est renseigné, strictement positif ; `is_final` obligatoire |
 | `JOBS` | `job_name_en` et `job_name_fr` obligatoires, chacun unique sans tenir compte de la casse, par un index unique sur `upper()` |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |

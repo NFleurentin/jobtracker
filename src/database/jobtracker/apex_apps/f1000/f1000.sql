@@ -2906,6 +2906,8 @@ wwv_flow_imp_page.create_region_column(
 ,p_session_state_data_type=>'VARCHAR2'
 ,p_item_type=>'NATIVE_ROW_ACTION'
 ,p_display_sequence=>20
+,p_use_as_row_header=>false
+,p_include_in_export=>true
 );
 wwv_flow_imp_page.create_region_column(
  p_id=>wwv_flow_imp.id(14605112969473644)
@@ -5092,4 +5094,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"05dc2055eec517ddb088c4b21c1bd185e5893516","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"25bf937a87ca16f7d6ce2901be9cc4be03dcfed1","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

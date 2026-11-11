@@ -317,7 +317,8 @@ env/ci/run.sh down
 - [x] Candidatures dans l'application APEX : liste avec recherche (statut courant, candidatures en cours par défaut, intérêt en étoiles), formulaire de création, modification et suppression par le package (statut initial à la création, confirmation avant suppression avec l'historique)
 - [x] Candidatures : historique des statuts dans l'application APEX (grille éditable sur la fiche en modification : ajout, note modifiable sur tout changement, statut et date corrigeables et suppression sur le seul changement le plus récent)
 - [x] Conception des offres saisies à la main et du regroupement des candidatures sous un parent ([schéma](docs/schema.md))
-- [ ] Référentiels des modes de travail et des types de contrat
+- [x] Référentiel des modes de travail (`work_modes`), liste fixe bilingue chargée par migration, tests des contraintes
+- [ ] Référentiel des types de contrat
 - [ ] Offres : table, vue de base, package d'écriture et tests
 - [ ] Offres : vues de lecture pour APEX et offres dans l'application APEX
 - [ ] Candidatures : lien vers l'offre et regroupement sous un parent (tables, package, vues, tests)

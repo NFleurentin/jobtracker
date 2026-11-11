@@ -1,14 +1,19 @@
 ## Conventions
 
-- Ce schéma couvre la saisie manuelle dans l'application. Le chargement automatique des offres (source, entreprise telle que publiée, dates de chargement, score de pertinence) reste à ajouter : il passera par une migration.
-- Chaque objet suivi (offre, entreprise, candidature, entretien, contact) porte sa note dans une colonne `note_text`.
-- `OFFERS` porte l'annonce, `APPLICATIONS` le suivi. L'entreprise de l'offre est celle où s'exerce le poste, celle de la candidature son destinataire : pour une ESN, le client et l'ESN. Si le client est confidentiel, `OFFERS.company_id` reste null ; une candidature a toujours un destinataire, au besoin l'entreprise générique « Confidentielle ». Le destinataire est stocké sur une candidature sans parent, même quand il est aussi l'entreprise de l'offre : ce sont deux faits indépendants, qui diffèrent pour un cabinet ou une ESN ; l'application le pré-remplit avec l'entreprise de l'offre. Il n'est jamais stocké sur une candidature enfant, dont le destinataire est toujours celui du parent.
-- `JOBBOARDS` désigne où l'offre est diffusée, sur un ou plusieurs sites.
+- Ce schéma couvre la saisie manuelle dans l'application. La création d'une candidature depuis une offre France Travail du staging (copie de l'annonce, lien vers `OFFER_SOURCES`) reste à ajouter : elle passera par une migration.
+- Chaque objet suivi (entreprise, candidature, entretien, contact) porte sa note dans une colonne `note_text`.
+- Il n'y a pas de table des offres : une offre n'est enregistrée que pour y candidater, et `APPLICATIONS` porte à la fois l'annonce et le suivi. Les offres collectées et non suivies se consultent dans le staging de la collecte, par une vue. L'annonce d'une candidature est une copie figée : rien ne la rafraîchit depuis sa source.
+- Les données d'annonce sont `job_description`, `location_id`, `work_mode_id`, `contract_type_id`, `salary_label`, les fourchettes de salaire et de TJM, `remote_days_per_week`, `contract_duration_months`, `experience_years`, `application_deadline`, `start_date`, `published_date`, et les lignes de `APPLICATION_JOBBOARDS`, `APPLICATION_REQUIRED_SKILLS` et `APPLICATION_REQUIRED_EDUCATIONS`. Elles sont facultatives : une candidature spontanée ou une mission proposée à l'oral n'en a pas. `job_title` est obligatoire sur toute candidature.
+- `JOBBOARDS` désigne où l'annonce est diffusée, sur un ou plusieurs sites.
 - Les colonnes `VARCHAR2` sont en sémantique `CHAR`. `TIMESTAMP_TZ` signifie `TIMESTAMP WITH TIME ZONE`. Mermaid n'accepte pas de virgule dans un type : la précision de ces colonnes figure dans leur commentaire.
-- Une candidature suit une offre et a son propre statut. Le statut courant n'est pas stocké : c'est le changement le plus récent de `APPLICATION_STATUS_CHANGES` (`changed_at`, puis la clé en cas d'égalité), calculé par la vue `application_details`. Plusieurs missions proposées par une ESN sont des candidatures distinctes, chacune avec son offre, même saisie pour une mission proposée à l'oral, regroupées sous une candidature parente qui porte le salaire et les échanges communs. La hiérarchie a un seul niveau, contrôlé par le package. Le funnel ne compte que les candidatures sans parent.
-- Le parent est facultatif : il n'existe que pour regrouper plusieurs missions. Un parent n'a pas d'offre, un enfant en a toujours une. Un enfant n'a ni entreprise ni type de candidature : il hérite de ceux du parent et lit l'entreprise de la mission sur son offre. Le salaire, le TJM et les avantages sont lus sur l'enfant, sinon sur le parent ; pour les avantages, ceux de l'enfant remplacent ceux du parent dès qu'il en a. La note et l'intérêt sont propres à chaque niveau. Ces valeurs héritées sont calculées par la vue `application_details`.
+- Une candidature a son propre statut. Le statut courant n'est pas stocké : c'est le changement le plus récent de `APPLICATION_STATUS_CHANGES` (`changed_at`, puis la clé en cas d'égalité), calculé par la vue `application_details`. La hiérarchie a un seul niveau, contrôlé par le package. Le funnel ne compte que les candidatures sans parent.
+- Une candidature prend l'une de trois formes, et `company_id`, toujours renseigné, en dépend :
+  - simple (sans parent ni enfant) : adressée directement à l'employeur, qui est `company_id` ;
+  - parent : la démarche auprès d'une ESN ou d'un cabinet, qui est `company_id`. Elle porte le salaire, le TJM, les avantages et les échanges communs, mais aucune donnée d'annonce, contrôlé par le package ;
+  - enfant : une mission ou un poste proposé par l'ESN ou le cabinet, avec son annonce. `company_id` est le client, au besoin l'entreprise générique « Confidentielle ».
+- Une candidature à une ESN ou à un cabinet est toujours un parent avec au moins un enfant, même pour une seule mission ou un client confidentiel. C'est une convention appliquée par l'application APEX, qui crée le parent et son premier enfant ensemble : le package ne la contrôle pas, un parent n'ayant pas d'enfant au moment de son insertion.
+- Un enfant n'a pas de type de candidature : il hérite de celui du parent. Le salaire, le TJM et les avantages sont lus sur l'enfant, sinon sur le parent ; pour les avantages, ceux de l'enfant remplacent ceux du parent dès qu'il en a. La note et l'intérêt sont propres à chaque niveau. Ces valeurs héritées sont calculées par la vue `application_details`.
 - Le statut d'un enfant ne se propage pas au parent : le statut du parent se tient à la main. Une mission déclinée passe à `WITHDRAWN`.
-- Une candidature simple devient l'enfant d'un nouveau parent par une procédure de `application_api` : le parent reçoit l'entreprise, le type, le salaire, le TJM et les avantages, déplacés depuis la candidature, et une copie de son historique des statuts, pour que le funnel garde la date d'origine. Les entretiens restent sur l'enfant.
 - Les tables de collecte `OFFER_SOURCES`, `COLLECT_RUNS` et `COLLECT_REQUESTS` ne changent pas et ne figurent pas ici.
 
 ## Diagramme
@@ -16,39 +21,15 @@
 ```mermaid
 erDiagram
 
-    OFFERS {
-        NUMBER offer_id PK "clé de l'offre"
-        NUMBER company_id FK "entreprise où s'exerce le poste : le client pour une ESN, null si inconnue"
-        VARCHAR2(200) job_title "intitulé du poste"
-        CLOB description "description de l'offre"
-        CLOB note_text "note sur l'offre"
-        NUMBER location_id FK "lieu du poste"
-        NUMBER work_mode_id FK "mode de travail"
-        NUMBER contract_type_id FK "type de contrat"
-        VARCHAR2(200) salary_label "salaire tel que publié"
-        NUMBER(9) annual_salary_min_euros "salaire annuel minimum"
-        NUMBER(9) annual_salary_max_euros "salaire annuel maximum"
-        NUMBER(5) daily_rate_min_euros "TJM minimum"
-        NUMBER(5) daily_rate_max_euros "TJM maximum"
-        NUMBER(1) remote_days_per_week "jours de télétravail par semaine"
-        NUMBER(3) contract_duration_months "durée du contrat ou de la mission, en mois"
-        NUMBER(2) experience_years "années d'expérience requises"
-        DATE application_deadline "date limite de candidature"
-        DATE start_date "date d'entrée en poste"
-        DATE published_date "date de publication de l'offre"
-        TIMESTAMP_TZ created_at "date d'enregistrement"
-        TIMESTAMP_TZ updated_at "date de dernière mise à jour"
-    }
-
     JOBBOARDS {
         NUMBER jobboard_id PK "clé du jobboard"
         VARCHAR2(100) jobboard_name "nom du jobboard (Indeed, LinkedIn, Welcome to the Jungle, Site de l'entreprise...)"
         VARCHAR2(500) website_url "URL du site web"
     }
 
-    OFFER_JOBBOARDS {
-        NUMBER offer_jobboard_id PK "clé de la diffusion"
-        NUMBER offer_id FK "clé de l'offre"
+    APPLICATION_JOBBOARDS {
+        NUMBER application_jobboard_id PK "clé de la diffusion"
+        NUMBER application_id FK "clé de la candidature"
         NUMBER jobboard_id FK "clé du jobboard"
         VARCHAR2(100) external_id "identifiant de l'offre sur ce jobboard, null si le site n'en a pas"
     }
@@ -65,9 +46,9 @@ erDiagram
         VARCHAR2(100) skill_name "libellé de la compétence (PL/SQL, Oracle APEX, Python...)"
     }
 
-    OFFER_SKILLS {
-        NUMBER offer_skill_id PK "clé de la compétence demandée"
-        NUMBER offer_id FK "clé de l'offre"
+    APPLICATION_REQUIRED_SKILLS {
+        NUMBER application_required_skill_id PK "clé de la compétence demandée"
+        NUMBER application_id FK "clé de la candidature"
         NUMBER skill_id FK "clé de la compétence"
         BOOLEAN is_mandatory "compétence obligatoire"
     }
@@ -88,9 +69,9 @@ erDiagram
         NUMBER education_domain_id FK "domaine de formation"
     }
 
-    OFFER_EDUCATIONS {
-        NUMBER offer_education_id PK "clé de la formation demandée"
-        NUMBER offer_id FK "clé de l'offre"
+    APPLICATION_REQUIRED_EDUCATIONS {
+        NUMBER application_required_education_id PK "clé de la formation demandée"
+        NUMBER application_id FK "clé de la candidature"
         NUMBER education_id FK "clé de la formation"
         BOOLEAN is_mandatory "formation obligatoire"
     }
@@ -206,11 +187,25 @@ erDiagram
 
     APPLICATIONS {
         NUMBER application_id PK "clé de la candidature"
-        NUMBER parent_application_id FK "candidature parente (démarche auprès d'une ESN...), null dans le cas général"
-        NUMBER offer_id FK "offre, obligatoire sur un enfant, null pour une candidature spontanée ou un parent"
-        NUMBER company_id FK "entreprise à laquelle la candidature est adressée : l'ESN ou le cabinet, sinon l'employeur ; null sur un enfant (hérité du parent)"
+        NUMBER parent_application_id FK "candidature parente (démarche auprès d'une ESN ou d'un cabinet), null sinon"
+        NUMBER company_id FK "employeur d'une candidature simple, ESN ou cabinet d'un parent, client d'un enfant (au besoin Confidentielle)"
         NUMBER application_type_id FK "type de candidature, null sur un enfant (hérité du parent)"
-        VARCHAR2(200) job_title "poste visé, obligatoire sans offre"
+        VARCHAR2(200) job_title "intitulé du poste"
+        CLOB job_description "description de l'annonce"
+        NUMBER location_id FK "lieu du poste"
+        NUMBER work_mode_id FK "mode de travail"
+        NUMBER contract_type_id FK "type de contrat"
+        VARCHAR2(200) salary_label "salaire tel que publié"
+        NUMBER(9) annual_salary_min_euros "salaire annuel minimum publié"
+        NUMBER(9) annual_salary_max_euros "salaire annuel maximum publié"
+        NUMBER(5) daily_rate_min_euros "TJM minimum publié"
+        NUMBER(5) daily_rate_max_euros "TJM maximum publié"
+        NUMBER(1) remote_days_per_week "jours de télétravail par semaine"
+        NUMBER(3) contract_duration_months "durée du contrat ou de la mission, en mois"
+        NUMBER(2) experience_years "années d'expérience requises"
+        DATE application_deadline "date limite de candidature"
+        DATE start_date "date d'entrée en poste"
+        DATE published_date "date de publication de l'annonce"
         NUMBER(9) annual_salary_proposed_euros "salaire annuel proposé, sur la candidature enfant seulement s'il diffère du parent"
         NUMBER(5) daily_rate_proposed_euros "TJM proposé, sur la candidature enfant seulement s'il diffère du parent"
         NUMBER(1) interest_rating "intérêt, note de 1 à 5"
@@ -300,16 +295,16 @@ erDiagram
         NUMBER contact_position_id FK "contact, au titre du poste qu'il occupe dans une entreprise"
     }
 
-    LOCATIONS |o--o{ OFFERS : "localise"
-    WORK_MODES |o--o{ OFFERS : "qualifie"
-    CONTRACT_TYPES |o--o{ OFFERS : "qualifie"
+    LOCATIONS |o--o{ APPLICATIONS : "localise"
+    WORK_MODES |o--o{ APPLICATIONS : "qualifie"
+    CONTRACT_TYPES |o--o{ APPLICATIONS : "qualifie"
 
-    OFFERS ||--o{ OFFER_JOBBOARDS : "diffusée sur"
-    JOBBOARDS ||--o{ OFFER_JOBBOARDS : "diffuse"
-    OFFERS ||--o{ OFFER_SKILLS : "demande"
-    SKILLS ||--o{ OFFER_SKILLS : "demandée par"
-    OFFERS ||--o{ OFFER_EDUCATIONS : "demande"
-    EDUCATIONS ||--o{ OFFER_EDUCATIONS : "demandée par"
+    APPLICATIONS ||--o{ APPLICATION_JOBBOARDS : "diffusée sur"
+    JOBBOARDS ||--o{ APPLICATION_JOBBOARDS : "diffuse"
+    APPLICATIONS ||--o{ APPLICATION_REQUIRED_SKILLS : "demande"
+    SKILLS ||--o{ APPLICATION_REQUIRED_SKILLS : "demandée par"
+    APPLICATIONS ||--o{ APPLICATION_REQUIRED_EDUCATIONS : "demande"
+    EDUCATIONS ||--o{ APPLICATION_REQUIRED_EDUCATIONS : "demandée par"
 
     SKILL_CATEGORIES |o--o{ SKILLS : "classe"
     SKILL_CATEGORIES |o--o{ SKILL_CATEGORIES : "contient"
@@ -329,10 +324,8 @@ erDiagram
     CONTACTS ||--o{ CONTACT_POSITIONS : "occupe"
     JOBS ||--o{ CONTACT_POSITIONS : "qualifie"
 
-    OFFERS |o--o| APPLICATIONS : "suivie par"
     APPLICATIONS |o--o{ APPLICATIONS : "regroupe"
-    COMPANIES |o--o{ APPLICATIONS : "reçoit"
-    COMPANIES |o--o{ OFFERS : "accueille le poste"
+    COMPANIES ||--o{ APPLICATIONS : "reçoit ou accueille le poste"
     APPLICATION_TYPES |o--o{ APPLICATIONS : "classe"
     APPLICATIONS ||--o{ APPLICATION_BENEFITS : "propose"
     BENEFITS ||--o{ APPLICATION_BENEFITS : "proposé par"
@@ -352,8 +345,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 
 | Table | Contrainte |
 |---|---|
-| `OFFERS` | `job_title` obligatoire ; salaire et TJM : minimum inférieur ou égal au maximum, montants positifs ; `remote_days_per_week` entre 0 et 5 ; `contract_duration_months` positif ; `experience_years` positif ou nul |
-| `APPLICATIONS` | `offer_id` unique ; `offer_id` ou `job_title` renseigné ; une candidature enfant a une offre (`parent_application_id is null or offer_id is not null`) ; `company_id` et `application_type_id` renseignés si et seulement si `parent_application_id` est null, avec une entreprise générique « Confidentielle » pour une annonce anonyme ; un parent n'a pas d'offre, contrôlé par le package ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 ; une seule candidature ouverte (statut courant non final) par entreprise parmi les candidatures sans parent, l'entreprise générique exceptée, contrôlée par le package sous verrou de l'entreprise (celle du parent pour un enfant) |
+| `APPLICATIONS` | `company_id` et `job_title` obligatoires ; `application_type_id` renseigné si et seulement si `parent_application_id` est null ; un parent n'a aucune donnée d'annonce, contrôlé par le package ; salaire et TJM publiés : minimum inférieur ou égal au maximum, montants positifs ; `remote_days_per_week` entre 0 et 5 ; `contract_duration_months` positif ; `experience_years` positif ou nul ; `annual_salary_proposed_euros` et `daily_rate_proposed_euros` positifs ; `interest_rating` entre 1 et 5 ; une seule candidature ouverte (statut courant non final) par entreprise parmi les candidatures sans parent, l'entreprise générique exceptée, contrôlée par le package sous verrou de l'entreprise (celle du parent pour un enfant) : le client d'un enfant n'est pas compté |
 | `APPLICATION_STATUS_CHANGES` | `changed_at` obligatoire ; `application_id` indexé avec `changed_at` et la clé, pour lire le changement le plus récent dans l'index ; supprimé avec sa candidature (`on delete cascade`) ; historique non réécrit : le package ne corrige ou n'annule que le changement le plus récent, et jamais le seul |
 | `EDUCATIONS` | `(education_level_id, education_domain_id)` unique |
 | `COMPANIES` | `company_name` obligatoire ; `siren` unique, 9 chiffres ; `linkedin_slug` sans `/` ni espace ; au plus une entreprise générique, par un index unique sur `case when is_generic then 1 end` ; l'entreprise générique, créée par migration, n'est pas supprimable |
@@ -369,7 +361,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `CONTRACT_TYPES` | `contract_type_code` obligatoire et unique |
 | `APPLICATION_STATUSES` | `application_status_code`, `application_status_name_fr`, `application_status_name_en` et `display_order` obligatoires et uniques ; `funnel_step` unique quand il est renseigné, strictement positif ; `is_final` obligatoire |
 | `JOBS` | `job_name_en` et `job_name_fr` obligatoires, chacun unique sans tenir compte de la casse, par un index unique sur `upper()` |
-| `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |
+| `APPLICATION_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null. Cet index empêche aussi de créer deux candidatures pour la même offre |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | `CONTACT_POSITIONS` | `(contact_id, company_id, job_id)` unique : plusieurs postes par contact, y compris dans une même entreprise, sans limite de postes actuels ; `company_id` et `job_id` indexés ; clés étrangères sans cascade |
 | Référentiels, sauf `LOCATIONS` et les référentiels traduits (ligne suivante) | `<entité>_name` obligatoire et unique |

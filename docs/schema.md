@@ -115,8 +115,9 @@ erDiagram
 
     CONTRACT_TYPES {
         NUMBER contract_type_id PK "clé du type de contrat"
-        VARCHAR2(100) contract_type_name_fr "type de contrat (CDI, CDD, Freelance...)"
-        VARCHAR2(100) contract_type_name_en "libellé anglais (Permanent, Fixed-term, Freelance...)"
+        VARCHAR2(20) contract_type_code "code stable (PERMANENT, FIXED_TERM, FREELANCE...)"
+        VARCHAR2(50) contract_type_name_fr "type de contrat (CDI, CDD, Freelance...)"
+        VARCHAR2(50) contract_type_name_en "libellé anglais (Permanent, Fixed-term, Freelance...)"
     }
 
     LOCATION_TYPES {
@@ -365,6 +366,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `LOCATION_TYPES` | `location_type_code` obligatoire et unique |
 | `SALUTATIONS` | `salutation_code` obligatoire et unique |
 | `WORK_MODES` | `work_mode_code` obligatoire et unique |
+| `CONTRACT_TYPES` | `contract_type_code` obligatoire et unique |
 | `APPLICATION_STATUSES` | `application_status_code`, `application_status_name_fr`, `application_status_name_en` et `display_order` obligatoires et uniques ; `funnel_step` unique quand il est renseigné, strictement positif ; `is_final` obligatoire |
 | `JOBS` | `job_name_en` et `job_name_fr` obligatoires, chacun unique sans tenir compte de la casse, par un index unique sur `upper()` |
 | `OFFER_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null |

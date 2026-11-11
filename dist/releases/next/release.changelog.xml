@@ -27,5 +27,6 @@
 <include file="changes/feat/flag-generic-company-page/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/applications-read-views/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/work-modes/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/contract-types/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

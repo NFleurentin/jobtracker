@@ -1,8 +1,8 @@
 ## Conventions
 
-- Ce schéma couvre la saisie manuelle dans l'application. La création d'une candidature depuis une offre France Travail du staging (copie de l'annonce, lien vers `OFFER_SOURCES`) reste à ajouter : elle passera par une migration.
+- Ce schéma couvre la saisie manuelle dans l'application. La création d'une candidature depuis un résultat de la recherche en direct dans l'API France Travail (copie de l'annonce, lien vers `OFFER_SOURCES`) reste à ajouter : elle passera par une migration.
 - Chaque objet suivi (entreprise, candidature, entretien, contact) porte sa note dans une colonne `note_text`.
-- Il n'y a pas de table des offres : une offre n'est enregistrée que pour y candidater, et `APPLICATIONS` porte à la fois l'annonce et le suivi. Les offres collectées et non suivies se consultent dans le staging de la collecte, par une vue. L'annonce d'une candidature est une copie figée : rien ne la rafraîchit depuis sa source.
+- Il n'y a pas de table des offres : une offre n'est enregistrée que pour y candidater, et `APPLICATIONS` porte à la fois l'annonce et le suivi. Les offres non suivies se consultent par une recherche en direct dans l'API, dont les résultats ne vivent que dans la session APEX. Une offre écartée n'est gardée que par son identifiant, dans `DISMISSED_OFFERS`, pour ne plus apparaître dans les résultats. L'annonce d'une candidature est une copie figée : rien ne la rafraîchit depuis sa source.
 - Les données d'annonce sont `job_description`, `location_id`, `work_mode_id`, `contract_type_id`, `salary_label`, les fourchettes de salaire et de TJM, `remote_days_per_week`, `contract_duration_months`, `experience_years`, `application_deadline`, `start_date`, `published_date`, et les lignes de `APPLICATION_JOBBOARDS`, `APPLICATION_REQUIRED_SKILLS` et `APPLICATION_REQUIRED_EDUCATIONS`. Elles sont facultatives : une candidature spontanée ou une mission proposée à l'oral n'en a pas. `job_title` est obligatoire sur toute candidature.
 - `JOBBOARDS` désigne où l'annonce est diffusée, sur un ou plusieurs sites.
 - Les colonnes `VARCHAR2` sont en sémantique `CHAR`. `TIMESTAMP_TZ` signifie `TIMESTAMP WITH TIME ZONE`. Mermaid n'accepte pas de virgule dans un type : la précision de ces colonnes figure dans leur commentaire.
@@ -14,12 +14,20 @@
 - Une candidature à une ESN ou à un cabinet est toujours un parent avec au moins un enfant, même pour une seule mission ou un client confidentiel. C'est une convention appliquée par l'application APEX, qui crée le parent et son premier enfant ensemble : le package ne la contrôle pas, un parent n'ayant pas d'enfant au moment de son insertion.
 - Un enfant n'a pas de type de candidature : il hérite de celui du parent. Le salaire, le TJM et les avantages sont lus sur l'enfant, sinon sur le parent ; pour les avantages, ceux de l'enfant remplacent ceux du parent dès qu'il en a. La note et l'intérêt sont propres à chaque niveau. Ces valeurs héritées sont calculées par la vue `application_details`.
 - Le statut d'un enfant ne se propage pas au parent : le statut du parent se tient à la main. Une mission déclinée passe à `WITHDRAWN`.
-- Les tables de collecte `OFFER_SOURCES`, `COLLECT_RUNS` et `COLLECT_REQUESTS` ne changent pas et ne figurent pas ici.
+- Les tables de collecte `OFFER_SOURCES`, `COLLECT_RUNS` et `COLLECT_REQUESTS` ne changent pas et ne figurent pas ici ; `DISMISSED_OFFERS.source_id` référence `OFFER_SOURCES`.
 
 ## Diagramme
 
 ```mermaid
 erDiagram
+
+    DISMISSED_OFFERS {
+        NUMBER dismissed_offer_id PK "clé de l'offre écartée"
+        NUMBER source_id "source de l'offre, clé étrangère vers OFFER_SOURCES (hors diagramme)"
+        VARCHAR2(100) external_id "identifiant de l'offre dans sa source"
+        TIMESTAMP_TZ dismissed_at "date à laquelle l'offre a été écartée"
+        CLOB note_text "motif"
+    }
 
     JOBBOARDS {
         NUMBER jobboard_id PK "clé du jobboard"
@@ -361,6 +369,7 @@ Le diagramme ne montre pas les contraintes suivantes.
 | `CONTRACT_TYPES` | `contract_type_code` obligatoire et unique |
 | `APPLICATION_STATUSES` | `application_status_code`, `application_status_name_fr`, `application_status_name_en` et `display_order` obligatoires et uniques ; `funnel_step` unique quand il est renseigné, strictement positif ; `is_final` obligatoire |
 | `JOBS` | `job_name_en` et `job_name_fr` obligatoires, chacun unique sans tenir compte de la casse, par un index unique sur `upper()` |
+| `DISMISSED_OFFERS` | `source_id`, `external_id` et `dismissed_at` obligatoires ; `(source_id, external_id)` unique ; une offre écartée qui devient une candidature sort de la table, contrôlé par le package |
 | `APPLICATION_JOBBOARDS` | `(jobboard_id, external_id)` unique quand `external_id` est renseigné, par un index unique sur expressions : une clé unique refuserait deux lignes de même jobboard avec `external_id` à null. Cet index empêche aussi de créer deux candidatures pour la même offre |
 | Tables d'association | clé unique sur le couple de clés étrangères, seconde colonne indexée |
 | `CONTACT_POSITIONS` | `(contact_id, company_id, job_id)` unique : plusieurs postes par contact, y compris dans une même entreprise, sans limite de postes actuels ; `company_id` et `job_id` indexés ; clés étrangères sans cascade |

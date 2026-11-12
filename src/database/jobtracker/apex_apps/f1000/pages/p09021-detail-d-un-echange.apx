@@ -1,0 +1,1007 @@
+page 9021 (
+    name: Détail d'un échange
+    alias: DETAIL-D-UN-ECHANGE
+    title: Détail d'un échange
+    pageGroup: @administration
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        width: 1000
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region contexte-de-session (
+        name: Contexte de session
+        type: staticContent
+        layout {
+            sequence: 240
+            parentRegion: @détail-d-un-échange
+            slot: regionBody
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region corps (
+        name: Corps
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: contentBody
+            startNewRow: false
+            newColumn: false
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region détail-d-un-échange (
+        name: Échange
+        type: form
+        source {
+            location: localDatabase
+            tableName: UI_EXTERNAL_EXCHANGES_DETAIL
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
+    region en-têtes-de-la-requête (
+        name: En-têtes de la requête
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_EXCHANGE_REQUEST_HEADERS_LIST
+            whereClause: external_exchange_id = :P9021_EXTERNAL_EXCHANGE_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: field_position
+        }
+        layout {
+            sequence: 40
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucun
+        }
+
+        column EXTERNAL_EXCHANGE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column FIELD_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Nom
+            }
+            layout {
+                sequence: 30
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FIELD_POSITION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FIELD_VALUE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Valeur
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region en-têtes-de-la-réponse (
+        name: En-têtes de la réponse
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_EXCHANGE_RESPONSE_HEADERS_LIST
+            whereClause: external_exchange_id = :P9021_EXTERNAL_EXCHANGE_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: field_position
+        }
+        layout {
+            sequence: 50
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucun
+        }
+
+        column EXTERNAL_EXCHANGE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column FIELD_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Nom
+            }
+            layout {
+                sequence: 30
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FIELD_POSITION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FIELD_VALUE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Valeur
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region paramètres-de-la-requête (
+        name: Paramètres de la requête
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_EXCHANGE_REQUEST_PARAMS_LIST
+            whereClause: external_exchange_id = :P9021_EXTERNAL_EXCHANGE_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: field_position
+        }
+        layout {
+            sequence: 30
+            slot: contentBody
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucun
+        }
+
+        column EXTERNAL_EXCHANGE_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column FIELD_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Nom
+            }
+            layout {
+                sequence: 30
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column FIELD_POSITION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column FIELD_VALUE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Valeur
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P9021_APEX_SESSION_ID (
+        type: displayOnly
+        label {
+            label: Session APEX
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @contexte-de-session
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: APEX_SESSION_ID
+            dataType: number
+        }
+    )
+
+    pageItem P9021_APP_USER (
+        type: displayOnly
+        label {
+            label: Utilisateur
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @contexte-de-session
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/required-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: APP_USER
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_CORRELATION_ID (
+        type: displayOnly
+        label {
+            label: Corrélation
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: CORRELATION_ID
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_DB_ACTION (
+        type: displayOnly
+        label {
+            label: Action
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @contexte-de-session
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: DB_ACTION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_DB_MODULE (
+        type: displayOnly
+        label {
+            label: Module
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @contexte-de-session
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: DB_MODULE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_DB_SID (
+        type: displayOnly
+        label {
+            label: SID
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @contexte-de-session
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: DB_SID
+            dataType: number
+        }
+    )
+
+    pageItem P9021_DURATION_SECONDS (
+        type: displayOnly
+        label {
+            label: Durée (s)
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: 999G990D000
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: DURATION_SECONDS
+            dataType: number
+        }
+    )
+
+    pageItem P9021_ENDED_AT (
+        type: displayOnly
+        label {
+            label: Fin
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY HH24:MI:SS.FF3
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: ENDED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+    )
+
+    pageItem P9021_ERROR_MESSAGE (
+        type: displayOnly
+        label {
+            label: Erreur
+            alignment: left
+        }
+        layout {
+            sequence: 140
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: ERROR_MESSAGE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_EXCHANGE_PROTOCOL_CODE (
+        type: hidden
+        layout {
+            sequence: 20
+            region: @détail-d-un-échange
+            slot: regionBody
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: EXCHANGE_PROTOCOL_CODE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_EXCHANGE_PROTOCOL_NAME (
+        type: displayOnly
+        label {
+            label: Protocole
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: EXCHANGE_PROTOCOL_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_EXCHANGE_STATUS_NAME (
+        type: displayOnly
+        label {
+            label: État
+            alignment: left
+        }
+        layout {
+            sequence: 60
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: EXCHANGE_STATUS_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_EXTERNAL_EXCHANGE_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @détail-d-un-échange
+            slot: regionBody
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: EXTERNAL_EXCHANGE_ID
+            dataType: number
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P9021_EXTERNAL_SYSTEM_NAME (
+        type: displayOnly
+        label {
+            label: Système
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: EXTERNAL_SYSTEM_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_REQUEST_BODY (
+        type: textarea
+        label {
+            label: Corps de la requête
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 200
+            region: @corps
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+            height: 5
+        }
+        advanced {
+            cssClasses: u-monospace
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: REQUEST_BODY
+            dataType: clob
+        }
+        serverSideCondition {
+            type: item=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        readOnly {
+            type: always
+        }
+    )
+
+    pageItem P9021_REQUEST_METHOD (
+        type: displayOnly
+        label {
+            label: Méthode
+            alignment: left
+        }
+        layout {
+            sequence: 110
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: REQUEST_METHOD
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_REQUEST_TEXT (
+        type: textarea
+        label {
+            label: Requête
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 220
+            region: @corps
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        advanced {
+            cssClasses: u-monospace
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: REQUEST_TEXT
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+        serverSideCondition {
+            type: item!=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        readOnly {
+            type: always
+        }
+    )
+
+    pageItem P9021_REQUEST_URL (
+        type: displayOnly
+        label {
+            label: URL
+            alignment: left
+        }
+        layout {
+            sequence: 120
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: REQUEST_URL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P9021_RESPONSE_BODY (
+        type: textarea
+        label {
+            label: Corps de la réponse
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 210
+            region: @corps
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        advanced {
+            cssClasses: u-monospace
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: RESPONSE_BODY
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+        serverSideCondition {
+            type: item=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        readOnly {
+            type: always
+        }
+    )
+
+    pageItem P9021_RESPONSE_STATUS_CODE (
+        type: displayOnly
+        label {
+            label: Code de retour
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: RESPONSE_STATUS_CODE
+            dataType: number
+        }
+    )
+
+    pageItem P9021_RESPONSE_TEXT (
+        type: textarea
+        label {
+            label: Réponse
+            alignment: left
+        }
+        settings {
+            autoHeight: true
+        }
+        layout {
+            sequence: 230
+            region: @corps
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 60
+            height: 4
+        }
+        advanced {
+            cssClasses: u-monospace
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: RESPONSE_TEXT
+            dataType: clob
+        }
+        sessionState {
+            dataType: clob
+        }
+        serverSideCondition {
+            type: item!=value
+            item: P9021_EXCHANGE_PROTOCOL_CODE
+            value: HTTP
+        }
+        readOnly {
+            type: always
+        }
+    )
+
+    pageItem P9021_STARTED_AT (
+        type: displayOnly
+        label {
+            label: Début
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @détail-d-un-échange
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            formatMask: DD/MM/YYYY HH24:MI:SS.FF3
+        }
+        source {
+            formRegion: @détail-d-un-échange
+            column: STARTED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Fermer
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    validation p9021-ended-at-must-be-timestamp (
+        name: P9021_ENDED_AT must be timestamp
+        execution {
+            sequence: 150
+        }
+        validation {
+            type: itemIsAValidTimestamp
+            item: P9021_ENDED_AT
+        }
+        error {
+            errorMessage: #LABEL# must be a valid timestamp.
+            associatedItem: @P9021_ENDED_AT
+        }
+    )
+
+    validation p9021-started-at-must-be-timestamp (
+        name: P9021_STARTED_AT must be timestamp
+        execution {
+            sequence: 140
+        }
+        validation {
+            type: itemIsAValidTimestamp
+            item: P9021_STARTED_AT
+        }
+        error {
+            errorMessage: #LABEL# must be a valid timestamp.
+            associatedItem: @P9021_STARTED_AT
+        }
+    )
+
+    process initialize-form-détail-d-un-échange (
+        name: Initialize form Détail d'un échange
+        type: formInitialization
+        formRegion: @détail-d-un-échange
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 17220142077900367
+        }
+    )
+
+)
+

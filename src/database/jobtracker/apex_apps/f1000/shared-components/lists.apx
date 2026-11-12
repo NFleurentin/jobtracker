@@ -162,5 +162,27 @@ list navigation-menu (
         }
     )
 
+    entry échanges-externes (
+        label: Échanges externes
+        icon {
+            imageIconCssClasses: fa-exchange
+        }
+        layout {
+            sequence: 60
+        }
+        isCurrent {
+            type: pages
+            pages: [
+                9020
+                9021
+            ]
+        }
+        link {
+            target: {
+                page: 9020
+            }
+        }
+    )
+
 )
 

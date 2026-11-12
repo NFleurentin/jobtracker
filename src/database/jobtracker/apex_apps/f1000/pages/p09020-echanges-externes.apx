@@ -1,0 +1,460 @@
+page 9020 (
+    name: Échanges externes
+    alias: ECHANGES-EXTERNES
+    title: Échanges externes
+    pageGroup: @administration
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region échanges-externes (
+        name: Échanges externes
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: UI_EXTERNAL_EXCHANGES_LIST
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Aucun échange.
+            whenMoreDataFound: Le rapport est limité à #MAX_ROW_COUNT# lignes. Appliquez un filtre pour réduire le nombre de résultats.
+        }
+        advanced {
+            savedReportMappingIdentifier: 17255916883244570
+        }
+
+        column CORRELATION_ID (
+            type: link
+            heading {
+                heading: Corrélation
+            }
+            layout {
+                sequence: 133
+            }
+            link {
+                target: {
+                    page: 9020
+                    items: {
+                        IR_CORRELATION_ID: #CORRELATION_ID#
+                    }
+                    clearCache: RIR
+                }
+                linkText: #CORRELATION_ID#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: I
+            }
+        )
+
+        column DURATION_SECONDS (
+            type: plainText
+            heading {
+                heading: Durée (s)
+                alignment: end
+            }
+            layout {
+                sequence: 123
+                columnAlignment: end
+            }
+            appearance {
+                formatMask: 999G990D000
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: P
+            }
+        )
+
+        column ENDED_AT (
+            type: plainText
+            heading {
+                heading: Fin
+            }
+            layout {
+                sequence: 113
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI:SS
+            }
+            source {
+                dataType: DATE
+                timezoneAware: Y
+            }
+            advanced {
+                endUserAlias: O
+            }
+        )
+
+        column ERROR_SUMMARY (
+            type: plainText
+            heading {
+                heading: Erreur
+            }
+            layout {
+                sequence: 143
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: M
+            }
+        )
+
+        column EXCHANGE_LABEL (
+            type: link
+            heading {
+                heading: Échange
+            }
+            layout {
+                sequence: 2
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            link {
+                target: {
+                    page: 9021
+                    items: {
+                        P9021_EXTERNAL_EXCHANGE_ID: #EXTERNAL_EXCHANGE_ID#
+                    }
+                    clearCache: 9021
+                }
+                linkText: #EXCHANGE_LABEL#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column EXCHANGE_PROTOCOL_ID (
+            type: hidden
+            heading {
+                heading: Exchange Protocol Id
+            }
+            layout {
+                sequence: 13
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        column EXCHANGE_PROTOCOL_NAME (
+            type: plainText
+            heading {
+                heading: Protocole
+            }
+            layout {
+                sequence: 43
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column EXCHANGE_STATUS_ID (
+            type: hidden
+            heading {
+                heading: Exchange Status Id
+            }
+            layout {
+                sequence: 23
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column EXCHANGE_STATUS_NAME (
+            type: plainText
+            heading {
+                heading: État
+            }
+            layout {
+                sequence: 63
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: H
+            }
+        )
+
+        column EXTERNAL_EXCHANGE_ID (
+            type: hidden
+            heading {
+                heading: External Exchange Id
+            }
+            layout {
+                sequence: 1
+            }
+            source {
+                primaryKey: true
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column EXTERNAL_SYSTEM_ID (
+            type: hidden
+            heading {
+                heading: External System Id
+            }
+            layout {
+                sequence: 3
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column EXTERNAL_SYSTEM_NAME (
+            type: plainText
+            heading {
+                heading: Système
+            }
+            layout {
+                sequence: 33
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column REQUEST_METHOD (
+            type: plainText
+            heading {
+                heading: Méthode
+            }
+            layout {
+                sequence: 73
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: J
+            }
+        )
+
+        column REQUEST_URL (
+            type: plainText
+            heading {
+                heading: URL
+            }
+            layout {
+                sequence: 83
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: K
+            }
+        )
+
+        column RESPONSE_STATUS_CODE (
+            type: plainText
+            heading {
+                heading: Code
+                alignment: end
+            }
+            layout {
+                sequence: 93
+                columnAlignment: end
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: L
+            }
+        )
+
+        column STARTED_AT (
+            type: plainText
+            heading {
+                heading: Début
+            }
+            layout {
+                sequence: 103
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI:SS
+            }
+            source {
+                dataType: DATE
+                timezoneAware: Y
+            }
+            advanced {
+                endUserAlias: N
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn CORRELATION_ID (
+                sequence: 15
+            )
+
+            displayColumn DURATION_SECONDS (
+                sequence: 14
+            )
+
+            displayColumn ENDED_AT (
+                sequence: 13
+            )
+
+            displayColumn ERROR_SUMMARY (
+                sequence: 16
+            )
+
+            displayColumn EXCHANGE_LABEL (
+                sequence: 2
+            )
+
+            displayColumn EXCHANGE_PROTOCOL_ID (
+                sequence: 4
+            )
+
+            displayColumn EXCHANGE_PROTOCOL_NAME (
+                sequence: 7
+            )
+
+            displayColumn EXCHANGE_STATUS_ID (
+                sequence: 5
+            )
+
+            displayColumn EXCHANGE_STATUS_NAME (
+                sequence: 8
+            )
+
+            displayColumn EXTERNAL_EXCHANGE_ID (
+                sequence: 1
+            )
+
+            displayColumn EXTERNAL_SYSTEM_ID (
+                sequence: 3
+            )
+
+            displayColumn EXTERNAL_SYSTEM_NAME (
+                sequence: 6
+            )
+
+            displayColumn REQUEST_METHOD (
+                sequence: 9
+            )
+
+            displayColumn REQUEST_URL (
+                sequence: 10
+            )
+
+            displayColumn RESPONSE_STATUS_CODE (
+                sequence: 11
+            )
+
+            displayColumn STARTED_AT (
+                sequence: 12
+            )
+
+            sort (
+                column: STARTED_AT
+                sort {
+                    direction: desc
+                    sequence: 1
+                }
+            )
+
+            filter ir-condition (
+                column: STARTED_AT
+                operator: isInTheLast
+                value: 1
+                unit: days
+            )
+
+        )
+
+    )
+
+)
+

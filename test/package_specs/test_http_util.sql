@@ -77,6 +77,22 @@ create or replace package jobtracker.test_http_util authid definer is
 
     --%endcontext
 
+    --%context(build_url)
+
+    --%test(URL inchangée sans paramètre)
+    procedure build_url_without_params;
+
+    --%test(paramètres ajoutés et encodés)
+    procedure build_url_encoded;
+
+    --%test(valeur tableau répétée, valeur null ignorée)
+    procedure build_url_repeated_and_null;
+
+    --%test(query string existante complétée)
+    procedure build_url_existing_query;
+
+    --%endcontext
+
     -- Simule les en-têtes d'une réponse d'APEX_WEB_SERVICE
     procedure set_headers;
 

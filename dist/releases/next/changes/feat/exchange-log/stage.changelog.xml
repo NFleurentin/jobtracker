@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/package_specs/exchange_log.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/http_util.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/exchange_protocols.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/exchange_statuses.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/external_exchanges.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/external_systems.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/collect_france_travail.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/exchange_log.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/http_util.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/exchange_protocols.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/exchange_statuses.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/external_exchanges.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/external_systems.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/external_exchanges_correlation_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/external_exchanges_exchange_protocol_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/external_exchanges_exchange_status_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/external_exchanges_external_system_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/external_exchanges_exchange_protocols_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/external_exchanges_exchange_statuses_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/external_exchanges_external_systems_fk.sql" relativeToChangelogFile="true"/>
+<include file="_custom/exchange_log_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -7,9 +7,6 @@ create or replace package body jobtracker.collect_france_travail is
     co_token_url            constant varchar2(200 char) := 'https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire'
     ;
     co_search_url           constant varchar2(200 char) := 'https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search';
-    -- Séparateur de paramètres d'URL, écrit chr(38) : SQL*Plus et SQLcl prennent
-    -- une esperluette littérale pour une variable de substitution (DEFINE)
-    co_ampersand            constant varchar2(1 char) := chr(38);
 
     -- Recherches, une par mot-clé : dans motsCles, la virgule est un ET.
     -- Provisoire, en dur (reprises de jobboard) : à rendre paramétrables.
@@ -95,18 +92,16 @@ create or replace package body jobtracker.collect_france_travail is
         l_range      varchar2(20 char) := in_offset
                                      || '-'
                                      || ( in_offset + co_page_size - 1 );
-        l_url        collect_requests.request_url%type := co_search_url
-                                                   || '?motsCles='
-                                                   || utl_url.escape(in_keywords, true, 'AL32UTF8')
-                                                   || co_ampersand
-                                                   || 'range='
-                                                   || l_range;
         l_params     json_object_t := json_object_t();
+        l_url        collect_requests.request_url%type;
         l_request_id collect_requests.request_id%type;
         l_body       clob;
     begin
         l_params.put('motsCles', in_keywords);
         l_params.put('range', l_range);
+        -- URL complète pour le staging et les messages ; l'appel reçoit l'URL
+        -- de base et les paramètres, seule saisie
+        l_url := http_util.build_url(co_search_url, l_params.to_json);
         << attempts >> for l_attempt in 1..co_max_attempts loop
             -- Visible sans commit dans v$session.action (tronqué par Oracle si trop long)
             dbms_application_info.set_action(in_keywords
@@ -118,8 +113,10 @@ create or replace package body jobtracker.collect_france_travail is
 
             begin
                 l_body := http_util.make_rest_request(
-                    in_url                  => l_url,
+                    in_url                  => co_search_url,
                     in_http_method          => http_util.co_method_get,
+                    in_external_system_code => exchange_log.co_system_france_travail,
+                    in_params               => l_params.to_json,
                     in_credential_static_id => co_credential_static_id,
                     in_token_url            => co_token_url
                 );
@@ -283,4 +280,4 @@ end collect_france_travail;
 /
 
 
--- sqlcl_snapshot {"hash":"904dbe5b17316085be907749c2a76caf0c3dd242","type":"PACKAGE_BODY","name":"COLLECT_FRANCE_TRAVAIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"aa4a4930a059713fbcea56d6804bfa78f242045a","type":"PACKAGE_BODY","name":"COLLECT_FRANCE_TRAVAIL","schemaName":"JOBTRACKER","sxml":""}

@@ -69,5 +69,18 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry échanges-externes (
+        name: Échanges externes
+        pageNumber: 9020
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 9020
+            }
+        }
+    )
+
 )
 

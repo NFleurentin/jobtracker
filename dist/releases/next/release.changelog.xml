@@ -30,5 +30,6 @@
 <include file="changes/feat/contract-types/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/exchange-log/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/purge-external-exchanges/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/browse-external-exchanges/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

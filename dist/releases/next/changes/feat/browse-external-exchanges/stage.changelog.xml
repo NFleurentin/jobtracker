@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/views/external_exchange_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/external_exchange_name_values.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_exchange_request_headers_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_exchange_request_params_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_exchange_response_headers_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_external_exchanges_detail.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_external_exchanges_list.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_exchange_protocols_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_exchange_statuses_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_external_systems_lov.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

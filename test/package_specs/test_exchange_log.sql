@@ -49,5 +49,39 @@ create or replace package jobtracker.test_exchange_log authid definer is
     --%throws(-20001)
     procedure close_exchange_unknown;
 
+    -- abandon_orphans et delete_expired ne valident pas : leurs tests
+    -- insèrent directement dans la table et reviennent au rollback
+    -- automatique d'utPLSQL
+
+    --%test(supprime les échanges plus anciens que la rétention du système)
+    --%rollback(auto)
+    procedure delete_expired_old;
+
+    --%test(passe en FAILED un PENDING plus ancien que le délai du système)
+    --%rollback(auto)
+    procedure abandon_orphans_old_pending;
+
+    --%test(laisse PENDING un échange plus récent que le délai du système)
+    --%rollback(auto)
+    procedure abandon_orphans_keeps_recent;
+
+    --%test(supprime un PENDING plus ancien que la rétention, dans l'ordre de run_housekeeping)
+    --%rollback(auto)
+    procedure housekeeping_deletes_expired_orphan;
+
+    --%test(supprime par lots, le dernier lot incomplet)
+    --%rollback(auto)
+    procedure delete_expired_by_batch;
+
+    --%test(refuse une rétention hors de 1 à 7 jours)
+    --%rollback(auto)
+    --%throws(-2290)
+    procedure retention_days_out_of_range;
+
+    --%test(refuse un délai des orphelins hors de 5 à 1440 minutes)
+    --%rollback(auto)
+    --%throws(-2290)
+    procedure orphan_delay_out_of_range;
+
 end test_exchange_log;
 /

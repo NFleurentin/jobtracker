@@ -1,5 +1,5 @@
 comment on table jobtracker.external_exchanges is
-    'Journal des échanges avec les systèmes externes, indépendant de tout contexte métier : une ligne par échange, insérée à l''envoi (PENDING) puis complétée à la réception. Écrit en transaction autonome par exchange_log : survit au rollback de l''appelant. Purge à définir.'
+    'Journal des échanges avec les systèmes externes, indépendant de tout contexte métier : une ligne par échange, insérée à l''envoi (PENDING) puis complétée à la réception. Écrit en transaction autonome par exchange_log : survit au rollback de l''appelant. Purgé chaque jour selon la rétention de chaque système (external_systems).'
     ;
 
 comment on column jobtracker.external_exchanges.app_user is
@@ -25,4 +25,4 @@ comment on column jobtracker.external_exchanges.response is
     ;
 
 
--- sqlcl_snapshot {"hash":"c7706fa4e00a155869129c2dcd352f211e6c38fb","type":"COMMENT","name":"EXTERNAL_EXCHANGES","schemaName":"jobtracker","sxml":""}
+-- sqlcl_snapshot {"hash":"9f3ed463169848111a9740a47bf7a5d3ce2864ad","type":"COMMENT","name":"EXTERNAL_EXCHANGES","schemaName":"jobtracker","sxml":""}

@@ -69,8 +69,35 @@ create or replace package jobtracker.exchange_log authid definer is
         in_response             in json default null
     );
 
+    /**
+     * Passe en FAILED les échanges PENDING plus anciens que le délai de leur
+     * système (external_systems.orphan_delay_minutes) : session tuée entre
+     * l'envoi et la réponse. Ne valide pas, l'appelant fait le COMMIT.
+     */
+    procedure abandon_orphans;
+
+    /**
+     * Supprime un lot d'échanges plus anciens que la rétention de leur système
+     * (external_systems.retention_days), quel que soit leur état. Ne valide
+     * pas : l'appelant fait le COMMIT et rappelle tant que le lot est plein.
+     * @param in_max_rows taille maximale du lot
+     * @param out_deleted nombre d'échanges supprimés ; inférieur à in_max_rows,
+     *                    il ne reste rien à supprimer
+     */
+    procedure delete_expired (
+        in_max_rows in pls_integer,
+        out_deleted out pls_integer
+    );
+
+    /**
+     * Point d'entrée du job EXCHANGE_LOG_HOUSEKEEPING : delete_expired par
+     * lots, puis abandon_orphans sur les échanges conservés, avec un COMMIT
+     * après chaque lot et après abandon_orphans.
+     */
+    procedure run_housekeeping;
+
 end exchange_log;
 /
 
 
--- sqlcl_snapshot {"hash":"551e2be7fb39cdf00015ccbafddb43f02d680580","type":"PACKAGE_SPEC","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"4e6623dd7748bfb3200cc8ee765be58f9b15bd2d","type":"PACKAGE_SPEC","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}

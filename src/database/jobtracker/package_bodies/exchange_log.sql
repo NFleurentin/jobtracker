@@ -205,8 +205,90 @@ create or replace package body jobtracker.exchange_log is
         close_exchange(in_external_exchange_id, co_status_failed, in_response, in_error_message);
     end fail_exchange;
 
+    procedure abandon_orphans is
+
+        l_scope      logger_logs.scope%type := co_scope_prefix || 'abandon_orphans';
+        l_pending_id exchange_statuses.exchange_status_id%type := exchange_status_id(co_status_pending);
+        l_failed_id  exchange_statuses.exchange_status_id%type := exchange_status_id(co_status_failed);
+    begin
+        update external_exchanges e
+        set
+            exchange_status_id = l_failed_id,
+            error_message = (
+                select
+                    'Abandoned: no response after '
+                    || s.orphan_delay_minutes
+                    || ' minutes'
+                from
+                    external_systems s
+                where
+                    s.external_system_id = e.external_system_id
+            ),
+            ended_at = systimestamp
+        where
+                e.exchange_status_id = l_pending_id
+            and e.started_at < systimestamp - (
+                select
+                    numtodsinterval(s.orphan_delay_minutes, 'MINUTE')
+                from
+                    external_systems s
+                where
+                    s.external_system_id = e.external_system_id
+            );
+
+        logger.log_info('Exchanges abandoned: ' || sql%rowcount, l_scope);
+    end abandon_orphans;
+
+    procedure delete_expired (
+        in_max_rows in pls_integer,
+        out_deleted out pls_integer
+    ) is
+    begin
+        delete from external_exchanges e
+        where
+                e.started_at < systimestamp - (
+                    select
+                        numtodsinterval(s.retention_days, 'DAY')
+                    from
+                        external_systems s
+                    where
+                        s.external_system_id = e.external_system_id
+                )
+            and rownum <= in_max_rows;
+
+        out_deleted := sql%rowcount;
+    end delete_expired;
+
+    procedure run_housekeeping is
+
+        -- Taille d'un lot de suppression : borne l'undo d'une transaction
+        co_batch_size constant pls_integer := 10000;
+        l_scope       logger_logs.scope%type := co_scope_prefix || 'run_housekeeping';
+        l_deleted     pls_integer;
+        l_total       pls_integer := 0;
+    begin
+        -- Suppression d'abord : un PENDING expiré part avec les autres, et
+        -- abandon_orphans ne met à jour que des échanges conservés.
+        -- Un lot incomplet signale qu'il ne reste rien à supprimer.
+        << batches >> loop
+            delete_expired(co_batch_size, l_deleted);
+            commit;
+            l_total := l_total + l_deleted;
+            exit batches when l_deleted < co_batch_size;
+        end loop batches;
+
+        logger.log_info('Exchanges deleted: ' || l_total, l_scope);
+        abandon_orphans;
+        commit;
+    exception
+        when others then
+            logger.log_error('Exchange log housekeeping failed', l_scope);
+            rollback;
+            raise;
+    end run_housekeeping;
+
 end exchange_log;
 /
 
 
--- sqlcl_snapshot {"hash":"4fc87397ec2f41d00742313ca3081bc5d13b78de","type":"PACKAGE_BODY","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"3bec9758f083e9a9ce8489cd36d7685f8cdf8170","type":"PACKAGE_BODY","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}

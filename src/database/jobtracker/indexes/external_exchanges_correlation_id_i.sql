@@ -1,0 +1,7 @@
+create index jobtracker.external_exchanges_correlation_id_i on
+    jobtracker.external_exchanges (
+        correlation_id
+    );
+
+
+-- sqlcl_snapshot {"hash":"17e03877ca52c5ca2a8775ee376b76020d047105","type":"INDEX","name":"EXTERNAL_EXCHANGES_CORRELATION_ID_I","schemaName":"JOBTRACKER","sxml":"\n  <INDEX xmlns=\"http://xmlns.oracle.com/ku\" version=\"1.0\">\n   <SCHEMA>JOBTRACKER</SCHEMA>\n   <NAME>EXTERNAL_EXCHANGES_CORRELATION_ID_I</NAME>\n   <TABLE_INDEX>\n      <ON_TABLE>\n         <SCHEMA>JOBTRACKER</SCHEMA>\n         <NAME>EXTERNAL_EXCHANGES</NAME>\n      </ON_TABLE>\n      <COL_LIST>\n         <COL_LIST_ITEM>\n            <NAME>CORRELATION_ID</NAME>\n         </COL_LIST_ITEM>\n      </COL_LIST>\n      \n   </TABLE_INDEX>\n</INDEX>"}

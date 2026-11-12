@@ -101,5 +101,49 @@ create or replace package body jobtracker.test_http_util is
         ut.expect(json_serialize(http_util.response_headers)).to_equal('{}');
     end response_headers_empty;
 
+    procedure build_url_without_params is
+    begin
+        ut.expect(http_util.build_url('https://test.invalid/search', null)).to_equal('https://test.invalid/search');
+
+        ut.expect(http_util.build_url('https://test.invalid/search',
+                                      json(
+                                            '{}'
+                                        )
+        )).to_equal('https://test.invalid/search');
+
+    end build_url_without_params;
+
+    procedure build_url_encoded is
+    begin
+        ut.expect(http_util.build_url('https://test.invalid/search',
+                                      json(
+                                            '{"motsCles":"pl/sql développeur","range":"0-149","page":2}'
+                                        )
+        )).to_equal('https://test.invalid/search?motsCles=pl%2Fsql%20d%C3%A9veloppeur'
+                    || chr(38)
+                    || 'range=0-149'
+                    || chr(38) || 'page=2');
+    end build_url_encoded;
+
+    procedure build_url_repeated_and_null is
+    begin
+        ut.expect(http_util.build_url('https://test.invalid/search',
+                                      json(
+                                            '{"type":["CDI","CDD"],"empty":null}'
+                                        )
+        )).to_equal('https://test.invalid/search?type=CDI'
+                    || chr(38) || 'type=CDD');
+    end build_url_repeated_and_null;
+
+    procedure build_url_existing_query is
+    begin
+        ut.expect(http_util.build_url('https://test.invalid/search?realm=x',
+                                      json(
+                                            '{"range":"0-149"}'
+                                        )
+        )).to_equal('https://test.invalid/search?realm=x'
+                    || chr(38) || 'range=0-149');
+    end build_url_existing_query;
+
 end test_http_util;
 /

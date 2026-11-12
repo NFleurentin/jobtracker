@@ -22,22 +22,62 @@ create or replace package jobtracker.http_util authid definer is
     -- Retry-After demande plus : borne la durée d'un job
     co_max_retry_delay constant pls_integer := 60;
 
+    -- Délai maximal d'un appel, en secondes (180 par défaut dans APEX) : borne
+    -- l'attente d'un utilisateur de l'application
+    co_transfer_timeout constant pls_integer := 30;
+
+    /**
+     * URL complétée de sa query string, paramètres encodés (UTF-8).
+     * @param in_url    URL de base ; une query string présente est complétée
+     * @param in_params objet JSON {"nom": valeur} ; une valeur tableau répète le
+     *                  paramètre ({"type":["CDI","CDD"]} : type=CDI puis type=CDD) ;
+     *                  une valeur null est ignorée ; null pour aucun paramètre
+     * @return in_url si in_params est null ou vide
+     */
+    function build_url (
+        in_url    in varchar2,
+        in_params in json
+    ) return varchar2;
+
     /**
      * Seul point d'appel d'APEX_WEB_SERVICE.MAKE_REST_REQUEST, isolé dans une
      * transaction autonome : obtenir un jeton OAuth2 par un Web Credential met
      * fin à la transaction en cours (ROLLBACK constaté avec APEX 26.1), ce qui
      * effacerait les écritures non validées de l'appelant (job ou page APEX).
+     * Chaque appel est tracé dans le journal des échanges (exchange_log) :
+     * URL envoyée, méthode, paramètres et en-têtes de requête,
+     * code, en-têtes et corps de la réponse, ou erreur. Les en-têtes sensibles
+     * (Authorization, Cookie...) sont masqués ; l'URL est stockée telle quelle :
+     * ne jamais y passer de secret, ni dans in_params. L'obtention du jeton
+     * OAuth2, faite par APEX, n'est pas tracée.
      * Code de statut et en-têtes restent lisibles après l'appel
      * (apex_web_service.g_status_code, response_header, response_headers).
+     * @param in_url                  URL de base, complétée par in_params (build_url)
+     * @param in_external_system_code système appelé (exchange_log.co_system_)
+     * @param in_params               paramètres de la query string, voir build_url ;
+     *                                seule saisie : ajoutés à l'URL et journalisés
+     * @param in_headers              en-têtes de requête, même forme que in_params ;
+     *                                seuls envoyés (apex_web_service.g_request_headers
+     *                                est vidé avant et après l'appel)
      * @param in_credential_static_id Web Credential, null pour un appel anonyme
      * @param in_token_url            URL du jeton OAuth2, avec le credential
+     * @param in_correlation_id       exchange_log.new_correlation_id, commun aux
+     *                                appels d'une même opération ; null pour un
+     *                                appel isolé
+     * @param in_transfer_timeout     délai maximal en secondes
      * @return corps de la réponse
+     * @throws app_errors.e_not_found système inconnu
      */
     function make_rest_request (
         in_url                  in varchar2,
         in_http_method          in varchar2,
+        in_external_system_code in varchar2,
+        in_params               in json default null,
+        in_headers              in json default null,
         in_credential_static_id in varchar2 default null,
-        in_token_url            in varchar2 default null
+        in_token_url            in varchar2 default null,
+        in_correlation_id       in raw default null,
+        in_transfer_timeout     in pls_integer default co_transfer_timeout
     ) return clob;
 
     /**
@@ -88,4 +128,4 @@ end http_util;
 /
 
 
--- sqlcl_snapshot {"hash":"f6408756723b3efe3f3dca35bad482f67891411d","type":"PACKAGE_SPEC","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"37d948a93f02742b9eb2c60bdc2503bc43ad4a1a","type":"PACKAGE_SPEC","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}

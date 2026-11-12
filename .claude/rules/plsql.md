@@ -26,7 +26,7 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 - Toute la logique est dans des packages : ni procédure ou fonction autonome, ni logique métier dans un trigger.
 - La spec est le contrat public : une modification incompatible impose le `!` du commit (`git.md`).
 - Documentation au format PLDoc (`/** … @param … @return … @throws … */`), dans la spec pour les routines publiques, dans le body pour les routines privées (jamais les deux pour une même routine), à l'intérieur du package (un commentaire avant `create or replace` est perdu par `project export`). Balises seulement quand elles ajoutent du sens : unité, signification de `null`, erreur levée.
-- `COMMIT` et `ROLLBACK` uniquement dans les points d'entrée appelés par `DBMS_SCHEDULER`, jamais dans les procédures de service. Le code appelé par APEX n'en fait pas : APEX valide la transaction en fin de traitement. Seule exception : `http_util.make_rest_request`, en transaction autonome (voir « Collecte »).
+- `COMMIT` et `ROLLBACK` uniquement dans les points d'entrée appelés par `DBMS_SCHEDULER`, jamais dans les procédures de service. Le code appelé par APEX n'en fait pas : APEX valide la transaction en fin de traitement. Seules exceptions : `http_util.make_rest_request` et les écritures de `exchange_log`, en transaction autonome (voir « Collecte »).
 - `ROLLBACK TO SAVEPOINT` est permis dans une procédure de service, sur son propre savepoint, pour la rendre atomique : une erreur n'annule que l'instruction en échec, pas les écritures précédentes de la procédure (suppression des lignes enfants, puis du parent qui échoue).
 
 ## Erreurs et journalisation
@@ -44,6 +44,7 @@ Trivadis PL/SQL & SQL Coding Guidelines. Préfixes : `l_` local, `g_` global, `c
 ## Collecte
 
 - Appels HTTP uniquement par `http_util.make_rest_request`, jamais par `APEX_WEB_SERVICE.MAKE_REST_REQUEST` en direct : obtenir un jeton OAuth2 par un Web Credential fait un `ROLLBACK` de la transaction en cours (constaté avec APEX 26.1), que le wrapper isole dans une transaction autonome.
+- Le wrapper journalise chaque appel dans `external_exchanges` (`exchange_log`) : lui passer le système (constante `exchange_log.co_system_`), les paramètres et les en-têtes en JSON (`in_params`, `in_headers`), jamais une query string construite à la main ni `apex_web_service.g_request_headers`, et un `correlation_id` commun aux appels d'une même opération. Aucun secret dans l'URL ni dans les paramètres : seuls les en-têtes sensibles sont masqués. Un nouveau système s'ajoute au référentiel `external_systems` (changeset `_custom`) et à une constante de `exchange_log`.
 - Les constantes de statut d'`UTL_HTTP` restent utilisables (aucun accès réseau) ; ce qu'elles ne couvrent pas (méthodes, en-têtes, 429, classes de codes comme `is_server_error`) est dans `http_util`, avec la politique de nouvel essai par défaut (`is_retryable`, `retry_delay`) et la lecture des en-têtes de la dernière réponse.
 - Les identifiants de l'API sont référencés par le nom d'un credential, jamais écrits dans le code.
 - Un job `DBMS_SCHEDULER` s'exécute hors session APEX : établir le contexte du workspace par `app_context.set_apex_workspace` avant d'utiliser un Web Credential APEX.

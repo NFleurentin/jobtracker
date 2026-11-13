@@ -265,7 +265,7 @@ Les tests n'appellent pas l'API : seules les fonctions pures et l'écriture du s
 
 À chaque PR prête à être relue, le workflow [`ci.yml`](.github/workflows/ci.yml) reconstruit le schéma sur une base vide, par le chemin de la prod, puis lance les tests. Les étapes sont celles de [`env/ci/run.sh`](env/ci/run.sh) :
 
-1. `up` : démarre la base depuis l'image de base de la CI (APEX, sa traduction française et utPLSQL déjà installés) ;
+1. `up` : démarre la base depuis l'image de base de la CI (APEX, sa traduction française et utPLSQL déjà installés) et télécharge SQLcl en parallèle ;
 2. `bootstrap` : joue les scripts communs de `env/bootstrap/common/` (sauf le contrôle du credential, aucun secret en CI) et installe Logger ;
 3. `deploy` : `project gen-artifact` puis `project deploy`, en proxy `jobtracker_deploy[jobtracker]` ; échec si un changeset reste en attente, si un objet est invalide ou si l'application APEX est absente ;
 4. `test` : compile `test/` et lance utPLSQL ; échec si un test échoue ou si aucun ne s'exécute. Le rapport JUnit est publié en artefact du run (`utplsql-junit`) ;

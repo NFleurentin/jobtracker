@@ -2,7 +2,8 @@
 # =============================================================================
 # run.sh : dist/ déployé sur une base vide, comme en prod, puis tests utPLSQL,
 # à partir de l'image de base de la CI (CI_DB_IMAGE, env/versions.env)
-# up        : démarre la base (image préconstruite : APEX et utPLSQL installés)
+# up        : démarre la base (image préconstruite : APEX et utPLSQL installés),
+#             SQLcl téléchargé en parallèle
 # bootstrap : amorçage SYS commun au dev et à la prod (schémas, compte de
 #             déploiement, Logger, droits, workspace APEX, ACL réseau), sans
 #             le contrôle du credential (aucun secret en CI)
@@ -102,16 +103,21 @@ db_port() { podman port "$DB_CTR" 1521/tcp | head -1 | sed 's/.*://'; }
 
 # wait_for "message" délai_max_secondes conteneur_surveillé commande...
 # Sans terminal (CI), une ligne par minute au lieu d'un compteur réécrit.
+# Sondage toutes les 2 s : la base démarre en moins d'une minute, une attente
+# de 10 s y perdait 5 s en moyenne.
 wait_for() {
-  local msg="$1" timeout="$2" ctr="$3" start elapsed
+  local msg="$1" timeout="$2" ctr="$3" start elapsed shown=-1
   shift 3
   start=$(date +%s)
   until "$@" >/dev/null 2>&1; do
     running "$ctr" || die "Le conteneur $ctr s'est arrêté. Voir : podman logs $ctr"
     elapsed=$(( $(date +%s) - start ))
     (( elapsed < timeout )) || die "$msg : délai dépassé. Voir : podman logs $ctr"
-    (( elapsed % 60 < 10 )) && printf '  %s (écoulé : %ds)\n' "$msg" "$elapsed"
-    sleep 10
+    if (( elapsed / 60 > shown )); then
+      shown=$(( elapsed / 60 ))
+      printf '  %s (écoulé : %ds)\n' "$msg" "$elapsed"
+    fi
+    sleep 2
   done
 }
 
@@ -131,12 +137,12 @@ sqlcl() {
   )
 }
 
-# Application importée : lb status ne regarde que le journal Liquibase, pas APEX
+# Application importée : lb status ne regarde que le journal Liquibase, pas APEX.
+# En SYS par SQL*Plus dans le conteneur : pas de démarrage de JVM (3 s avec
+# SQLcl). SYS voit les applications de tous les workspaces : la CI n'en a qu'un.
 check_apex_app() {
   local found
-  found="$(printf "set heading off feedback off pagesize 0
-select count(*) from apex_applications where application_id = %s;
-exit\n" "$APEX_APP_ID" | sqlcl | tr -d '[:space:]')"
+  found="$(sysdba_value "select count(*) from apex_applications where application_id = $APEX_APP_ID;")"
   [[ "$found" == 1 ]] || die "Application APEX $APEX_APP_ID absente de la base : $found"
 }
 
@@ -181,11 +187,17 @@ cmd_up() {
   if podman container exists "$DB_CTR"; then
     die "Le conteneur $DB_CTR existe déjà : $0 down"
   fi
+  # SQLcl, utilisé par deploy, téléchargé en tâche de fond pendant le pull de
+  # l'image et le démarrage de la base (une dizaine de secondes en CI)
+  local fetch_pid
+  fetch_zip "$SQLCL_DIR" "$SQLCL_URL" "$SQLCL_SHA256" &
+  fetch_pid=$!
   info "Démarrage de la base ($CI_DB_IMAGE)"
   # --stop-timeout : comme en dev, laisse le temps au SHUTDOWN IMMEDIATE
   podman run -d --name "$DB_CTR" -p 127.0.0.1::1521 --stop-timeout 120 \
     "$CI_DB_IMAGE" >/dev/null
   wait_for "Base de données" 600 "$DB_CTR" db_ready
+  wait "$fetch_pid" || die "Téléchargement de SQLcl en échec"
   info "Base prête : 127.0.0.1:$(db_port)/$PDB"
 }
 

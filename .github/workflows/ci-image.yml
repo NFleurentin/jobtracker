@@ -69,8 +69,12 @@ jobs:
       - name: Push image
         env:
           TAG: ${{ steps.tag.outputs.tag }}
+        # zstd plutôt que gzip : la couche unique (11 Go) se décompresse sur un
+        # seul cœur au pull ; en gzip, environ 80 Mo/s, soit 2 minutes par run
+        # de CI. --force-compression : jamais de couche gzip réutilisée.
         run: |
-          podman push --digestfile "$RUNNER_TEMP/digest" "$TAG"
+          podman push --compression-format zstd --force-compression \
+            --digestfile "$RUNNER_TEMP/digest" "$TAG"
           {
             echo "### Image publiée"
             echo

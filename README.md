@@ -210,6 +210,20 @@ Points d'attention :
 - Le credential de l'API n'est pas une migration : il se crée à la main sur chaque base (voir [plus bas](#credential-de-lapi-france-travail)).
 - Un `project export` juste après peut réécrire le commentaire `sqlcl_snapshot` des tables qui ont des contraintes `CHECK` : le texte de la condition revient sous sa forme formatée, celle des changesets, alors que l'empreinte (`hash`) ne change pas. Ce diff de pure forme ne se committe pas : `project stage` compare le texte des snapshots, il générerait un `DROP` puis un `ADD` des contraintes, en échec sur une base où elles existent. `dev.sh stage` le restaure.
 
+### Changer de branche en cours de route
+
+La base de dev est la source du schéma et de l'application APEX : changer de branche dans Git ne la change pas. Elle garde les objets de la branche quittée, qu'un `dev.sh stage` embarquerait dans les changesets de la suivante. On travaille donc sur une branche à la fois, terminée et fusionnée avant la suivante. Pour changer de branche malgré tout :
+
+```bash
+git switch <branche>        # ou main
+env/local/dev.sh reset      # schéma JOBTRACKER reconstruit depuis dist/, après saisie de 'oui'
+```
+
+`reset` supprime le schéma `JOBTRACKER` avec **toutes ses données** (offres, candidatures, notes), puis rejoue l'amorçage et `migrate --apply` : le schéma est dans l'état du `dist/` de l'arbre de travail, comme sur la base vide de la CI. Le travail en cours qui n'est pas passé par `dev.sh stage` et un commit est perdu.
+
+- Conservés, car hors du schéma : le workspace APEX et ses comptes, le credential de l'API, Logger, utPLSQL et la traduction d'APEX.
+- Refusé tant qu'une session est ouverte en `JOBTRACKER` (`dev.sh sql`, SQL Developer) : le `DROP USER` échouerait (ORA-01940).
+
 ### Credential de l'API France Travail
 
 Les packages de collecte appellent l'API avec le Web Credential `FRANCE_TRAVAIL_API`. Il se crée à la main, une fois par base, après l'amorçage : Builder, Workspace Utilities > Web Credentials > Create.
@@ -291,6 +305,7 @@ env/ci/run.sh down
 - [x] Projet SQLcl initialisé
 - [x] Mise à niveau d'une base de dev vide ou en retard par les migrations (`dev.sh migrate`)
 - [x] Évolution du schéma en une commande (`dev.sh stage`) : export, changesets, alignement du journal Liquibase du dev sur confirmation
+- [x] Reconstruction du schéma de dev depuis `dist/`, pour changer de branche en cours de route (`dev.sh reset`)
 - [x] Tests et formatage de `test/` en une commande (`dev.sh test`, `dev.sh format`), compilation et contrôle des objets invalides communs avec la CI
 - [ ] Instance Autonomous Database de prod
 - [ ] Amorçage de la prod documenté (`ADMIN`), avec installation de Logger
@@ -387,6 +402,7 @@ dist/           Changesets Liquibase générés par project stage, regroupés pa
 | Workspace APEX créé par l'amorçage (script commun), son développeur par `dev.sh` seulement | le workspace ne contient aucun secret, son script sert au dev et à la prod ; le mot de passe du développeur reste hors du dépôt, dans un secret Podman généré. Limite : sur ADB, le développeur se crée à la main | workspace et développeur créés à la main dans l'administration d'APEX (non reproductible), développeur dans le script commun (mot de passe en paramètre) |
 | Staging de la collecte en deux tables : `collect_runs` (une ligne par exécution et par source, statut, nombre d'offres reçues, erreur) et `collect_requests` (une ligne par requête HTTP, réponse brute en type `JSON`, en-têtes de réponse, code HTTP ou erreur) ; sources dans un référentiel `offer_sources` | le brut gardé permet le rejeu sans rappeler l'API ; le run trace les échecs survenus avant toute requête ; une table commune à toutes les sources, le JSON ne dépendant pas de la source ; référentiel partagé avec les candidatures. En-têtes de requête jamais stockés (jeton OAuth2). Limites : une réponse non JSON n'est pas conservée (payload null, code HTTP et erreur seulement) ; purge à définir | une table de staging par source (une DDL par source ajoutée), payload en `CLOB` (réanalysé à chaque lecture, non validé), métadonnées en JSON (ni contraintes ni jointures), identifiant de run sans table (runs en échec invisibles) |
 | Base de dev comme source des migrations (`project export`, `project stage`), journal Liquibase du dev aligné par `lb changelog-sync`, le tout enchaîné par `dev.sh stage` (confirmation avant l'écriture du journal, aucun commit) | circuit prévu par SQLcl Projects : le DDL s'écrit et s'essaie en dev, les fichiers et les changesets en sont tirés. Limite : les migrations ne sont pas exécutées sur la base où le DDL est écrit ; les autres bases de dev les jouent (`dev.sh migrate --apply`), et la CI les rejoue sur une base vide à chaque PR | migrations écrites à la main puis déployées en dev (pas de calcul des différences, fichiers d'état à tenir à jour séparément) |
+| Une seule base de dev, une branche de travail à la fois ; pour changer de branche en cours de route, `dev.sh reset` reconstruit le schéma `JOBTRACKER` depuis `dist/` (suppression du schéma, amorçage, `migrate --apply`, après confirmation) | la base de dev est la source du schéma et d'APEX : une base partagée entre branches mélangerait leurs objets dans `project export`. Un seul contributeur et des branches courtes : le cas reste rare, une commande suffit ; même chemin que la CI (base vide, `dist/install.sql`). Limites : données du schéma de dev perdues à chaque reset ; travail non passé par `stage` perdu | une PDB par branche (clonage rapide, mais un pool ORDS par PDB et `dev.sh` à paramétrer), un conteneur par branche depuis l'image de CI (plusieurs Go par conteneur, sans ORDS ni Builder) |
 | Objets invalides recompilés en fin de `dist/install.sql`, après `lb update`, par `dbms_utility.compile_schema(user, compile_all => false)` | supprimer une colonne ou recréer une vue de base invalide les vues dépendantes, qu'Oracle ne recompile qu'au premier accès : sans cette étape, chaque PR concernée devait ajouter un changeset de recompilation pour passer le contrôle des objets invalides de la CI ; même point d'entrée pour le dev, la CI et la prod ; seuls les objets invalides sont recompilés, et une vraie erreur de compilation reste détectée par la CI | `utils/recompile.sql` fourni par SQLcl (lit les vues `dba_`, inaccessibles à la session de déploiement), droit `select any dictionary` accordé au compte (droit large pour un besoin étroit), changeset `_custom` de recompilation dans chaque PR (oubli constaté en CI) |
 | Collecte en PL/SQL, dans la base | toute la chaîne est dans Oracle, sans service externe à déployer ni à surveiller | script Python externe qui charge la base (un composant et des identifiants de plus) |
 | Appels HTTP par `APEX_WEB_SERVICE` | inclus dans APEX, gère le jeton OAuth2 et renvoie la réponse en CLOB en un appel | `UTL_HTTP` (plus bas niveau : en-têtes, lecture de la réponse par morceaux et OAuth2 à coder) |

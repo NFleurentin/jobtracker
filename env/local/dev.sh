@@ -12,6 +12,8 @@
 # sql        : SQLcl (version figée) connecté en proxy au schéma applicatif,
 #              depuis la racine du dépôt ; options SQLcl acceptées (-S...)
 # migrate    : changesets de dist/ en attente ; --apply les joue
+# reset      : supprime le schéma applicatif et ses données (confirmation),
+#              puis le reconstruit depuis dist/ (amorçage et migrations)
 # stage      : évolution du schéma (project export et stage, alignement du
 #              journal Liquibase du dev après confirmation)
 # test       : compile test/ et lance utPLSQL, toutes les suites ou celles
@@ -19,7 +21,7 @@
 # format     : formate test/, ou les fichiers de test/ donnés, avec les règles
 #              du projet (src/ est formaté par project export)
 #
-# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage
+# Usage : env/local/dev.sh up | bootstrap | apex-admin | sql [options] | migrate [--apply] | reset | stage
 #                          | test [suite...] | format [fichier...] | down | status | destroy
 # =============================================================================
 set -euo pipefail
@@ -560,6 +562,52 @@ exit\n" | cmd_sql -S | tr -d '[:space:]')"
   esac
 }
 
+# Schéma applicatif reconstruit depuis le dist/ de l'arbre de travail, comme la
+# CI sur une base vide : pour changer de branche en cours de route (une seule
+# base de dev, une branche à la fois). Supprime JOBTRACKER et ses données,
+# après confirmation, puis rejoue l'amorçage (rejouable) et les migrations.
+# Workspace APEX, comptes de l'application et credential de l'API sont des
+# métadonnées d'APEX, hors du schéma : ils sont conservés. Logger, utPLSQL et
+# la traduction d'APEX, dans d'autres schémas, aussi.
+cmd_reset() {
+  if ! running "$DB_CTR" || ! db_ready >/dev/null 2>&1; then
+    die "La base n'est pas prête : env/local/dev.sh up"
+  fi
+  # Une session ouverte (dev.sh sql, job en cours) ferait échouer le DROP USER
+  # (ORA-01940)
+  local sessions
+  sessions="$(sysdba_value "select count(*) from v\$session where username = 'JOBTRACKER';")"
+  [[ "$sessions" =~ ^[0-9]+$ ]] || die "Contrôle des sessions impossible : $sessions"
+  if (( sessions > 0 )); then
+    sysdba <<'EOF' >&2
+set linesize 120 pagesize 50
+column osuser format a16
+column machine format a24
+column program format a30
+select sid, serial#, osuser, machine, program
+  from v$session
+ where username = 'JOBTRACKER';
+EOF
+    die "$sessions session(s) ouverte(s) en JOBTRACKER : les fermer (dev.sh sql, SQL Developer...), puis relancer"
+  fi
+
+  local branch answer
+  branch="$(git -C "$REPO_DIR" branch --show-current)"
+  warn "Le schéma JOBTRACKER va être supprimé avec TOUTES ses données (offres, candidatures, notes),"
+  warn "puis reconstruit depuis le dist/ de l'arbre de travail (branche ${branch:-HEAD détaché})."
+  read -r -p "Saisir 'oui' pour continuer : " answer || answer=""
+  [[ "$answer" == "oui" ]] || { info "Reset annulé : rien n'a été modifié"; return; }
+
+  info "Suppression du schéma JOBTRACKER"
+  sysdba <<<"drop user jobtracker cascade;"
+
+  info "Amorçage (recrée le schéma, ses droits et le proxy)"
+  cmd_bootstrap
+  info "Migrations de dist/"
+  cmd_migrate --apply
+  info "Schéma JOBTRACKER reconstruit depuis dist/"
+}
+
 # sqlcl attendu par env/common.sh. Sous-shell : cmd_sql se termine par exec.
 sqlcl() { ( cmd_sql -S ); }
 
@@ -785,11 +833,12 @@ case "${1:-}" in
   apex-admin) cmd_apex_admin ;;
   sql)        shift; cmd_sql "$@" ;;
   migrate)    shift; cmd_migrate "$@" ;;
+  reset)      cmd_reset ;;
   stage)      cmd_stage ;;
   test)       shift; cmd_test "$@" ;;
   format)     shift; cmd_format "$@" ;;
   down)       cmd_down ;;
   status)     cmd_status ;;
   destroy)    cmd_destroy ;;
-  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | stage | test [suite...] | format [fichier...] | down | status | destroy" >&2; exit 2 ;;
+  *)          echo "Usage : $0 up | bootstrap | apex-admin | sql [options] | migrate [--apply] | reset | stage | test [suite...] | format [fichier...] | down | status | destroy" >&2; exit 2 ;;
 esac

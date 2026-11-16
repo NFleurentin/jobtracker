@@ -11,9 +11,6 @@ create or replace package jobtracker.collect_france_travail authid definer is
     co_max_offset constant pls_integer := 3000;
     co_max_results constant pls_integer := 3150;
 
-    -- Nouveaux essais sur 429 et 5xx
-    co_max_attempts constant pls_integer := 5;
-
     /**
      * Point d'entrée de la collecte (DBMS_SCHEDULER, ou appel manuel en dev).
      * Seul à faire COMMIT, y compris en cas d'échec pour garder la trace,
@@ -63,4 +60,4 @@ end collect_france_travail;
 /
 
 
--- sqlcl_snapshot {"hash":"7ae70f1af223d715a2ccf08b82e63416a5ab3788","type":"PACKAGE_SPEC","name":"COLLECT_FRANCE_TRAVAIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"21ff6d4823c0aebed902646b607c51c4b7ad0f33","type":"PACKAGE_SPEC","name":"COLLECT_FRANCE_TRAVAIL","schemaName":"JOBTRACKER","sxml":""}

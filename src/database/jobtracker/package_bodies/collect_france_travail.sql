@@ -1,17 +1,12 @@
 create or replace package body jobtracker.collect_france_travail is
 
-    co_scope_prefix         constant varchar2(31 char) := lower($$plsql_unit)
+    co_scope_prefix constant varchar2(31 char) := lower($$plsql_unit)
                                                   || '.';
-    co_source_code          constant offer_sources.source_code%type := 'FRANCE_TRAVAIL';
-    co_credential_static_id constant varchar2(30 char) := 'FRANCE_TRAVAIL_API';
-    co_token_url            constant varchar2(200 char) := 'https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire'
-    ;
-    co_search_url           constant varchar2(200 char) := 'https://api.francetravail.io/partenaire/offresdemploi/v2/offres/search';
+    co_source_code  constant offer_sources.source_code%type := 'FRANCE_TRAVAIL';
 
     -- Recherches, une par mot-clé : dans motsCles, la virgule est un ET.
     -- Provisoire, en dur (reprises de jobboard) : à rendre paramétrables.
-    co_searches             constant sys.odcivarchar2list := sys.odcivarchar2list('sql', 'analytics engineer', 'plsql', 'pl-sql', 'pl/sql'
-    ,
+    co_searches     constant sys.odcivarchar2list := sys.odcivarchar2list('sql', 'analytics engineer', 'plsql', 'pl-sql', 'pl/sql',
                                                                       'pl sql', 'snowflake', 'dbt', 'développeur oracle');
 
     -- -------------------------------------------------------------------------
@@ -72,23 +67,25 @@ create or replace package body jobtracker.collect_france_travail is
     -- -------------------------------------------------------------------------
 
     /**
-     * Demande une page de résultats, avec de nouveaux essais sur 429 et 5xx.
-     * Chaque essai est tracé par sa propre ligne collect_requests.
-     * @param in_offset       index de début de la page demandée
-     * @param out_total       total de la recherche, null sans Content-Range
-     * @param out_offer_count nombre d'offres de la page, 0 sur une 204
+     * Demande une page de résultats (france_travail_api.call, avec ses
+     * nouveaux essais), tracée par une ligne collect_requests. Le détail de
+     * chaque essai est dans le journal des échanges.
+     * @param in_correlation_id commun aux pages d'une recherche
+     * @param in_offset         index de début de la page demandée
+     * @param out_total         total de la recherche, null sans Content-Range
+     * @param out_offer_count   nombre d'offres de la page, 0 sur une 204
      * @throws app_errors.co_http_error code HTTP en échec, ou essais épuisés
      */
     procedure fetch_page (
-        in_run_id       in collect_runs.run_id%type,
-        in_keywords     in varchar2,
-        in_offset       in pls_integer,
-        out_status_code out pls_integer,
-        out_total       out pls_integer,
-        out_offer_count out pls_integer
+        in_run_id         in collect_runs.run_id%type,
+        in_correlation_id in raw,
+        in_keywords       in varchar2,
+        in_offset         in pls_integer,
+        out_status_code   out pls_integer,
+        out_total         out pls_integer,
+        out_offer_count   out pls_integer
     ) is
 
-        l_scope      logger_logs.scope%type := co_scope_prefix || 'fetch_page';
         l_range      varchar2(20 char) := in_offset
                                      || '-'
                                      || ( in_offset + co_page_size - 1 );
@@ -99,70 +96,48 @@ create or replace package body jobtracker.collect_france_travail is
     begin
         l_params.put('motsCles', in_keywords);
         l_params.put('range', l_range);
-        -- URL complète pour le staging et les messages ; l'appel reçoit l'URL
-        -- de base et les paramètres, seule saisie
-        l_url := http_util.build_url(co_search_url, l_params.to_json);
-        << attempts >> for l_attempt in 1..co_max_attempts loop
-            -- Visible sans commit dans v$session.action (tronqué par Oracle si trop long)
-            dbms_application_info.set_action(in_keywords
-                                             || ' '
-                                             || l_range
-                                             || ' #' || l_attempt);
+        -- URL complète pour le staging ; l'appel reçoit l'endpoint et les
+        -- paramètres, seule saisie
+        l_url := http_util.build_url(
+            france_travail_api.endpoint_url(france_travail_api.co_endpoint_offer_search),
+            l_params.to_json
+        );
+        -- Visible sans commit dans v$session.action (tronqué par Oracle si trop long)
+        dbms_application_info.set_action(in_keywords
+                                         || ' ' || l_range);
+        l_request_id := collect_staging.open_request(in_run_id, http_util.co_method_get, l_url, l_params.to_json);
 
-            l_request_id := collect_staging.open_request(in_run_id, http_util.co_method_get, l_url, l_params.to_json);
-
-            begin
-                l_body := http_util.make_rest_request(
-                    in_url                  => co_search_url,
-                    in_http_method          => http_util.co_method_get,
-                    in_external_system_code => exchange_log.co_system_france_travail,
-                    in_params               => l_params.to_json,
-                    in_credential_static_id => co_credential_static_id,
-                    in_token_url            => co_token_url
+        begin
+            l_body := france_travail_api.call(
+                in_endpoint       => france_travail_api.co_endpoint_offer_search,
+                in_params         => l_params.to_json,
+                in_correlation_id => in_correlation_id
+            );
+        exception
+            when app_errors.e_http_error then
+                -- Réponse hors 2xx : code et en-têtes de la dernière réponse,
+                -- son corps est dans le journal des échanges
+                collect_staging.close_request(l_request_id, apex_web_service.g_status_code, http_util.response_headers, null, sqlerrm
                 );
-            exception
-                when others then
-                    -- Erreur déjà journalisée par http_util ; trace de la requête
-                    collect_staging.close_request(l_request_id, null, null, null, sqlerrm);
-                    raise;
+
+                raise;
+            when others then
+                -- Erreur sans réponse, déjà journalisée par http_util
+                collect_staging.close_request(l_request_id, null, null, null, sqlerrm);
+                raise;
+        end;
+
+        out_status_code := apex_web_service.g_status_code;
+        collect_staging.close_request(l_request_id, out_status_code, http_util.response_headers, l_body);
+        out_total := parse_total(http_util.response_header(http_util.co_header_content_range));
+        out_offer_count :=
+            case
+                when out_status_code = utl_http.http_no_content then
+                    0
+                else
+                    json_object_t.parse(l_body).get_array('resultats').get_size
             end;
 
-            out_status_code := apex_web_service.g_status_code;
-            if out_status_code in ( utl_http.http_ok, utl_http.http_no_content, utl_http.http_partial_content ) then
-                collect_staging.close_request(l_request_id, out_status_code, http_util.response_headers, l_body);
-                out_total := parse_total(http_util.response_header(http_util.co_header_content_range));
-                out_offer_count :=
-                    case
-                        when out_status_code = utl_http.http_no_content then
-                            0
-                        else
-                            json_object_t.parse(l_body).get_array('resultats').get_size
-                    end;
-
-                return;
-            end if;
-
-            collect_staging.close_request(l_request_id, out_status_code, http_util.response_headers, l_body, 'HTTP ' || out_status_code
-            );
-
-            exit attempts when not http_util.is_retryable(out_status_code)
-            or l_attempt = co_max_attempts;
-            logger.log_warning('HTTP '
-                               || out_status_code
-                               || ', attempt '
-                               || l_attempt
-                               || ': '
-                               || l_url, l_scope);
-
-            dbms_session.sleep(http_util.retry_delay(l_attempt,
-                                                     http_util.response_header(http_util.co_header_retry_after)));
-
-        end loop attempts;
-
-        raise_application_error(app_errors.co_http_error, 'HTTP '
-                                                          || out_status_code
-                                                          || ' on '
-                                                          || l_url);
     end fetch_page;
 
     /**
@@ -177,6 +152,8 @@ create or replace package body jobtracker.collect_france_travail is
         l_scope          logger_logs.scope%type := co_scope_prefix || 'collect_search';
         l_search_params  json_object_t := json_object_t();
         l_run_id         collect_runs.run_id%type;
+        -- Regroupe dans le journal des échanges les appels de la recherche
+        l_correlation_id raw(16) := exchange_log.new_correlation_id;
         l_offset         pls_integer := 0;
         l_status_code    pls_integer;
         l_total          pls_integer;
@@ -187,8 +164,8 @@ create or replace package body jobtracker.collect_france_travail is
         l_run_id := collect_staging.open_run(co_source_code, l_search_params.to_json);
         begin
             << pages >> loop
-                fetch_page(l_run_id, in_keywords, l_offset, l_status_code, l_total,
-                           l_offer_count);
+                fetch_page(l_run_id, l_correlation_id, in_keywords, l_offset, l_status_code,
+                           l_total, l_offer_count);
                 check_page(l_status_code, l_total);
                 l_received_count := l_received_count + l_offer_count;
                 exit pages when not has_more(l_status_code, l_offset, l_total);
@@ -280,4 +257,4 @@ end collect_france_travail;
 /
 
 
--- sqlcl_snapshot {"hash":"aa4a4930a059713fbcea56d6804bfa78f242045a","type":"PACKAGE_BODY","name":"COLLECT_FRANCE_TRAVAIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"bbe8a29f573495f56860d141f1f56e35186dcf51","type":"PACKAGE_BODY","name":"COLLECT_FRANCE_TRAVAIL","schemaName":"JOBTRACKER","sxml":""}

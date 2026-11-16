@@ -14,7 +14,7 @@
 - Une candidature à une ESN ou à un cabinet est toujours un parent avec au moins un enfant, même pour une seule mission ou un client confidentiel. C'est une convention appliquée par l'application APEX, qui crée le parent et son premier enfant ensemble : le package ne la contrôle pas, un parent n'ayant pas d'enfant au moment de son insertion.
 - Un enfant n'a pas de type de candidature : il hérite de celui du parent. Le salaire, le TJM et les avantages sont lus sur l'enfant, sinon sur le parent ; pour les avantages, ceux de l'enfant remplacent ceux du parent dès qu'il en a. La note et l'intérêt sont propres à chaque niveau. Ces valeurs héritées sont calculées par la vue `application_details`.
 - Le statut d'un enfant ne se propage pas au parent : le statut du parent se tient à la main. Une mission déclinée passe à `WITHDRAWN`.
-- Les tables de collecte `OFFER_SOURCES`, `COLLECT_RUNS` et `COLLECT_REQUESTS` ne changent pas et ne figurent pas ici ; `DISMISSED_OFFERS.source_id` référence `OFFER_SOURCES`.
+- Le référentiel des sources d'offres `OFFER_SOURCES` ne change pas et ne figure pas ici ; `DISMISSED_OFFERS.source_id` le référence.
 - Le journal des échanges (`EXTERNAL_EXCHANGES` et ses référentiels `EXTERNAL_SYSTEMS`, `EXCHANGE_PROTOCOLS`, `EXCHANGE_STATUSES`) est technique et sans lien avec le modèle métier : il ne figure pas ici, voir les commentaires des tables.
 
 ## Diagramme

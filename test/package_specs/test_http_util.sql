@@ -5,6 +5,19 @@ create or replace package jobtracker.test_http_util authid definer is
 
     --%suite(http_util)
 
+    --%context(is_success)
+
+    --%test(vrai aux bornes de la classe 2xx)
+    procedure is_success_bounds;
+
+    --%test(faux hors de la classe 2xx)
+    procedure is_success_outside;
+
+    --%test(faux sans code)
+    procedure is_success_without_code;
+
+    --%endcontext
+
     --%context(is_server_error)
 
     --%test(vrai aux bornes de la classe 5xx)

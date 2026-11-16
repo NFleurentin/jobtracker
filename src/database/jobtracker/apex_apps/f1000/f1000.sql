@@ -5038,6 +5038,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Exchange Protocol Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -5059,6 +5060,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'Exchange Status Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -5081,6 +5083,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'External Exchange Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
  p_id=>wwv_flow_imp.id(17257947372244587)
@@ -5090,6 +5093,7 @@ wwv_flow_imp_page.create_worksheet_column(
 ,p_column_label=>'External System Id'
 ,p_column_type=>'NUMBER'
 ,p_display_text_as=>'HIDDEN_ESCAPE_SC'
+,p_use_as_row_header=>'N'
 ,p_available_clientside=>'N'
 );
 wwv_flow_imp_page.create_worksheet_column(
@@ -5277,37 +5281,6 @@ wwv_flow_imp_page.create_report_region(
 ,p_query_no_data_found=>'Aucun'
 ,p_csv_output=>'N'
 ,p_prn_output=>'N'
-,p_prn_format=>'PDF'
-,p_prn_output_link_text=>'Print'
-,p_prn_content_disposition=>'ATTACHMENT'
-,p_prn_units=>'MILLIMETERS'
-,p_prn_paper_size=>'A4'
-,p_prn_width_units=>'PERCENTAGE'
-,p_prn_width=>297
-,p_prn_height=>210
-,p_prn_orientation=>'HORIZONTAL'
-,p_prn_page_header_font_color=>'#000000'
-,p_prn_page_header_font_family=>'Helvetica'
-,p_prn_page_header_font_weight=>'normal'
-,p_prn_page_header_font_size=>'12'
-,p_prn_page_footer_font_color=>'#000000'
-,p_prn_page_footer_font_family=>'Helvetica'
-,p_prn_page_footer_font_weight=>'normal'
-,p_prn_page_footer_font_size=>'12'
-,p_prn_header_bg_color=>'#EEEEEE'
-,p_prn_header_font_color=>'#000000'
-,p_prn_header_font_family=>'Helvetica'
-,p_prn_header_font_weight=>'bold'
-,p_prn_header_font_size=>'10'
-,p_prn_body_bg_color=>'#FFFFFF'
-,p_prn_body_font_color=>'#000000'
-,p_prn_body_font_family=>'Helvetica'
-,p_prn_body_font_weight=>'normal'
-,p_prn_body_font_size=>'10'
-,p_prn_border_width=>.5
-,p_prn_page_header_alignment=>'CENTER'
-,p_prn_page_footer_alignment=>'CENTER'
-,p_prn_border_color=>'#666666'
 ,p_sort_null=>'L'
 ,p_plug_query_strip_html=>'N'
 );
@@ -5374,37 +5347,6 @@ wwv_flow_imp_page.create_report_region(
 ,p_query_no_data_found=>'Aucun'
 ,p_csv_output=>'N'
 ,p_prn_output=>'N'
-,p_prn_format=>'PDF'
-,p_prn_output_link_text=>'Print'
-,p_prn_content_disposition=>'ATTACHMENT'
-,p_prn_units=>'MILLIMETERS'
-,p_prn_paper_size=>'A4'
-,p_prn_width_units=>'PERCENTAGE'
-,p_prn_width=>297
-,p_prn_height=>210
-,p_prn_orientation=>'HORIZONTAL'
-,p_prn_page_header_font_color=>'#000000'
-,p_prn_page_header_font_family=>'Helvetica'
-,p_prn_page_header_font_weight=>'normal'
-,p_prn_page_header_font_size=>'12'
-,p_prn_page_footer_font_color=>'#000000'
-,p_prn_page_footer_font_family=>'Helvetica'
-,p_prn_page_footer_font_weight=>'normal'
-,p_prn_page_footer_font_size=>'12'
-,p_prn_header_bg_color=>'#EEEEEE'
-,p_prn_header_font_color=>'#000000'
-,p_prn_header_font_family=>'Helvetica'
-,p_prn_header_font_weight=>'bold'
-,p_prn_header_font_size=>'10'
-,p_prn_body_bg_color=>'#FFFFFF'
-,p_prn_body_font_color=>'#000000'
-,p_prn_body_font_family=>'Helvetica'
-,p_prn_body_font_weight=>'normal'
-,p_prn_body_font_size=>'10'
-,p_prn_border_width=>.5
-,p_prn_page_header_alignment=>'CENTER'
-,p_prn_page_footer_alignment=>'CENTER'
-,p_prn_border_color=>'#666666'
 ,p_sort_null=>'L'
 ,p_plug_query_strip_html=>'N'
 );
@@ -5471,37 +5413,6 @@ wwv_flow_imp_page.create_report_region(
 ,p_query_no_data_found=>'Aucun'
 ,p_csv_output=>'N'
 ,p_prn_output=>'N'
-,p_prn_format=>'PDF'
-,p_prn_output_link_text=>'Print'
-,p_prn_content_disposition=>'ATTACHMENT'
-,p_prn_units=>'MILLIMETERS'
-,p_prn_paper_size=>'A4'
-,p_prn_width_units=>'PERCENTAGE'
-,p_prn_width=>297
-,p_prn_height=>210
-,p_prn_orientation=>'HORIZONTAL'
-,p_prn_page_header_font_color=>'#000000'
-,p_prn_page_header_font_family=>'Helvetica'
-,p_prn_page_header_font_weight=>'normal'
-,p_prn_page_header_font_size=>'12'
-,p_prn_page_footer_font_color=>'#000000'
-,p_prn_page_footer_font_family=>'Helvetica'
-,p_prn_page_footer_font_weight=>'normal'
-,p_prn_page_footer_font_size=>'12'
-,p_prn_header_bg_color=>'#EEEEEE'
-,p_prn_header_font_color=>'#000000'
-,p_prn_header_font_family=>'Helvetica'
-,p_prn_header_font_weight=>'bold'
-,p_prn_header_font_size=>'10'
-,p_prn_body_bg_color=>'#FFFFFF'
-,p_prn_body_font_color=>'#000000'
-,p_prn_body_font_family=>'Helvetica'
-,p_prn_body_font_weight=>'normal'
-,p_prn_body_font_size=>'10'
-,p_prn_border_width=>.5
-,p_prn_page_header_alignment=>'CENTER'
-,p_prn_page_footer_alignment=>'CENTER'
-,p_prn_border_color=>'#666666'
 ,p_sort_null=>'L'
 ,p_plug_query_strip_html=>'N'
 );
@@ -5562,6 +5473,7 @@ wwv_flow_imp_page.create_component_da_action(
 ,p_action_sequence=>10
 ,p_action=>'NATIVE_DIALOG_CANCEL'
 ,p_static_id=>'native-dialog-cancel'
+,p_stop_execution_on_error=>true
 );
 wwv_flow_imp_page.create_page_item(
  p_id=>wwv_flow_imp.id(17209373854900360)
@@ -6272,4 +6184,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"5d967e725c6964a4233a75abd7b24e595291a0a5","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"8883f108ad2769cf66148a763fdfc8ad7ade111d","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

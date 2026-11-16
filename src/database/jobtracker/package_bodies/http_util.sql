@@ -214,6 +214,13 @@ create or replace package body jobtracker.http_util is
             raise;
     end make_rest_request;
 
+    function is_success (
+        in_status_code in pls_integer
+    ) return boolean is
+    begin
+        return coalesce(in_status_code between 200 and 299, false);
+    end is_success;
+
     function is_server_error (
         in_status_code in pls_integer
     ) return boolean is
@@ -278,4 +285,4 @@ end http_util;
 /
 
 
--- sqlcl_snapshot {"hash":"d00dce3aa9d01d56ea3669ba6fed5be5c82fad0a","type":"PACKAGE_BODY","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"8244e18acafe92a37a7da8acaee8a319eadbf514","type":"PACKAGE_BODY","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}

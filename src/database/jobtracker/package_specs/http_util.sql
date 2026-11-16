@@ -81,6 +81,14 @@ create or replace package jobtracker.http_util authid definer is
     ) return clob;
 
     /**
+     * Indique si le code de statut est un succès (classe 2xx).
+     * @return false si in_status_code est null
+     */
+    function is_success (
+        in_status_code in pls_integer
+    ) return boolean;
+
+    /**
      * Indique si le code de statut est une erreur serveur (classe 5xx).
      * @return false si in_status_code est null
      */
@@ -128,4 +136,4 @@ end http_util;
 /
 
 
--- sqlcl_snapshot {"hash":"37d948a93f02742b9eb2c60bdc2503bc43ad4a1a","type":"PACKAGE_SPEC","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"03a07fe512b1fa7e5dc5b9751715337a7b03d91b","type":"PACKAGE_SPEC","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}

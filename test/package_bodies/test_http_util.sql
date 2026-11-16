@@ -1,5 +1,23 @@
 create or replace package body jobtracker.test_http_util is
 
+    procedure is_success_bounds is
+    begin
+        ut.expect(http_util.is_success(200)).to_be_true();
+        ut.expect(http_util.is_success(206)).to_be_true();
+        ut.expect(http_util.is_success(299)).to_be_true();
+    end is_success_bounds;
+
+    procedure is_success_outside is
+    begin
+        ut.expect(http_util.is_success(199)).to_be_false();
+        ut.expect(http_util.is_success(300)).to_be_false();
+    end is_success_outside;
+
+    procedure is_success_without_code is
+    begin
+        ut.expect(http_util.is_success(null)).to_be_false();
+    end is_success_without_code;
+
     procedure is_server_error_bounds is
     begin
         ut.expect(http_util.is_server_error(500)).to_be_true();

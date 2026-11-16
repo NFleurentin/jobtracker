@@ -16,7 +16,7 @@ Format Conventional Commits : `<type>(<scope>): <sujet>`, une ligne vide, puis u
 - Types : `feat`, `fix`, `refactor` (sans changement de comportement), `perf`, `test`, `docs`, `ci`, `chore` (dépendances, configuration, outillage), `revert`.
 - Scopes : la partie du système touchée, jamais une répétition du type (`ci`, `test`, `docs` restent des types). Optionnel si le changement est transverse.
   - `db` : modèle de données et logique métier en base (tables, vues, contraintes, packages hors collecte, tests utPLSQL associés).
-  - `collect` : chaîne de collecte des offres (OAuth2, appel REST, staging, contrôles, `MERGE`, garde-fou de volume, job `DBMS_SCHEDULER`).
+  - `collect` : accès à l'API France Travail et recherche des offres (OAuth2, appel REST, nouveaux essais, `france_travail_api`).
   - `apex` : application APEX et son export.
   - `env` : environnements (conteneurs locaux, amorçages : schémas, droits, ACL réseau, workspace APEX, credential).
   - `sqlcl` : outillage de migration (configuration SQLcl Projects et Liquibase, version figée).

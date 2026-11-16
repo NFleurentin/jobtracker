@@ -19,7 +19,8 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 - Un changeset généré par `project stage` ne se retouche pas : le stage suivant le réécrit, et la CI échoue (constaté en SQLcl 26.3). Ce qu'il génère mal passe par un `_custom`, placé dans `stage.changelog.xml` :
   - colonne `not null` ajoutée à une table remplie : l'ajout direct échoue. Ajouter la colonne nullable et la remplir par un `_custom`, puis la rendre obligatoire dans une PR suivante ;
   - renommage de colonne : généré en ajout puis suppression, qui perd la donnée. Nouvelle colonne nullable copiée par un `_custom`, puis, dans une PR suivante, `not null` et suppression de l'ancienne par un `_custom` placé après. Choisir les noms de colonnes définitifs dès la création ;
-  - suppression de colonne : générée en commentaire, donc à faire par un `_custom`.
+  - suppression de colonne : générée en commentaire, donc à faire par un `_custom` ;
+  - suppression d'objet (table, package) : générée en commentaire, et recommentée par le stage suivant si on la décommente. `DROP` dans un `_custom` rejouable, objet absent ignoré.
 
 ## Modèle de données
 
@@ -30,7 +31,6 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 - Vues en deux couches. Les vues `ui_` sont le contrat d'APEX : une par usage (région de page ou LOV), nommée `ui_<entité>_<usage>` (`ui_companies_list`, `ui_sectors_lov`). Elles ne font que choisir des colonnes et les présenter (horodatages en `timestamp with local time zone`, convertis par APEX dans le fuseau du navigateur ; libellé de référentiel dans la langue de la session) et lisent une vue de base, ou la table s'il n'y a rien à factoriser. Aucun objet du schéma ne lit une vue `ui_`.
 - Une vue de base factorise une logique partagée (jointures, libellés, règle métier comme « offre active ») et se nomme d'après son contenu (`company_details`, `active_offers`). Une vue de base 1:1 sur une table, si elle est nécessaire, porte le suffixe `_v` (`companies_v`), une vue et une table ne pouvant pas partager un nom.
 - Une contrainte qu'un formulaire peut violer reçoit son message dans le catalogue `app_messages`, sous le nom de la contrainte comme clé, sinon l'utilisateur voit le message générique.
-- Staging : réponse de l'API stockée brute dans une colonne de type `JSON`, sans transformation.
 - Libellé de référentiel affiché : une colonne par langue (`<colonne>_fr`, `<colonne>_en`), obligatoire et unique, choisie par les vues selon `(select app_message.current_language from dual)`, français pour toute autre langue.
 - Fichiers de données du dépôt : données fictives uniquement.
 

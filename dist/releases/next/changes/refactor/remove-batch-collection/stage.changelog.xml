@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/package_specs/collect_staging.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/collect_france_travail.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/collect_runs.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/collect_requests.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/collect_runs.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/collect_requests.sql" relativeToChangelogFile="true"/>
+<include file="_custom/drop_batch_collection.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

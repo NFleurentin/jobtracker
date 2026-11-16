@@ -1,7 +1,7 @@
 -- =============================================================================
 -- check_credential.sql : contrôle du Web Credential de l'API France Travail
 --   - FRANCE_TRAVAIL_API : OAuth2 client credentials, static id référencé par
---     les packages de collecte
+--     le package france_travail_api
 --
 -- Le credential se crée à la main dans le Builder (procédure dans le README) :
 -- apex_credential refuse le schéma applicatif, qui n'est pas administrateur

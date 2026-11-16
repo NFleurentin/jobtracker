@@ -44,7 +44,9 @@ create or replace package jobtracker.http_util authid definer is
      * transaction autonome : obtenir un jeton OAuth2 par un Web Credential met
      * fin à la transaction en cours (ROLLBACK constaté avec APEX 26.1), ce qui
      * effacerait les écritures non validées de l'appelant (job ou page APEX).
-     * Chaque appel est tracé dans le journal des échanges (exchange_log) :
+     * Chaque appel est tracé dans le journal des échanges (exchange_log), sauf
+     * si le journal est désactivé pour le système
+     * (external_systems.is_exchange_logged) :
      * URL envoyée, méthode, paramètres et en-têtes de requête,
      * code, en-têtes et corps de la réponse, ou erreur. Les en-têtes sensibles
      * (Authorization, Cookie...) sont masqués ; l'URL est stockée telle quelle :
@@ -136,4 +138,4 @@ end http_util;
 /
 
 
--- sqlcl_snapshot {"hash":"03a07fe512b1fa7e5dc5b9751715337a7b03d91b","type":"PACKAGE_SPEC","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"d7807cce98ac753e4adcc564ac3bede6a5eecd35","type":"PACKAGE_SPEC","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}

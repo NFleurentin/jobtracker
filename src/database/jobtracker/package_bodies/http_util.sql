@@ -193,7 +193,10 @@ create or replace package body jobtracker.http_util is
         l_response.put('headers',
                        pairs_to_json(apex_web_service.g_headers));
         put_body(l_response, l_body);
-        exchange_log.complete_exchange(l_exchange_id, l_response.to_json);
+        -- Identifiant null : journal désactivé pour le système
+        if l_exchange_id is not null then
+            exchange_log.complete_exchange(l_exchange_id, l_response.to_json);
+        end if;
         -- Termine la transaction autonome (sinon ORA-06519) en gardant ce
         -- qu'APEX a pu écrire, comme le jeton ; sans effet sur l'appelant
         commit;
@@ -285,4 +288,4 @@ end http_util;
 /
 
 
--- sqlcl_snapshot {"hash":"8244e18acafe92a37a7da8acaee8a319eadbf514","type":"PACKAGE_BODY","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"02e2cf01e8eebf56a859fe3b520900e4eebd8444","type":"PACKAGE_BODY","name":"HTTP_UTIL","schemaName":"JOBTRACKER","sxml":""}

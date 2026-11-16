@@ -3,7 +3,7 @@ create or replace package jobtracker.test_exchange_log authid definer is
     -- Tests de exchange_log. Ses écritures sont validées en transaction
     -- autonome : le rollback automatique d'utPLSQL ne les annule pas, il est
     -- désactivé pour la suite ; les échanges créés sont supprimés après
-    -- chaque test (cleanup).
+    -- chaque test (cleanup), qui réactive aussi le journal de France Travail.
     -- Suppose les données de référence.
     -- =========================================================================
 
@@ -12,7 +12,10 @@ create or replace package jobtracker.test_exchange_log authid definer is
 
     --%aftereach(cleanup)
 
-    /** Supprime les échanges créés par le test, en transaction autonome. */
+    /**
+     * Supprime les échanges créés par le test et réactive le journal de
+     * France Travail, en transaction autonome.
+     */
     procedure cleanup;
 
     --%test(charge les systèmes, protocoles et états cités par les constantes)
@@ -34,6 +37,16 @@ create or replace package jobtracker.test_exchange_log authid definer is
     --%test(refuse un protocole inconnu)
     --%throws(-20001)
     procedure open_exchange_unknown_protocol;
+
+    --%test(n'ouvre rien et rend null si le journal est désactivé pour le système)
+    procedure open_exchange_not_logged;
+
+    --%test(relit l'indicateur du journal à chaque appel)
+    procedure open_exchange_reads_flag_each_call;
+
+    --%test(refuse un protocole inconnu, journal désactivé)
+    --%throws(-20001)
+    procedure open_exchange_not_logged_unknown_protocol;
 
     --%test(clôt un échange COMPLETED avec la réponse et son code)
     procedure complete_exchange_stores_response;

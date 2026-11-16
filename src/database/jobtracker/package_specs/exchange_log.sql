@@ -2,7 +2,8 @@ create or replace package jobtracker.exchange_log authid definer is
     /**
      * Journal des échanges avec les systèmes externes (external_exchanges),
      * indépendant de tout contexte métier : une ligne par échange, ouverte à
-     * l'envoi, close à la réception ou en échec. Chaque écriture est validée
+     * l'envoi, close à la réception ou en échec. Désactivable par système
+     * (external_systems.is_exchange_logged). Chaque écriture est validée
      * en transaction autonome : la trace survit au rollback de l'appelant, y
      * compris celui que fait APEX en obtenant un jeton OAuth2. Seconde
      * exception, après http_util.make_rest_request, à la règle des COMMIT.
@@ -29,13 +30,16 @@ create or replace package jobtracker.exchange_log authid definer is
     function new_correlation_id return raw;
 
     /**
-     * Ouvre un échange à l'état PENDING, avant l'envoi.
+     * Ouvre un échange à l'état PENDING, avant l'envoi, si le journal est
+     * activé pour le système (external_systems.is_exchange_logged, lu à
+     * chaque appel). Les codes sont contrôlés dans tous les cas.
      * @param in_external_system_code   code du système (co_system_)
      * @param in_exchange_protocol_code code du protocole (co_protocol_)
      * @param in_request                enveloppe de la requête, forme fixée par le
      *                                  protocole ; secrets déjà masqués
      * @param in_correlation_id         null pour un échange isolé
-     * @return identifiant de l'échange
+     * @return identifiant de l'échange, null si le journal est désactivé pour
+     *         le système : l'appelant ne clôt alors rien
      * @throws app_errors.e_not_found système ou protocole inconnu
      */
     function open_exchange (
@@ -100,4 +104,4 @@ end exchange_log;
 /
 
 
--- sqlcl_snapshot {"hash":"4e6623dd7748bfb3200cc8ee765be58f9b15bd2d","type":"PACKAGE_SPEC","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"09149e6a36018cf8a58d84a0b496a7a7a0eb17d1","type":"PACKAGE_SPEC","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}

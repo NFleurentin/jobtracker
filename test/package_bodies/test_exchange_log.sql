@@ -1,10 +1,14 @@
 create or replace package body jobtracker.test_exchange_log is
 
     -- Échanges créés par le test en cours, supprimés par cleanup
-    g_exchange_ids sys.odcinumberlist := sys.odcinumberlist();
+    g_exchange_ids     sys.odcinumberlist := sys.odcinumberlist();
+
+    -- Journal de France Travail désactivé par le test en cours, réactivé par
+    -- cleanup
+    g_logging_disabled boolean := false;
 
     -- Taille de lot qui couvre tous les échanges expirés du dev
-    co_all_rows constant pls_integer := 1000000;
+    co_all_rows        constant pls_integer := 1000000;
 
     /** Ouvre un échange HTTP France Travail et le retient pour cleanup. */
     function open_test_exchange (
@@ -45,6 +49,39 @@ create or replace package body jobtracker.test_exchange_log is
         return l_code;
     end status_code;
 
+    /**
+     * Active ou désactive le journal de France Travail, en transaction
+     * autonome : open_exchange, autonome lui aussi, ne voit que les données
+     * validées.
+     */
+    procedure set_exchange_logged (
+        in_is_exchange_logged in boolean
+    ) is
+        pragma autonomous_transaction;
+    begin
+        update external_systems
+        set
+            is_exchange_logged = in_is_exchange_logged
+        where
+            external_system_code = exchange_log.co_system_france_travail;
+
+        commit;
+        g_logging_disabled := not in_is_exchange_logged;
+    end set_exchange_logged;
+
+    /** Nombre d'échanges du journal, tous systèmes confondus. */
+    function exchange_count return pls_integer is
+        l_count pls_integer;
+    begin
+        select
+            count(*)
+        into l_count
+        from
+            external_exchanges;
+
+        return l_count;
+    end exchange_count;
+
     procedure cleanup is
         pragma autonomous_transaction;
     begin
@@ -56,6 +93,19 @@ create or replace package body jobtracker.test_exchange_log is
                 from
                     table ( g_exchange_ids )
             );
+
+        -- Seulement si le test l'a désactivé : les tests en rollback(auto)
+        -- gardent un verrou sur la ligne, que cette transaction autonome
+        -- attendrait (ORA-00060)
+        if g_logging_disabled then
+            update external_systems
+            set
+                is_exchange_logged = true
+            where
+                external_system_code = exchange_log.co_system_france_travail;
+
+            g_logging_disabled := false;
+        end if;
 
         commit;
         g_exchange_ids.delete;
@@ -175,6 +225,40 @@ create or replace package body jobtracker.test_exchange_log is
         );
     end open_exchange_unknown_protocol;
 
+    procedure open_exchange_not_logged is
+        l_count_before pls_integer;
+        l_id           external_exchanges.external_exchange_id%type;
+    begin
+        set_exchange_logged(false);
+        l_count_before := exchange_count;
+        l_id := open_test_exchange;
+        ut.expect(l_id).to_be_null;
+        ut.expect(exchange_count).to_equal(l_count_before);
+    end open_exchange_not_logged;
+
+    procedure open_exchange_reads_flag_each_call is
+    begin
+        set_exchange_logged(false);
+        ut.expect(open_test_exchange).to_be_null;
+        set_exchange_logged(true);
+        ut.expect(open_test_exchange).to_be_not_null;
+    end open_exchange_reads_flag_each_call;
+
+    procedure open_exchange_not_logged_unknown_protocol is
+        l_id external_exchanges.external_exchange_id%type;
+    begin
+        set_exchange_logged(false);
+        l_id := exchange_log.open_exchange(
+            in_external_system_code   => exchange_log.co_system_france_travail,
+            in_exchange_protocol_code => 'UNKNOWN_PROTOCOL',
+            in_request                =>
+                        json(
+                            '{}'
+                        )
+        );
+
+    end open_exchange_not_logged_unknown_protocol;
+
     procedure complete_exchange_stores_response is
         l_id       external_exchanges.external_exchange_id%type;
         r_exchange external_exchanges%rowtype;
@@ -196,6 +280,7 @@ create or replace package body jobtracker.test_exchange_log is
         -- Une réponse d'erreur HTTP reste un échange abouti
         ut.expect(status_code(l_id)).to_equal(exchange_log.co_status_completed);
         ut.expect(json_value(r_exchange.response, '$.status_code' returning number)).to_equal(404);
+
         ut.expect(r_exchange.ended_at).to_be_not_null();
         ut.expect(r_exchange.error_message).to_be_null();
     end complete_exchange_stores_response;
@@ -310,11 +395,13 @@ create or replace package body jobtracker.test_exchange_log is
             ( l_system_id,
               l_protocol_id,
               l_status_id,
-              json('{"url":"https://test.invalid/","method":"GET","headers":[],"body":null}'),
+              json(
+                    '{"url":"https://test.invalid/","method":"GET","headers":[],"body":null}'
+                ),
               l_started_at,
               case
                   when in_status_code != exchange_log.co_status_pending then
-                      l_started_at
+                        l_started_at
               end,
               'TEST' )
         returning external_exchange_id into l_id;
@@ -340,7 +427,6 @@ create or replace package body jobtracker.test_exchange_log is
     end exchange_count;
 
     procedure delete_expired_old is
-
         l_expired_id external_exchanges.external_exchange_id%type;
         l_recent_id  external_exchanges.external_exchange_id%type;
         l_deleted    pls_integer;

@@ -2,6 +2,10 @@ comment on table jobtracker.external_systems is
     'Systèmes externes appelés (API...), cités par le journal des échanges. Liste fixe chargée par migration ; le code est la clé stable des packages (constantes de exchange_log).'
     ;
 
+comment on column jobtracker.external_systems.is_exchange_logged is
+    'Journalisation des échanges du système dans external_exchanges (exchange_log.open_exchange), relue à chaque appel ; false pour réduire le volume du journal ou la collecte de données personnelles. Les échanges déjà journalisés restent soumis à la rétention.'
+    ;
+
 comment on column jobtracker.external_systems.orphan_delay_minutes is
     'Délai en minutes au-delà duquel un échange PENDING du système est réputé abandonné (session tuée) et passé en FAILED par le job EXCHANGE_LOG_HOUSEKEEPING (exchange_log.abandon_orphans) ; à garder au-dessus du délai maximal des appels HTTP.'
     ;
@@ -11,4 +15,4 @@ comment on column jobtracker.external_systems.retention_days is
     ;
 
 
--- sqlcl_snapshot {"hash":"945acc3514ad663111588be010a950a40f733930","type":"COMMENT","name":"EXTERNAL_SYSTEMS","schemaName":"jobtracker","sxml":""}
+-- sqlcl_snapshot {"hash":"bc44887ab78ccc68086c28a8d1e193ae6c5f7299","type":"COMMENT","name":"EXTERNAL_SYSTEMS","schemaName":"jobtracker","sxml":""}

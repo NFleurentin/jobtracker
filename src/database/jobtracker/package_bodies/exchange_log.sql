@@ -83,11 +83,26 @@ create or replace package body jobtracker.exchange_log is
         l_system_id   external_systems.external_system_id%type;
         l_protocol_id exchange_protocols.exchange_protocol_id%type;
         l_status_id   exchange_statuses.exchange_status_id%type;
+        l_is_logged   external_systems.is_exchange_logged%type;
         l_id          external_exchanges.external_exchange_id%type;
     begin
         -- Fonctions privées : non appelables depuis l'INSERT (PLS-00231)
         l_system_id := external_system_id(in_external_system_code);
         l_protocol_id := exchange_protocol_id(in_exchange_protocol_code);
+        -- Lu à chaque appel, sans cache de package : une session du pool
+        -- d'APEX garderait une valeur périmée
+        select
+            is_exchange_logged
+        into l_is_logged
+        from
+            external_systems
+        where
+            external_system_id = l_system_id;
+
+        if not l_is_logged then
+            -- Aucune écriture : pas de transaction à terminer
+            return null;
+        end if;
         l_status_id := exchange_status_id(co_status_pending);
         insert into external_exchanges (
             external_system_id,
@@ -291,4 +306,4 @@ end exchange_log;
 /
 
 
--- sqlcl_snapshot {"hash":"3bec9758f083e9a9ce8489cd36d7685f8cdf8170","type":"PACKAGE_BODY","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"328bd271daf5d1b4b1681b7898f7623398a696a8","type":"PACKAGE_BODY","name":"EXCHANGE_LOG","schemaName":"JOBTRACKER","sxml":""}

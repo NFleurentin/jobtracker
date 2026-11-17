@@ -9,6 +9,12 @@ create or replace package jobtracker.france_travail_api authid definer is
 
     -- Endpoints, relatifs à l'URL de base
     co_endpoint_offer_search constant varchar2(100 char) := '/offresdemploi/v2/offres/search';
+    co_endpoint_ref_regions constant varchar2(100 char) := '/offresdemploi/v2/referentiel/regions';
+    co_endpoint_ref_departments constant varchar2(100 char) := '/offresdemploi/v2/referentiel/departements';
+    co_endpoint_ref_communes constant varchar2(100 char) := '/offresdemploi/v2/referentiel/communes';
+    co_endpoint_ref_countries constant varchar2(100 char) := '/offresdemploi/v2/referentiel/pays';
+    co_endpoint_ref_continents constant varchar2(100 char) := '/offresdemploi/v2/referentiel/continents';
+    co_endpoint_ref_contract_types constant varchar2(100 char) := '/offresdemploi/v2/referentiel/typesContrats';
 
     -- Nouveaux essais sur 429 et 5xx (http_util.is_retryable)
     co_max_attempts constant pls_integer := 5;
@@ -47,4 +53,4 @@ end france_travail_api;
 /
 
 
--- sqlcl_snapshot {"hash":"5175c0d57a9fa3537b30b6e588848d22a8020f85","type":"PACKAGE_SPEC","name":"FRANCE_TRAVAIL_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"b90535af8ec445a4db8428e2b89bd4355e527ac9","type":"PACKAGE_SPEC","name":"FRANCE_TRAVAIL_API","schemaName":"JOBTRACKER","sxml":""}

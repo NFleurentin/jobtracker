@@ -85,6 +85,22 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry référentiels-france-travail (
+        name: Référentiels France Travail
+        pageNumber: 9040
+        execution {
+            sequence: 40
+        }
+        appearance {
+            parentEntry: @paramètres
+        }
+        link {
+            target: {
+                page: 9040
+            }
+        }
+    )
+
     entry systèmes-externes (
         name: Systèmes externes
         pageNumber: 9030

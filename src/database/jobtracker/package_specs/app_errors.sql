@@ -76,8 +76,14 @@ create or replace package jobtracker.app_errors authid definer is
     co_row_locked constant pls_integer := -20204;
     e_row_locked exception;
     pragma exception_init ( e_row_locked, -20204 );
+
+    -- Traitement déjà en cours, qui ne se lance pas deux fois (chargement des
+    -- référentiels France Travail...)
+    co_already_running constant pls_integer := -20205;
+    e_already_running exception;
+    pragma exception_init ( e_already_running, -20205 );
 end app_errors;
 /
 
 
--- sqlcl_snapshot {"hash":"91d3a55d6038f9592fb51d6a2d5345b44463c230","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"c5eac9cd23564857ae90fa08d3935ea1d6ec93e2","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}

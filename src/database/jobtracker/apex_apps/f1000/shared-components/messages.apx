@@ -19,3 +19,51 @@ textMessage CONTACT_DELETE_WITH_POSITIONS_MSG (
     }
 )
 
+textMessage FT_LOAD_CALL_FAILED (
+    message {
+        text: Le suivi du chargement a échoué : %0
+        language: fr
+        usedInJavaScript: true
+    }
+)
+
+textMessage FT_LOAD_ENDED (
+    message {
+        text: Chargement des référentiels terminé.
+        language: fr
+        usedInJavaScript: true
+    }
+)
+
+textMessage FT_LOAD_ENDED_PARTIAL (
+    message {
+        text: Chargement des référentiels terminé : %0 référentiel(s) en erreur.
+        language: fr
+        usedInJavaScript: true
+    }
+)
+
+textMessage FT_LOAD_FAILED (
+    message {
+        text: Le chargement des référentiels a échoué.
+        language: fr
+        usedInJavaScript: true
+    }
+)
+
+textMessage FT_LOAD_REFRESH (
+    message {
+        text: Actualiser la page ?
+        language: fr
+        usedInJavaScript: true
+    }
+)
+
+textMessage FT_LOAD_TIMEOUT (
+    message {
+        text: Le chargement dure plus longtemps que prévu : suivi arrêté. Actualisez la page plus tard.
+        language: fr
+        usedInJavaScript: true
+    }
+)
+

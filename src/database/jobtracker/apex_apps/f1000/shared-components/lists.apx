@@ -53,6 +53,7 @@ list navigation-bar (
                 9020
                 9021
                 9030
+                9040
             ]
         }
         link {
@@ -192,6 +193,24 @@ list settings (
         }
         userDefinedAttributes {
             1: Référentiel des intitulés de poste utilisés par les candidatures.
+        }
+    )
+
+    entry référentiels-france-travail (
+        label: Référentiels France Travail
+        icon {
+            imageIconCssClasses: fa-database
+        }
+        layout {
+            sequence: 40
+        }
+        link {
+            target: {
+                page: 9040
+            }
+        }
+        userDefinedAttributes {
+            1: Recharger depuis l'API les codes des filtres de recherche.
         }
     )
 

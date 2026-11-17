@@ -66,5 +66,15 @@ create or replace package jobtracker.test_ft_referential_loader authid definer i
     procedure unknown_referential_rejected;
 
     --%endcontext
+
+    --%context(suivi du chargement, sans job en cours)
+
+    --%test(ne signale aucun chargement en cours sans job)
+    procedure no_job_not_running;
+
+    --%test(rend l'état du dernier chargement)
+    procedure latest_load_state;
+
+    --%endcontext
 end test_ft_referential_loader;
 /

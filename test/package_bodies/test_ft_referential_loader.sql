@@ -281,5 +281,22 @@ create or replace package body jobtracker.test_ft_referential_loader is
         l_result := ft_referential_loader.load_response('UNKNOWN', new_load, '[{"code":"T1","libelle":"X"}]');
     end unknown_referential_rejected;
 
+    procedure no_job_not_running is
+    begin
+        ut.expect(ft_referential_loader.is_load_running).to_be_false;
+        ut.expect(ft_referential_loader.load_state().get_boolean('running')).to_be_false;
+    end no_job_not_running;
+
+    procedure latest_load_state is
+        l_load_id ft_referential_loads.ft_referential_load_id%type;
+        l_state   json_object_t;
+    begin
+        l_load_id := new_load;
+        l_state := ft_referential_loader.load_state;
+        ut.expect(l_state.get_number('load_id')).to_equal(l_load_id);
+        ut.expect(l_state.get_string('load_state')).to_equal('INTERRUPTED');
+        ut.expect(l_state.get_number('error_count')).to_equal(0);
+    end latest_load_state;
+
 end test_ft_referential_loader;
 /

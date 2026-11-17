@@ -20,7 +20,7 @@ begin
 wwv_flow_imp.import_begin (
  p_version_yyyy_mm_dd=>'2026.03.30'
 ,p_release=>'26.1.0'
-,p_default_workspace_id=>6800164315863072
+,p_default_workspace_id=>5545883586040021
 ,p_default_application_id=>1000
 ,p_default_id_offset=>0
 ,p_default_owner=>'JOBTRACKER'
@@ -36,20 +36,20 @@ prompt APPLICATION 1000 - JobTracker
 --   Exported By:     JOBTRACKER
 --   Flashback:       0
 --   Export Type:     Application Export
---     Pages:                     14
+--     Pages:                     15
 --       Items:                   67
 --       Validations:              2
---       Processes:               19
---       Regions:                 34
---       Buttons:                 20
---       Dynamic Actions:          4
+--       Processes:               21
+--       Regions:                 36
+--       Buttons:                 21
+--       Dynamic Actions:          5
 --     Shared Components:
 --       Logic:
 --         Build Options:          1
 --       Navigation:
 --         Lists:                  3
 --         Breadcrumbs:            1
---           Entries:              8
+--           Entries:              9
 --       Security:
 --         Authentication:         1
 --         Authorization:          1
@@ -59,12 +59,12 @@ prompt APPLICATION 1000 - JobTracker
 --         LOVs:                  11
 --       PWA:
 --       Globalization:
---         Messages:               3
+--         Messages:               9
 --       Reports:
 --       E-Mail:
 --     Supporting Objects:  Excluded
 --   Version:         26.1.0
---   Instance ID:     2400139363144436
+--   Instance ID:     1745857762556088
 --
 
 prompt --application/delete_application
@@ -109,7 +109,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'15940569'
+,p_version_scn=>'13962236'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -246,7 +246,7 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(10000335531844198)
 ,p_name=>'Navigation Bar'
 ,p_static_id=>'navigation-bar'
-,p_version_scn=>'SH256:maH2q2TYXFrCy3i2uL_b78T5o2DTEMyxxpBPdxf9HOI'
+,p_version_scn=>'SH256:rtjIGUXNApb08J3yfjWFO1pv2nMmZpYLgs5Wvupcqkw'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10004279031844232)
@@ -278,7 +278,7 @@ wwv_flow_imp_shared.create_list_item(
 ,p_list_text_02=>'icon-only'
 ,p_list_text_04=>unistr('Param\00E8tres')
 ,p_list_item_current_type=>'COLON_DELIMITED_PAGE_LIST'
-,p_list_item_current_for_pages=>'9000,9010,9020,9021,9030'
+,p_list_item_current_for_pages=>'9000,9010,9020,9021,9030,9040'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(10004409236844234)
@@ -348,7 +348,7 @@ wwv_flow_imp_shared.create_list(
  p_id=>wwv_flow_imp.id(18803255052579528)
 ,p_name=>'Settings'
 ,p_static_id=>'settings'
-,p_version_scn=>'SH256:Uk1SlGni3EfpVm3Sn_Ge-MBluKd0ygH7d7yw3ppavDo'
+,p_version_scn=>'SH256:VDQh4ZwHyaqtZDGEtL3F7TFEV6oVp0My7Vxt4u0l4t8'
 );
 wwv_flow_imp_shared.create_list_item(
  p_id=>wwv_flow_imp.id(18803526683579535)
@@ -358,6 +358,16 @@ wwv_flow_imp_shared.create_list_item(
 ,p_list_item_link_target=>'f?p=&APP_ID.:9010:&SESSION.::&DEBUG.::::'
 ,p_list_item_icon=>'fa-briefcase'
 ,p_list_text_01=>unistr('R\00E9f\00E9rentiel des intitul\00E9s de poste utilis\00E9s par les candidatures.')
+,p_list_item_current_type=>'TARGET_PAGE'
+);
+wwv_flow_imp_shared.create_list_item(
+ p_id=>wwv_flow_imp.id(10549862956599776)
+,p_list_item_display_sequence=>40
+,p_list_item_link_text=>unistr('R\00E9f\00E9rentiels France Travail')
+,p_static_id=>unistr('r\00E9f\00E9rentiels-france-travail')
+,p_list_item_link_target=>'f?p=&APP_ID.:9040:&SESSION.::&DEBUG.::::'
+,p_list_item_icon=>'fa-database'
+,p_list_text_01=>'Recharger depuis l''API les codes des filtres de recherche.'
 ,p_list_item_current_type=>'TARGET_PAGE'
 );
 wwv_flow_imp_shared.create_list_item(
@@ -1183,6 +1193,15 @@ wwv_flow_imp_shared.create_menu_option(
 ,p_page_id=>9010
 );
 wwv_flow_imp_shared.create_menu_option(
+ p_id=>wwv_flow_imp.id(10548655083563366)
+,p_parent_id=>wwv_flow_imp.id(18806842119615444)
+,p_option_sequence=>40
+,p_short_name=>unistr('R\00E9f\00E9rentiels France Travail')
+,p_static_id=>unistr('r\00E9f\00E9rentiels-france-travail')
+,p_link=>'f?p=&APP_ID.:9040:&SESSION.::&DEBUG.:::'
+,p_page_id=>9040
+);
+wwv_flow_imp_shared.create_menu_option(
  p_id=>wwv_flow_imp.id(18601382892291793)
 ,p_parent_id=>wwv_flow_imp.id(18806842119615444)
 ,p_option_sequence=>30
@@ -1315,6 +1334,54 @@ wwv_flow_imp_shared.create_message(
 ,p_message_language=>'fr'
 ,p_message_text=>unistr('Ce contact a des postes, qui seront supprim\00E9s avec lui. Voulez-vous continuer ?')
 ,p_version_scn=>'SH256:sB_ty7sS3cG4sONycH1oYdsDOu_k6n1HU0IIK7C4hXU'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(10547598618509395)
+,p_name=>'FT_LOAD_CALL_FAILED'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Le suivi du chargement a \00E9chou\00E9 : %0')
+,p_is_js_message=>true
+,p_version_scn=>'SH256:8IJeh7k1P4pCDvyyXEeDI2JuF2pjrnBltvpseqMpSrM'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(10546419251498179)
+,p_name=>'FT_LOAD_ENDED'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Chargement des r\00E9f\00E9rentiels termin\00E9.')
+,p_is_js_message=>true
+,p_version_scn=>'SH256:HTzvgEK7DcQ5U3IyDAVG_2zLSj1AR1BYHfHOEW8WHic'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(10546748906500736)
+,p_name=>'FT_LOAD_ENDED_PARTIAL'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Chargement des r\00E9f\00E9rentiels termin\00E9 : %0 r\00E9f\00E9rentiel(s) en erreur.')
+,p_is_js_message=>true
+,p_version_scn=>'SH256:5VqrXmQohaEB9Zs7kO-iIKfXDAJmgiLQkZZ0OKK_llI'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(10546980180502966)
+,p_name=>'FT_LOAD_FAILED'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Le chargement des r\00E9f\00E9rentiels a \00E9chou\00E9.')
+,p_is_js_message=>true
+,p_version_scn=>'SH256:DfW6zcus2kh4CE1EvbYRM1qxXWVXUDlJ9l9BlkIVivM'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(10547154750504808)
+,p_name=>'FT_LOAD_REFRESH'
+,p_message_language=>'fr'
+,p_message_text=>'Actualiser la page ?'
+,p_is_js_message=>true
+,p_version_scn=>'SH256:M9oYAQmck-pRG7ckjFVDysmbCTv-pM4JCf6kG_8Yc6g'
+);
+wwv_flow_imp_shared.create_message(
+ p_id=>wwv_flow_imp.id(10547359171507260)
+,p_name=>'FT_LOAD_TIMEOUT'
+,p_message_language=>'fr'
+,p_message_text=>unistr('Le chargement dure plus longtemps que pr\00E9vu : suivi arr\00EAt\00E9. Actualisez la page plus tard.')
+,p_is_js_message=>true
+,p_version_scn=>'SH256:ID7tGSimK8r7Q39eJ_rKR-H_iPrX3GSYj2ZZBcTli64'
 );
 end;
 /
@@ -6406,6 +6473,344 @@ wwv_flow_imp_page.create_page_process(
 );
 end;
 /
+prompt --application/pages/page_09040
+begin
+wwv_flow_imp_page.create_page(
+ p_id=>9040
+,p_name=>unistr('R\00E9f\00E9rentiels France Travail')
+,p_alias=>'REFERENTIELS-FRANCE-TRAVAIL'
+,p_step_title=>unistr('R\00E9f\00E9rentiels France Travail')
+,p_autocomplete_on_off=>'OFF'
+,p_group_id=>wwv_flow_imp.id(10004950277844234)
+,p_javascript_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'/*',
+unistr(' * Suivi du chargement des r\00E9f\00E9rentiels France Travail (#158).'),
+unistr(' * L''\00E9tat vient du serveur (Ajax Callbacks START_FT_LOAD et GET_FT_LOAD_STATE,'),
+unistr(' * r\00E9ponse de ft_referential_loader.load_state) : un chargement est en cours'),
+unistr(' * tant que son job existe. Pendant le chargement, le bouton est gris\00E9 et la'),
+unistr(' * r\00E9gion du dernier chargement porte un spinner ; \00E0 la fin, une confirmation'),
+' * propose d''actualiser la page.',
+' */',
+'var ftLoad = (function () {',
+'    "use strict";',
+'',
+'    var POLL_DELAY = 5000;            // ms entre deux interrogations',
+'    var MAX_DURATION = 5 * 60 * 1000; // ms de suivi avant abandon',
+'',
+'    var BUTTON_ID = "reload-ft-referentials";',
+'    var REGION_ID = "ft-load-last";',
+'',
+unistr('    var spinner$ = null;   // spinner affich\00E9 pendant le chargement'),
+unistr('    var followedSince;     // d\00E9but du suivi, pour la dur\00E9e maximale'),
+unistr('    var wasRunning = false; // un chargement a \00E9t\00E9 vu en cours'),
+'',
+'    function msg(key) {',
+'        return apex.lang.getMessage(key);',
+'    }',
+'',
+'    /** Grise le bouton et affiche le spinner pendant un chargement. */',
+'    function showRunning(running) {',
+'        $("#" + BUTTON_ID).prop("disabled", running);',
+'        if (running && !spinner$) {',
+'            spinner$ = apex.util.showSpinner($("#" + REGION_ID));',
+'        } else if (!running && spinner$) {',
+'            spinner$.remove();',
+'            spinner$ = null;',
+'        }',
+'    }',
+'',
+unistr('    /** Fin du chargement suivi : r\00E9sultat, puis proposition d''actualiser. */'),
+'    function notifyEnd(state) {',
+'        var text;',
+'        if (state.load_state === "SUCCESS") {',
+'            text = msg("FT_LOAD_ENDED");',
+'        } else if (state.load_state === "PARTIAL") {',
+'            text = apex.lang.formatMessage("FT_LOAD_ENDED_PARTIAL", state.error_count);',
+'        } else {',
+'            text = msg("FT_LOAD_FAILED");',
+'        }',
+'        apex.message.confirm(text + " " + msg("FT_LOAD_REFRESH"), function (ok) {',
+'            if (ok) {',
+'                window.location.reload();',
+'            }',
+'        });',
+'    }',
+'',
+unistr('    /** Affiche une erreur de page (texte \00E9chapp\00E9 par showErrors). */'),
+'    function showError(text) {',
+'        apex.message.clearErrors();',
+'        apex.message.showErrors([{',
+'            type: "error",',
+'            location: "page",',
+'            message: text',
+'        }]);',
+'    }',
+'',
+unistr('    /** Arr\00EAt du suivi sur erreur : message, bouton r\00E9activ\00E9. */'),
+'    function stopOnError(text) {',
+'        showRunning(false);',
+'        showError(text);',
+'    }',
+'',
+unistr('    /** Traite l''\00E9tat rendu par le serveur et relance le suivi au besoin. */'),
+'    function handleState(state) {',
+'        if (!state.running) {',
+'            showRunning(false);',
+'            if (wasRunning) {',
+'                wasRunning = false;',
+'                notifyEnd(state);',
+'            }',
+'            return;',
+'        }',
+'        wasRunning = true;',
+'        showRunning(true);',
+'        if (Date.now() - followedSince > MAX_DURATION) {',
+'            stopOnError(msg("FT_LOAD_TIMEOUT"));',
+'            return;',
+'        }',
+'        setTimeout(poll, POLL_DELAY);',
+'    }',
+'',
+unistr('    /** Message d''un appel Ajax en \00E9chec (message traduit par le serveur). */'),
+'    function failureText(jqXHR, textStatus, errorThrown) {',
+'        return apex.lang.formatMessage("FT_LOAD_CALL_FAILED", errorThrown || textStatus);',
+'    }',
+'',
+unistr('    /** Interroge l''\00E9tat ; un \00E9chec arr\00EAte le suivi. */'),
+'    function poll() {',
+'        apex.server.process("GET_FT_LOAD_STATE", {}, { dataType: "json" })',
+'            .done(handleState)',
+'            .fail(function (jqXHR, textStatus, errorThrown) {',
+'                stopOnError(failureText(jqXHR, textStatus, errorThrown));',
+'            });',
+'    }',
+'',
+'    return {',
+'        /** Au chargement de la page : reprend le suivi si un chargement tourne. */',
+'        init: function () {',
+'            followedSince = Date.now();',
+'            poll();',
+'        },',
+'        /** Clic sur le bouton : lance un chargement puis le suit. */',
+'        start: function () {',
+'            followedSince = Date.now();',
+'            showRunning(true);',
+unistr('            // Un refus (chargement d\00E9j\00E0 en cours) n''arr\00EAte pas le suivi : l''\00E9tat'),
+unistr('            // est relu, et le bouton reste gris\00E9 si un chargement tourne'),
+'            apex.server.process("START_FT_LOAD", {}, { dataType: "json" })',
+'                .done(handleState)',
+'                .fail(function (jqXHR, textStatus, errorThrown) {',
+'                    showError(failureText(jqXHR, textStatus, errorThrown));',
+'                    poll();',
+'                });',
+'        }',
+'    };',
+'})();'))
+,p_javascript_code_onload=>'ftLoad.init();'
+,p_step_template=>4073832297226169690
+,p_page_template_options=>'#DEFAULT#'
+,p_protection_level=>'C'
+,p_page_component_map=>'03'
+);
+wwv_flow_imp_page.create_page_plug(
+ p_id=>wwv_flow_imp.id(10548091286563344)
+,p_plug_name=>'Breadcrumb'
+,p_static_id=>'breadcrumb'
+,p_region_template_options=>'#DEFAULT#:t-BreadcrumbRegion--useBreadcrumbTitle'
+,p_component_template_options=>'#DEFAULT#'
+,p_plug_template=>2532939663579242476
+,p_plug_display_sequence=>10
+,p_plug_display_point=>'REGION_POSITION_01'
+,p_plug_item_display_point=>'ABOVE'
+,p_menu_id=>wwv_flow_imp.id(10004043825844231)
+,p_plug_source_type=>'NATIVE_BREADCRUMB'
+,p_menu_template_id=>4073839682315169711
+);
+wwv_flow_imp_page.create_report_region(
+ p_id=>wwv_flow_imp.id(7149376476187806)
+,p_name=>unistr('Dernier chargement des r\00E9f\00E9rentiels')
+,p_static_id=>unistr('dernier-chargement-des-r\00E9f\00E9rentiels')
+,p_title=>unistr('Dernier chargement des r\00E9f\00E9rentiels')
+,p_region_name=>'ft-load-last'
+,p_template=>4073835273271169698
+,p_display_sequence=>10
+,p_region_template_options=>'#DEFAULT#:t-Region--scrollBody'
+,p_component_template_options=>'#DEFAULT#:t-Report--altRowsDefault:t-Report--rowHighlight'
+,p_source_type=>'NATIVE_SQL_REPORT'
+,p_query_type=>'TABLE'
+,p_query_table=>'UI_FT_REFERENTIAL_LOADS_LAST'
+,p_include_rowid_column=>false
+,p_ajax_enabled=>'Y'
+,p_lazy_loading=>false
+,p_query_row_template=>2540130677583398057
+,p_query_num_rows=>15
+,p_query_options=>'DERIVED_REPORT_COLUMNS'
+,p_query_no_data_found=>'Aucun chargement.'
+,p_csv_output=>'N'
+,p_prn_output=>'N'
+,p_prn_format=>'PDF'
+,p_prn_output_link_text=>'Print'
+,p_prn_content_disposition=>'ATTACHMENT'
+,p_prn_units=>'MILLIMETERS'
+,p_prn_paper_size=>'A4'
+,p_prn_width_units=>'PERCENTAGE'
+,p_prn_width=>297
+,p_prn_height=>210
+,p_prn_orientation=>'HORIZONTAL'
+,p_prn_page_header=>unistr('Dernier chargement des r\00E9f\00E9rentiels')
+,p_prn_page_header_font_color=>'#000000'
+,p_prn_page_header_font_family=>'Helvetica'
+,p_prn_page_header_font_weight=>'normal'
+,p_prn_page_header_font_size=>'12'
+,p_prn_page_footer_font_color=>'#000000'
+,p_prn_page_footer_font_family=>'Helvetica'
+,p_prn_page_footer_font_weight=>'normal'
+,p_prn_page_footer_font_size=>'12'
+,p_prn_header_bg_color=>'#EEEEEE'
+,p_prn_header_font_color=>'#000000'
+,p_prn_header_font_family=>'Helvetica'
+,p_prn_header_font_weight=>'bold'
+,p_prn_header_font_size=>'10'
+,p_prn_body_bg_color=>'#FFFFFF'
+,p_prn_body_font_color=>'#000000'
+,p_prn_body_font_family=>'Helvetica'
+,p_prn_body_font_weight=>'normal'
+,p_prn_body_font_size=>'10'
+,p_prn_border_width=>.5
+,p_prn_page_header_alignment=>'CENTER'
+,p_prn_page_footer_alignment=>'CENTER'
+,p_prn_border_color=>'#666666'
+,p_sort_null=>'L'
+,p_plug_query_strip_html=>'N'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(7150984511187822)
+,p_query_column_id=>3
+,p_column_alias=>'ENDED_AT'
+,p_column_display_sequence=>40
+,p_column_heading=>'Fin'
+,p_column_format=>'DD/MM/YYYY HH24:MI:SS'
+,p_heading_alignment=>'LEFT'
+,p_disable_sort_column=>'N'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(7151232569187825)
+,p_query_column_id=>6
+,p_column_alias=>'ERROR_COUNT'
+,p_column_display_sequence=>70
+,p_column_heading=>unistr('R\00E9f\00E9rentiels en erreur')
+,p_column_alignment=>'RIGHT'
+,p_heading_alignment=>'RIGHT'
+,p_disable_sort_column=>'N'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(7150786524187820)
+,p_query_column_id=>1
+,p_column_alias=>'FT_REFERENTIAL_LOAD_ID'
+,p_column_display_sequence=>10
+,p_hidden_column=>'Y'
+,p_derived_column=>'N'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(7151021731187823)
+,p_query_column_id=>4
+,p_column_alias=>'LOAD_STATE'
+,p_column_display_sequence=>20
+,p_hidden_column=>'Y'
+,p_derived_column=>'N'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(7151107643187824)
+,p_query_column_id=>5
+,p_column_alias=>'LOAD_STATE_LABEL'
+,p_column_display_sequence=>60
+,p_column_heading=>unistr('\00C9tat')
+,p_heading_alignment=>'LEFT'
+,p_disable_sort_column=>'N'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_report_columns(
+ p_id=>wwv_flow_imp.id(7150895301187821)
+,p_query_column_id=>2
+,p_column_alias=>'STARTED_AT'
+,p_column_display_sequence=>30
+,p_column_heading=>unistr('D\00E9but')
+,p_use_as_row_header=>'Y'
+,p_column_format=>'DD/MM/YYYY HH24:MI:SS'
+,p_heading_alignment=>'LEFT'
+,p_disable_sort_column=>'N'
+,p_derived_column=>'N'
+,p_include_in_export=>'Y'
+);
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(7151370557187826)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(7149376476187806)
+,p_button_name=>'RELOAD_FT_REFERENTIALS'
+,p_static_id=>'reload-ft-referentials'
+,p_button_static_id=>'reload-ft-referentials'
+,p_show_as_disabled=>false
+,p_button_action=>'DEFINED_BY_DA'
+,p_button_template_options=>'#DEFAULT#'
+,p_button_template_id=>4073839297780169708
+,p_button_is_hot=>'Y'
+,p_button_image_alt=>unistr('Recharger les r\00E9f\00E9rentiels')
+,p_button_position=>'EDIT'
+,p_warn_on_unsaved_changes=>null
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(7151460606187827)
+,p_name=>'click-reload-ft-referentials'
+,p_static_id=>'click-reload-ft-referentials'
+,p_event_sequence=>10
+,p_triggering_element_type=>'BUTTON'
+,p_triggering_button_id=>wwv_flow_imp.id(7151370557187826)
+,p_bind_type=>'bind'
+,p_execution_type=>'IMMEDIATE'
+,p_bind_event_type=>'click'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(7151507712187828)
+,p_event_id=>wwv_flow_imp.id(7151460606187827)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_execute_on_page_init=>'N'
+,p_static_id=>'native-javascript-code'
+,p_action=>'NATIVE_JAVASCRIPT_CODE'
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'js_code', 'ftLoad.start();')).to_clob
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(7151771164187830)
+,p_process_sequence=>20
+,p_process_point=>'ON_DEMAND'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'GET_FT_LOAD_STATE'
+,p_static_id=>'get-ft-load-state'
+,p_process_sql_clob=>'sys.htp.p(ft_referential_loader.load_state().to_string);'
+,p_process_clob_language=>'PLSQL'
+,p_internal_uid=>7151771164187830
+);
+wwv_flow_imp_page.create_page_process(
+ p_id=>wwv_flow_imp.id(7151605366187829)
+,p_process_sequence=>10
+,p_process_point=>'ON_DEMAND'
+,p_process_type=>'NATIVE_PLSQL'
+,p_process_name=>'START_FT_LOAD'
+,p_static_id=>'start-ft-load'
+,p_process_sql_clob=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'ft_referential_loader.start_load;',
+'sys.htp.p(ft_referential_loader.load_state().to_string);'))
+,p_process_clob_language=>'PLSQL'
+,p_internal_uid=>7151605366187829
+);
+end;
+/
 prompt --application/pages/page_09999
 begin
 wwv_flow_imp_page.create_page(
@@ -6635,4 +7040,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"9739672bf97e39c9eea10f7283d3d5078c1f98e2","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"e649218b94ac2f9f05131586d0281491b90fec3f","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

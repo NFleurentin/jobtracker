@@ -1,0 +1,359 @@
+page 9040 (
+    name: Référentiels France Travail
+    alias: REFERENTIELS-FRANCE-TRAVAIL
+    title: Référentiels France Travail
+    pageGroup: @administration
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    javaScript {
+        functionAndGlobalVariableDeclaration:
+            ```javascript-browser
+            /*
+             * Suivi du chargement des référentiels France Travail (#158).
+             * L'état vient du serveur (Ajax Callbacks START_FT_LOAD et GET_FT_LOAD_STATE,
+             * réponse de ft_referential_loader.load_state) : un chargement est en cours
+             * tant que son job existe. Pendant le chargement, le bouton est grisé et la
+             * région du dernier chargement porte un spinner ; à la fin, une confirmation
+             * propose d'actualiser la page.
+             */
+            var ftLoad = (function () {
+                "use strict";
+            
+                var POLL_DELAY = 5000;            // ms entre deux interrogations
+                var MAX_DURATION = 5 * 60 * 1000; // ms de suivi avant abandon
+            
+                var BUTTON_ID = "reload-ft-referentials";
+                var REGION_ID = "ft-load-last";
+            
+                var spinner$ = null;   // spinner affiché pendant le chargement
+                var followedSince;     // début du suivi, pour la durée maximale
+                var wasRunning = false; // un chargement a été vu en cours
+            
+                function msg(key) {
+                    return apex.lang.getMessage(key);
+                }
+            
+                /** Grise le bouton et affiche le spinner pendant un chargement. */
+                function showRunning(running) {
+                    $("#" + BUTTON_ID).prop("disabled", running);
+                    if (running && !spinner$) {
+                        spinner$ = apex.util.showSpinner($("#" + REGION_ID));
+                    } else if (!running && spinner$) {
+                        spinner$.remove();
+                        spinner$ = null;
+                    }
+                }
+            
+                /** Fin du chargement suivi : résultat, puis proposition d'actualiser. */
+                function notifyEnd(state) {
+                    var text;
+                    if (state.load_state === "SUCCESS") {
+                        text = msg("FT_LOAD_ENDED");
+                    } else if (state.load_state === "PARTIAL") {
+                        text = apex.lang.formatMessage("FT_LOAD_ENDED_PARTIAL", state.error_count);
+                    } else {
+                        text = msg("FT_LOAD_FAILED");
+                    }
+                    apex.message.confirm(text + " " + msg("FT_LOAD_REFRESH"), function (ok) {
+                        if (ok) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            
+                /** Affiche une erreur de page (texte échappé par showErrors). */
+                function showError(text) {
+                    apex.message.clearErrors();
+                    apex.message.showErrors([{
+                        type: "error",
+                        location: "page",
+                        message: text
+                    }]);
+                }
+            
+                /** Arrêt du suivi sur erreur : message, bouton réactivé. */
+                function stopOnError(text) {
+                    showRunning(false);
+                    showError(text);
+                }
+            
+                /** Traite l'état rendu par le serveur et relance le suivi au besoin. */
+                function handleState(state) {
+                    if (!state.running) {
+                        showRunning(false);
+                        if (wasRunning) {
+                            wasRunning = false;
+                            notifyEnd(state);
+                        }
+                        return;
+                    }
+                    wasRunning = true;
+                    showRunning(true);
+                    if (Date.now() - followedSince > MAX_DURATION) {
+                        stopOnError(msg("FT_LOAD_TIMEOUT"));
+                        return;
+                    }
+                    setTimeout(poll, POLL_DELAY);
+                }
+            
+                /** Message d'un appel Ajax en échec (message traduit par le serveur). */
+                function failureText(jqXHR, textStatus, errorThrown) {
+                    return apex.lang.formatMessage("FT_LOAD_CALL_FAILED", errorThrown || textStatus);
+                }
+            
+                /** Interroge l'état ; un échec arrête le suivi. */
+                function poll() {
+                    apex.server.process("GET_FT_LOAD_STATE", {}, { dataType: "json" })
+                        .done(handleState)
+                        .fail(function (jqXHR, textStatus, errorThrown) {
+                            stopOnError(failureText(jqXHR, textStatus, errorThrown));
+                        });
+                }
+            
+                return {
+                    /** Au chargement de la page : reprend le suivi si un chargement tourne. */
+                    init: function () {
+                        followedSince = Date.now();
+                        poll();
+                    },
+                    /** Clic sur le bouton : lance un chargement puis le suit. */
+                    start: function () {
+                        followedSince = Date.now();
+                        showRunning(true);
+                        // Un refus (chargement déjà en cours) n'arrête pas le suivi : l'état
+                        // est relu, et le bouton reste grisé si un chargement tourne
+                        apex.server.process("START_FT_LOAD", {}, { dataType: "json" })
+                            .done(handleState)
+                            .fail(function (jqXHR, textStatus, errorThrown) {
+                                showError(failureText(jqXHR, textStatus, errorThrown));
+                                poll();
+                            });
+                    }
+                };
+            })();
+            ```
+        executeWhenPageLoads: ftLoad.init();
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region dernier-chargement-des-référentiels (
+        name: Dernier chargement des référentiels
+        title: Dernier chargement des référentiels
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_REFERENTIAL_LOADS_LAST
+        }
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+        advanced {
+            htmlDomId: ft-load-last
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucun chargement.
+        }
+
+        column ENDED_AT (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Fin
+            }
+            layout {
+                sequence: 40
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI:SS
+            }
+        )
+
+        column ERROR_COUNT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Référentiels en erreur
+                alignment: end
+            }
+            layout {
+                sequence: 70
+                columnAlignment: end
+            }
+        )
+
+        column FT_REFERENTIAL_LOAD_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column LOAD_STATE (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column LOAD_STATE_LABEL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: État
+            }
+            layout {
+                sequence: 60
+            }
+        )
+
+        column STARTED_AT (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            heading {
+                heading: Début
+            }
+            layout {
+                sequence: 30
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            appearance {
+                formatMask: DD/MM/YYYY HH24:MI:SS
+            }
+        )
+
+    )
+
+    button reload-ft-referentials (
+        buttonName: RELOAD_FT_REFERENTIALS
+        label: Recharger les référentiels
+        layout {
+            sequence: 10
+            region: @dernier-chargement-des-référentiels
+            slot: edit
+        }
+        appearance {
+            buttonTemplate: @/text
+            hot: true
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+        advanced {
+            htmlDomId: reload-ft-referentials
+        }
+    )
+
+    dynamicAction click-reload-ft-referentials (
+        name: click-reload-ft-referentials
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @reload-ft-referentials
+        }
+
+        action native-javascript-code (
+            action: executeJsCode
+            settings {
+                jsCode: ftLoad.start();
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
+    process get-ft-load-state (
+        name: GET_FT_LOAD_STATE
+        type: executeCode
+        source {
+            plsqlCode: sys.htp.p(ft_referential_loader.load_state().to_string);
+        }
+        execution {
+            sequence: 20
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 7151771164187830
+        }
+    )
+
+    process start-ft-load (
+        name: START_FT_LOAD
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                ft_referential_loader.start_load;
+                sys.htp.p(ft_referential_loader.load_state().to_string);
+                ```
+        }
+        execution {
+            sequence: 10
+            point: ajaxCallback
+        }
+        advanced {
+            executionMappingIdentifier: 7151605366187829
+        }
+    )
+
+)
+

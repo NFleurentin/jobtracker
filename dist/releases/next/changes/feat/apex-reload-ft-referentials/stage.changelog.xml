@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/package_specs/ft_referential_loader.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_referential_load_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/ft_referential_loader.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_referential_loads_last.sql" relativeToChangelogFile="true"/>
+<include file="_custom/ft_referential_load_states_messages_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

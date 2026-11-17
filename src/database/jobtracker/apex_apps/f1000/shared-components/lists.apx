@@ -37,6 +37,26 @@ list navigation-bar (
         }
     )
 
+    entry paramètres (
+        label: Paramètres
+        icon {
+            imageIconCssClasses: fa-gear
+        }
+        layout {
+            sequence: 5
+        }
+        link {
+            target: {
+                type: url
+                url: #
+            }
+        }
+        userDefinedAttributes {
+            2: icon-only
+            4: Paramètres
+        }
+    )
+
     entry sign-out (
         label: Se déconnecter
         icon {
@@ -54,6 +74,26 @@ list navigation-bar (
         }
         serverSideCondition {
             type: userIsAuthenticated
+        }
+    )
+
+    entry systèmes-externes (
+        label: Systèmes externes
+        icon {
+            imageIconCssClasses: fa-server
+        }
+        layout {
+            sequence: 10
+            parentEntry: @paramètres
+        }
+        isCurrent {
+            type: pages
+            pages: 9030
+        }
+        link {
+            target: {
+                page: 9030
+            }
         }
     )
 

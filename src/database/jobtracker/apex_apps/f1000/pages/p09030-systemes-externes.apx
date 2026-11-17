@@ -1,0 +1,283 @@
+page 9030 (
+    name: Systèmes externes
+    alias: SYSTEMES-EXTERNES
+    title: Systèmes externes
+    pageGroup: @administration
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region systèmes-externes (
+        name: Systèmes externes
+        type: interactiveGrid
+        source {
+            location: localDatabase
+            tableName: UI_EXTERNAL_SYSTEMS_LIST
+        }
+        layout {
+            sequence: 20
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        edit {
+            enabled: true
+            allowedOperations: update
+        }
+        toolbar {
+            controls: [
+                searchCol
+                searchField
+                actionsMenu
+                resetButton
+                saveButton
+            ]
+        }
+        download {
+            formats: [
+                csv
+                html
+                excel
+                pdf
+            ]
+        }
+        advanced {
+            savedReportMappingIdentifier: 18601624430291873
+        }
+
+        savedReport primary (
+            visibility: primary
+            view {
+                default: grid
+            }
+            singleRowView {
+                displayedColumns: true
+            }
+
+            displayColumn (
+                column: @APEX$ROW_ACTION
+                layout {
+                    sequence: 0
+                }
+            )
+
+            displayColumn (
+                column: @EXTERNAL_SYSTEM_ID
+                layout {
+                    sequence: 1
+                }
+            )
+
+            displayColumn (
+                column: @EXTERNAL_SYSTEM_NAME
+                layout {
+                    sequence: 2
+                }
+            )
+
+            displayColumn (
+                column: @RETENTION_DAYS
+                layout {
+                    sequence: 3
+                }
+            )
+
+            displayColumn (
+                column: @ORPHAN_DELAY_MINUTES
+                layout {
+                    sequence: 4
+                }
+            )
+
+            displayColumn (
+                column: @IS_EXCHANGE_LOGGED
+                layout {
+                    sequence: 5
+                }
+            )
+
+        )
+
+        column APEX$ROW_ACTION (
+            type: actionsMenu
+            layout {
+                sequence: 20
+            }
+        )
+
+        column EXTERNAL_SYSTEM_ID (
+            type: hidden
+            layout {
+                sequence: 30
+            }
+            source {
+                databaseColumn: EXTERNAL_SYSTEM_ID
+                dataType: number
+                primaryKey: true
+            }
+            exportPrinting {
+                includeInExportPrint: false
+            }
+        )
+
+        column EXTERNAL_SYSTEM_NAME (
+            type: displayOnly
+            heading {
+                heading: Système
+            }
+            layout {
+                sequence: 40
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            source {
+                databaseColumn: EXTERNAL_SYSTEM_NAME
+                dataType: varchar2
+                queryOnly: true
+            }
+            columnFilter {
+                performanceImpactingOperators: [
+                    contains
+                    startsWith
+                    caseInsensitive
+                    regexp
+                ]
+            }
+        )
+
+        column IS_EXCHANGE_LOGGED (
+            type: switch
+            heading {
+                heading: Journal actif
+            }
+            layout {
+                sequence: 70
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: IS_EXCHANGE_LOGGED
+                dataType: boolean
+            }
+            sessionState {
+                dataType: boolean
+            }
+        )
+
+        column ORPHAN_DELAY_MINUTES (
+            type: numberField
+            heading {
+                heading: Délai des orphelins (min)
+                alignment: end
+            }
+            layout {
+                sequence: 60
+                columnAlignment: end
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: ORPHAN_DELAY_MINUTES
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        column RETENTION_DAYS (
+            type: numberField
+            heading {
+                heading: Rétention (jours)
+                alignment: end
+            }
+            layout {
+                sequence: 50
+                columnAlignment: end
+            }
+            validation {
+                valueRequired: true
+            }
+            source {
+                databaseColumn: RETENTION_DAYS
+                dataType: number
+            }
+            columnFilter {
+                lovType: none
+            }
+        )
+
+        page {
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+    )
+
+    process systèmes-externes-save-interactive-grid-data (
+        name: Systèmes externes - Save Interactive Grid Data
+        type: interactiveGridAutoRowProcessing
+        editableRegion: @systèmes-externes
+        target {
+            targetType: plsqlCode
+            dmlPlsqlCode:
+                ```plsql
+                case :APEX$ROW_STATUS
+                    when 'U' then
+                        external_system_api.update_external_system(
+                            in_external_system_id   => :EXTERNAL_SYSTEM_ID,
+                            in_retention_days       => :RETENTION_DAYS,
+                            in_orphan_delay_minutes => :ORPHAN_DELAY_MINUTES,
+                            in_is_exchange_logged   => :IS_EXCHANGE_LOGGED
+                        );
+                end case;
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 18609319989291887
+        }
+    )
+
+)
+

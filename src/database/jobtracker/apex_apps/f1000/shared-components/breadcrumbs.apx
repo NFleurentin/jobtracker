@@ -69,6 +69,22 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry systèmes-externes (
+        name: Systèmes externes
+        pageNumber: 9030
+        execution {
+            sequence: 10
+        }
+        appearance {
+            parentEntry: @home
+        }
+        link {
+            target: {
+                page: 9030
+            }
+        }
+    )
+
     entry échanges-externes (
         name: Échanges externes
         pageNumber: 9020

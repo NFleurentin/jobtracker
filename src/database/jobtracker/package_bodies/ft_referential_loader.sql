@@ -717,8 +717,47 @@ create or replace package body jobtracker.ft_referential_loader is
             raise;
     end run_load;
 
+    function is_load_running return boolean is
+        l_job_count pls_integer;
+    begin
+        select
+            count(*)
+        into l_job_count
+        from
+            user_scheduler_jobs
+        where
+            job_name = co_job_name;
+
+        return l_job_count > 0;
+    end is_load_running;
+
+    function load_state return json_object_t is
+        l_state json_object_t := json_object_t();
+    begin
+        l_state.put('running', is_load_running);
+        l_state.put_null('load_id');
+        l_state.put_null('load_state');
+        l_state.put_null('error_count');
+        for r_load in (
+            select
+                ft_referential_load_id,
+                load_state,
+                error_count
+            from
+                ft_referential_load_details
+            where
+                is_latest
+        ) loop
+            l_state.put('load_id', r_load.ft_referential_load_id);
+            l_state.put('load_state', r_load.load_state);
+            l_state.put('error_count', r_load.error_count);
+        end loop;
+
+        return l_state;
+    end load_state;
+
 end ft_referential_loader;
 /
 
 
--- sqlcl_snapshot {"hash":"99e89126cd2f3cc975cb9f090866634f011f8f9c","type":"PACKAGE_BODY","name":"FT_REFERENTIAL_LOADER","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"8ec726d7f0b119787d66eb2569bce368a9e0724b","type":"PACKAGE_BODY","name":"FT_REFERENTIAL_LOADER","schemaName":"JOBTRACKER","sxml":""}

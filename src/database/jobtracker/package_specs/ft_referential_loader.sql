@@ -66,8 +66,22 @@ create or replace package jobtracker.ft_referential_loader authid definer is
         in_response    in clob
     ) return json_object_t;
 
+    /**
+     * Un chargement tourne-t-il ? Vrai tant que le job ponctuel existe, de
+     * sa création par start_load jusqu'à la fin de run_load.
+     */
+    function is_load_running return boolean;
+
+    /**
+     * État du chargement, pour le suivi par l'application APEX (Ajax).
+     * @return running (job présent), et pour le dernier chargement :
+     *         load_id, load_state (ft_referential_load_details), error_count ;
+     *         ces trois clés à null si aucun chargement n'existe
+     */
+    function load_state return json_object_t;
+
 end ft_referential_loader;
 /
 
 
--- sqlcl_snapshot {"hash":"322f10b57d746df92becd8f376e9aad830dbcbc6","type":"PACKAGE_SPEC","name":"FT_REFERENTIAL_LOADER","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"206d88c1b6d9e8fefaff61e00e990630d7ba1d39","type":"PACKAGE_SPEC","name":"FT_REFERENTIAL_LOADER","schemaName":"JOBTRACKER","sxml":""}

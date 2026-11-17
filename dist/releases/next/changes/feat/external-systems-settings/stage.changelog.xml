@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/package_specs/external_system_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/external_system_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_external_systems_list.sql" relativeToChangelogFile="true"/>
+<include file="_custom/external_systems_messages_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

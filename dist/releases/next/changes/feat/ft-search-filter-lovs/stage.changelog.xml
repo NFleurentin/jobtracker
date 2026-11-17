@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/views/ui_ft_communes_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_continents_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_contract_types_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_countries_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_departments_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_experiences_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_experience_requirements_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_offer_origins_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_regions_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_salary_periods_lov.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

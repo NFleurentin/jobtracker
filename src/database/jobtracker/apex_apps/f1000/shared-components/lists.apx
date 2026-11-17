@@ -45,10 +45,19 @@ list navigation-bar (
         layout {
             sequence: 5
         }
+        isCurrent {
+            type: pages
+            pages: [
+                9000
+                9010
+                9020
+                9021
+                9030
+            ]
+        }
         link {
             target: {
-                type: url
-                url: #
+                page: 9000
             }
         }
         userDefinedAttributes {
@@ -77,26 +86,6 @@ list navigation-bar (
         }
     )
 
-    entry systèmes-externes (
-        label: Systèmes externes
-        icon {
-            imageIconCssClasses: fa-server
-        }
-        layout {
-            sequence: 10
-            parentEntry: @paramètres
-        }
-        isCurrent {
-            type: pages
-            pages: 9030
-        }
-        link {
-            target: {
-                page: 9030
-            }
-        }
-    )
-
 )
 
 list navigation-menu (
@@ -108,7 +97,7 @@ list navigation-menu (
             imageIconCssClasses: fa-paper-plane
         }
         layout {
-            sequence: 50
+            sequence: 40
         }
         isCurrent {
             type: pages
@@ -183,22 +172,44 @@ list navigation-menu (
         }
     )
 
+)
+
+list settings (
+    name: Settings
+
     entry postes (
         label: Postes
         icon {
             imageIconCssClasses: fa-briefcase
         }
         layout {
-            sequence: 40
-        }
-        isCurrent {
-            type: pages
-            pages: 9010
+            sequence: 10
         }
         link {
             target: {
                 page: 9010
             }
+        }
+        userDefinedAttributes {
+            1: Référentiel des intitulés de poste utilisés par les candidatures.
+        }
+    )
+
+    entry systèmes-externes (
+        label: Systèmes externes
+        icon {
+            imageIconCssClasses: fa-server
+        }
+        layout {
+            sequence: 30
+        }
+        link {
+            target: {
+                page: 9030
+            }
+        }
+        userDefinedAttributes {
+            1: Activer ou désactiver la journalisation des échanges, par système.
         }
     )
 
@@ -208,19 +219,15 @@ list navigation-menu (
             imageIconCssClasses: fa-exchange
         }
         layout {
-            sequence: 60
-        }
-        isCurrent {
-            type: pages
-            pages: [
-                9020
-                9021
-            ]
+            sequence: 20
         }
         link {
             target: {
                 page: 9020
             }
+        }
+        userDefinedAttributes {
+            1: Journal des appels aux API externes : requêtes, réponses et erreurs.
         }
     )
 

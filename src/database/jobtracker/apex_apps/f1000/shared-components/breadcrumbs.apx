@@ -53,6 +53,22 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry paramètres (
+        name: Paramètres
+        pageNumber: 9000
+        execution {
+            sequence: 10
+        }
+        appearance {
+            parentEntry: @home
+        }
+        link {
+            target: {
+                page: 9000
+            }
+        }
+    )
+
     entry postes (
         name: Postes
         pageNumber: 9010
@@ -60,7 +76,7 @@ breadcrumb breadcrumb (
             sequence: 10
         }
         appearance {
-            parentEntry: @home
+            parentEntry: @paramètres
         }
         link {
             target: {
@@ -73,10 +89,10 @@ breadcrumb breadcrumb (
         name: Systèmes externes
         pageNumber: 9030
         execution {
-            sequence: 10
+            sequence: 30
         }
         appearance {
-            parentEntry: @home
+            parentEntry: @paramètres
         }
         link {
             target: {
@@ -89,7 +105,10 @@ breadcrumb breadcrumb (
         name: Échanges externes
         pageNumber: 9020
         execution {
-            sequence: 10
+            sequence: 20
+        }
+        appearance {
+            parentEntry: @paramètres
         }
         link {
             target: {

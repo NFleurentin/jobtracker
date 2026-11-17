@@ -456,5 +456,51 @@ page 9020 (
 
     )
 
+    button refresh (
+        buttonName: REFRESH
+        label: Rafraîchir
+        layout {
+            sequence: 10
+            region: @échanges-externes
+            slot: rightOfInteractiveReportSearchBar
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-refresh
+        }
+        behavior {
+            action: definedByDynamicAction
+        }
+    )
+
+    dynamicAction refresh-report (
+        name: Refresh Report - Click
+        execution {
+            sequence: 10
+        }
+        when {
+            event: click
+            selectionType: button
+            button: @refresh
+        }
+
+        action native-refresh (
+            action: refresh
+            affectedElements {
+                selectionType: region
+                region: @échanges-externes
+            }
+            execution {
+                sequence: 10
+                fireOnInit: false
+            }
+        )
+
+    )
+
 )
 

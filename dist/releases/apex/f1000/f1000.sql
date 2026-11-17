@@ -41,8 +41,8 @@ prompt APPLICATION 1000 - JobTracker
 --       Validations:              2
 --       Processes:               19
 --       Regions:                 34
---       Buttons:                 19
---       Dynamic Actions:          3
+--       Buttons:                 20
+--       Dynamic Actions:          4
 --     Shared Components:
 --       Logic:
 --         Build Options:          1
@@ -109,7 +109,7 @@ wwv_imp_workspace.create_flow(
 ,p_error_handling_function=>'app_error_handler.handle_error'
 ,p_file_prefix=>nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_files_version=>2461347145550
-,p_version_scn=>'15907135'
+,p_version_scn=>'15940569'
 ,p_print_server_type=>'NATIVE'
 ,p_file_storage=>'DB'
 ,p_is_pwa=>'Y'
@@ -5275,6 +5275,45 @@ wwv_flow_imp_page.create_worksheet_condition(
 ,p_condition_display=>'#APXWS_COL_NAME# #APXWS_OP_NAME# 1 #APXWS_EXPR2_NAME#'
 ,p_enabled=>'Y'
 );
+wwv_flow_imp_page.create_page_button(
+ p_id=>wwv_flow_imp.id(17232947697101419)
+,p_button_sequence=>10
+,p_button_plug_id=>wwv_flow_imp.id(17255836357244570)
+,p_button_name=>'REFRESH'
+,p_static_id=>'refresh'
+,p_show_as_disabled=>false
+,p_button_action=>'DEFINED_BY_DA'
+,p_button_template_options=>'#DEFAULT#:t-Button--iconLeft'
+,p_button_template_id=>2084305881903810008
+,p_button_image_alt=>unistr('Rafra\00EEchir')
+,p_button_position=>'RIGHT_OF_IR_SEARCH_BAR'
+,p_warn_on_unsaved_changes=>null
+,p_icon_css_classes=>'fa-refresh'
+);
+wwv_flow_imp_page.create_page_da_event(
+ p_id=>wwv_flow_imp.id(17233002436101420)
+,p_name=>'Refresh Report - Click'
+,p_static_id=>'refresh-report'
+,p_event_sequence=>10
+,p_triggering_element_type=>'BUTTON'
+,p_triggering_button_id=>wwv_flow_imp.id(17232947697101419)
+,p_bind_type=>'bind'
+,p_execution_type=>'IMMEDIATE'
+,p_bind_event_type=>'click'
+);
+wwv_flow_imp_page.create_page_da_action(
+ p_id=>wwv_flow_imp.id(17233130074101421)
+,p_event_id=>wwv_flow_imp.id(17233002436101420)
+,p_event_result=>'TRUE'
+,p_action_sequence=>10
+,p_execute_on_page_init=>'N'
+,p_static_id=>'native-refresh'
+,p_action=>'NATIVE_REFRESH'
+,p_affected_elements_type=>'REGION'
+,p_affected_region_id=>wwv_flow_imp.id(17255836357244570)
+,p_attributes=>wwv_flow_t_plugin_attributes(wwv_flow_t_varchar2(
+  'maintain_pagination', 'N')).to_clob
+);
 end;
 /
 prompt --application/pages/page_09021
@@ -6596,4 +6635,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"671f6c2d7d73d7d09c581d4ae61dcb7b4726df88","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"9739672bf97e39c9eea10f7283d3d5078c1f98e2","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

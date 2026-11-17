@@ -32,6 +32,7 @@ Ces règles couvrent le schéma (tables, vues, contraintes) et les migrations SQ
 - Une vue de base factorise une logique partagée (jointures, libellés, règle métier comme « offre active ») et se nomme d'après son contenu (`company_details`, `active_offers`). Une vue de base 1:1 sur une table, si elle est nécessaire, porte le suffixe `_v` (`companies_v`), une vue et une table ne pouvant pas partager un nom.
 - Une contrainte qu'un formulaire peut violer reçoit son message dans le catalogue `app_messages`, sous le nom de la contrainte comme clé, sinon l'utilisateur voit le message générique.
 - Libellé de référentiel affiché : une colonne par langue (`<colonne>_fr`, `<colonne>_en`), obligatoire et unique, choisie par les vues selon `(select app_message.current_language from dual)`, français pour toute autre langue.
+  - Exception : les tables `ft_` (codes de l'API France Travail) ont un seul libellé, `<entité>_name`, obligatoire mais non unique : codes et libellés viennent de France Travail, en français seulement, avec des homonymes (communes).
 - Fichiers de données du dépôt : données fictives uniquement.
 
 ## Garde-fous pour l'agent

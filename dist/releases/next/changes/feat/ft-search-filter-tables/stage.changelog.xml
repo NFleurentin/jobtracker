@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/tables/ft_communes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_continents.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_contract_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_countries.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_departments.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_regions.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_commune_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_continent_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_contract_type_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_country_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_department_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ft_region_details.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_experiences.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_experience_requirements.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_offer_origins.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_referential_loads.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_salary_periods.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_communes.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_continents.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_contract_types.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_countries.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_departments.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_experiences.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_experience_requirements.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_offer_origins.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_referential_loads.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_regions.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_salary_periods.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_communes_department_code_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_communes_ft_referential_load_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_continents_ft_referential_load_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_contract_types_ft_referential_load_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_countries_ft_referential_load_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_departments_ft_referential_load_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_departments_region_code_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/indexes/ft_regions_ft_referential_load_id_i.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_communes_ft_departments_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_communes_ft_referential_loads_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_continents_ft_referential_loads_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_contract_types_ft_referential_loads_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_countries_ft_referential_loads_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_departments_ft_referential_loads_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_departments_ft_regions_fk.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/ref_constraints/ft_regions_ft_referential_loads_fk.sql" relativeToChangelogFile="true"/>
+<include file="_custom/ft_enumerations_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

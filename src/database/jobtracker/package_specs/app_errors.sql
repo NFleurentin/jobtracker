@@ -82,8 +82,14 @@ create or replace package jobtracker.app_errors authid definer is
     co_already_running constant pls_integer := -20205;
     e_already_running exception;
     pragma exception_init ( e_already_running, -20205 );
+
+    -- Saisie refusée : valeur hors domaine ou combinaison incohérente (filtres
+    -- d'une recherche d'offres...)
+    co_invalid_input constant pls_integer := -20206;
+    e_invalid_input exception;
+    pragma exception_init ( e_invalid_input, -20206 );
 end app_errors;
 /
 
 
--- sqlcl_snapshot {"hash":"c5eac9cd23564857ae90fa08d3935ea1d6ec93e2","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"e8b4a76cd308259ef003ffff10f727325893db3e","type":"PACKAGE_SPEC","name":"APP_ERRORS","schemaName":"JOBTRACKER","sxml":""}

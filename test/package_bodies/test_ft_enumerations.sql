@@ -73,5 +73,20 @@ create or replace package body jobtracker.test_ft_enumerations is
                      sys.odcivarchar2list('1', '2'));
     end offer_origins_loaded;
 
+    procedure posting_periods_loaded is
+        l_actual sys_refcursor;
+    begin
+        open l_actual for select
+            posting_period_code as code
+        from
+            ft_posting_periods
+        order by
+            posting_period_code;
+
+        expect_codes(l_actual,
+                     sys.odcivarchar2list('1', '14', '3', '31', '7'));
+
+    end posting_periods_loaded;
+
 end test_ft_enumerations;
 /

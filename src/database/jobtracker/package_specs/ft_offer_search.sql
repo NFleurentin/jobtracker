@@ -195,4 +195,4 @@ end ft_offer_search;
 /
 
 
--- sqlcl_snapshot {"hash":"64cf6540604780937742f65769838c3e51749f86","type":"PACKAGE_SPEC","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"2d8fb607b9ded6886fd0969fe9825d449be87f9f","type":"PACKAGE_SPEC","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}

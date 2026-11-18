@@ -1,16 +1,16 @@
 create or replace package body jobtracker.ft_offer_search is
 
-    co_scope_prefix     constant varchar2(31 char) := lower($$plsql_unit)
+    co_scope_prefix            constant varchar2(31 char) := lower($$plsql_unit)
                                                   || '.';
     -- Offres par page : maximum accepté par l'API (en-tête Accept-Range)
-    co_page_size        constant pls_integer := 150;
+    co_page_size               constant pls_integer := 150;
     -- Offres chargées au plus par recherche, pour borner l'attente de
     -- l'utilisateur ; au plus 3150, limite de l'API (range 3000-3149).
     -- Provisoire : à ajuster d'après la durée mesurée d'une page.
-    co_max_offers       constant pls_integer := 450;
+    co_max_offers              constant pls_integer := 450;
     -- Essais par page : l'utilisateur attend la réponse
-    co_max_attempts     constant pls_integer := 2;
-    co_message_rejected constant app_messages.message_key%type := 'OFFER_SEARCH_REJECTED';
+    co_max_attempts            constant pls_integer := 2;
+    co_message_rejected        constant app_messages.message_key%type := 'OFFER_SEARCH_REJECTED';
     co_message_invalid_boolean constant app_messages.message_key%type := 'OFFER_SEARCH_INVALID_BOOLEAN';
 
     /**
@@ -378,7 +378,7 @@ create or replace package body jobtracker.ft_offer_search is
         l_filters.min_salary := in_min_salary;
         l_filters.salary_period_code := in_salary_period_code;
         l_filters.posting_period_code := in_posting_period_code;
-        l_filters.is_lacking_candidates := to_boolean(in_is_lacking_candidates);
+        l_filters.is_lacking_candidates := to_boolean ( in_is_lacking_candidates );
         l_filters.offer_origin_code := in_offer_origin_code;
         return l_filters;
     end to_filters;
@@ -434,4 +434,4 @@ end ft_offer_search;
 /
 
 
--- sqlcl_snapshot {"hash":"ffccf075daffa2f1778b0e79686f197ec2a9cf80","type":"PACKAGE_BODY","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"afa119856191db9a37dd9ab2cbec4cf89d30d4d0","type":"PACKAGE_BODY","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}

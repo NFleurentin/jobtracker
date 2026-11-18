@@ -32,7 +32,8 @@ create or replace package jobtracker.france_travail_api authid definer is
      *                          d'une même opération ; null pour un appel isolé
      * @param in_max_attempts   nombre maximal d'essais, 1 (ou null) pour aucun nouvel essai
      * @return corps de la réponse, sur un code 2xx
-     * @throws app_errors.co_http_error code hors 2xx non réessayable, ou essais épuisés
+     * @throws app_errors.co_http_error code hors 2xx non réessayable, ou essais
+     *         épuisés ; le motif donné par l'API est lu par last_error_message
      */
     function call (
         in_endpoint       in varchar2,
@@ -40,6 +41,15 @@ create or replace package jobtracker.france_travail_api authid definer is
         in_correlation_id in raw default null,
         in_max_attempts   in pls_integer default co_max_attempts
     ) return clob;
+
+    /**
+     * Motif d'erreur donné par l'API dans la dernière réponse hors 2xx du
+     * dernier appel (call) : champ "message" du corps
+     * {"message": ..., "codeHttp": 400, "codeErreur": ...}, en français.
+     * @return null si le dernier appel a réussi, n'a reçu aucune réponse, ou
+     *         si le corps n'a pas de motif lisible
+     */
+    function last_error_message return varchar2;
 
     /**
      * URL complète d'un endpoint, sans paramètre.
@@ -53,4 +63,4 @@ end france_travail_api;
 /
 
 
--- sqlcl_snapshot {"hash":"b90535af8ec445a4db8428e2b89bd4355e527ac9","type":"PACKAGE_SPEC","name":"FRANCE_TRAVAIL_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"af55b0c6e6102de5eaefddc10eb19496809c1959","type":"PACKAGE_SPEC","name":"FRANCE_TRAVAIL_API","schemaName":"JOBTRACKER","sxml":""}

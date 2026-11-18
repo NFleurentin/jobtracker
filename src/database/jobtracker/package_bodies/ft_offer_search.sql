@@ -1,5 +1,17 @@
 create or replace package body jobtracker.ft_offer_search is
 
+    co_scope_prefix     constant varchar2(31 char) := lower($$plsql_unit)
+                                                  || '.';
+    -- Offres par page : maximum accepté par l'API (en-tête Accept-Range)
+    co_page_size        constant pls_integer := 150;
+    -- Offres chargées au plus par recherche, pour borner l'attente de
+    -- l'utilisateur ; au plus 3150, limite de l'API (range 3000-3149).
+    -- Provisoire : à ajuster d'après la durée mesurée d'une page.
+    co_max_offers       constant pls_integer := 450;
+    -- Essais par page : l'utilisateur attend la réponse
+    co_max_attempts     constant pls_integer := 2;
+    co_message_rejected constant app_messages.message_key%type := 'OFFER_SEARCH_REJECTED';
+
     /**
      * Éléments non vides d'une liste, sans leurs espaces de début et de fin.
      * La liste reçue est dense (apex_string.split, item APEX multivalué).
@@ -148,8 +160,158 @@ create or replace package body jobtracker.ft_offer_search is
         return l_params.to_json;
     end build_params;
 
+    function parse_total (
+        in_content_range in varchar2
+    ) return pls_integer is
+    begin
+        return to_number ( regexp_substr(in_content_range, '/(\d+)$', 1, 1, null,
+                                         1) );
+    end parse_total;
+
+    function load_offers (
+        in_response in clob
+    ) return pls_integer is
+        l_count pls_integer := 0;
+    begin
+        -- error on error : un corps illisible sur une réponse 2xx est une
+        -- anomalie de l'API, pas une recherche sans résultat
+        << offers >> for r_offer in (
+            select
+                jt.external_id,
+                jt.offer
+            from
+                    json_table ( in_response, '$.resultats[*]' error on error
+                        columns (
+                            external_id varchar2 ( 100 char ) path '$.id',
+                            offer clob format json path '$'
+                        )
+                    )
+                jt
+        ) loop
+            apex_collection.add_member(
+                p_collection_name => co_collection_name,
+                p_c001            => r_offer.external_id,
+                p_clob001         => r_offer.offer
+            );
+
+            l_count := l_count + 1;
+        end loop offers;
+
+        return l_count;
+    end load_offers;
+
+    /**
+     * Une page de résultats, avec un nombre d'essais réduit. Le code de
+     * statut et les en-têtes de la réponse restent lisibles après l'appel.
+     * @param in_params paramètres de la recherche (build_params), sans range
+     * @param in_offset index de la première offre de la page, à partir de 0
+     * @return corps de la réponse, null sur une 204
+     * @throws app_errors.co_http_error voir france_travail_api.call
+     */
+    function fetch_page (
+        in_params         in json_object_t,
+        in_offset         in pls_integer,
+        in_correlation_id in raw
+    ) return clob is
+        l_params json_object_t := in_params.clone;
+    begin
+        l_params.put('range',
+                     in_offset
+                     || '-'
+                     ||(least(in_offset + co_page_size, co_max_offers) - 1));
+
+        return france_travail_api.call(
+            in_endpoint       => france_travail_api.co_endpoint_offer_search,
+            in_params         => l_params.to_json,
+            in_correlation_id => in_correlation_id,
+            in_max_attempts   => co_max_attempts
+        );
+
+    end fetch_page;
+
+    function search (
+        in_filters in t_filters_type
+    ) return t_search_result_type is
+
+        l_scope          logger_logs.scope%type := co_scope_prefix || 'search';
+        -- Contrôle des filtres avant de vider les résultats précédents
+        l_params         json_object_t := json_object_t(build_params(in_filters));
+        -- Regroupe dans le journal des échanges les pages de la recherche
+        l_correlation_id raw(16) := exchange_log.new_correlation_id;
+        l_offset         pls_integer := 0;
+        l_body           clob;
+        l_result         t_search_result_type;
+    begin
+        -- Première page : un échec est remonté à l'utilisateur, avec les
+        -- résultats de la recherche précédente
+        begin
+            l_body := fetch_page(l_params, l_offset, l_correlation_id);
+        exception
+            when app_errors.e_http_error then
+                -- Limite de l'API (nombre de mots-clés, format...) : seul retour
+                -- à l'utilisateur sur ce que build_params ne contrôle pas
+                if apex_web_service.g_status_code = utl_http.http_bad_request then
+                    app_message.raise_error(app_errors.co_invalid_input, co_message_rejected, france_travail_api.last_error_message);
+                end if;
+
+                raise;
+        end;
+
+        apex_collection.create_or_truncate_collection(co_collection_name);
+        l_result.loaded_count := load_offers(l_body);
+        l_result.total_count :=
+            case apex_web_service.g_status_code
+                -- Aucune offre
+                when utl_http.http_no_content      then
+                    0
+                -- Une partie des offres : total dans Content-Range
+                when utl_http.http_partial_content then
+                    parse_total(http_util.response_header(http_util.co_header_content_range))
+                -- Toutes les offres tiennent dans la page
+                else
+                    l_result.loaded_count
+            end;
+
+        if l_result.total_count is null then
+            raise_application_error(app_errors.co_invalid_response,
+                                    'Missing or unreadable Content-Range header: '
+                                    || http_util.response_header(http_util.co_header_content_range));
+        end if;
+
+        -- Pages suivantes : un échec garde les offres déjà chargées
+        << pages >> loop
+            l_offset := l_offset + co_page_size;
+            exit pages when l_offset >= least(l_result.total_count, co_max_offers);
+            begin
+                l_body := fetch_page(l_params, l_offset, l_correlation_id);
+            exception
+                when app_errors.e_http_error then
+                    logger.log_error('Offer search stopped at offset '
+                                     || l_offset
+                                     || ': '
+                                     || sqlerrm, l_scope);
+                    l_result.status := co_status_partial;
+                    l_result.failure_reason := sqlerrm;
+                    exit pages;
+            end;
+
+            l_result.loaded_count := l_result.loaded_count + load_offers(l_body);
+        end loop pages;
+
+        l_result.status := coalesce(l_result.status,
+                                    case
+                                        when l_result.total_count > co_max_offers then
+                                            co_status_capped
+                                        else
+                                            co_status_complete
+                                    end
+        );
+
+        return l_result;
+    end search;
+
 end ft_offer_search;
 /
 
 
--- sqlcl_snapshot {"hash":"3265acbde304ded688d2e3dd744efb93a9e2efa3","type":"PACKAGE_BODY","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"ffccf075daffa2f1778b0e79686f197ec2a9cf80","type":"PACKAGE_BODY","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}

@@ -151,7 +151,7 @@ create or replace package body jobtracker.test_ft_offer_search is
         type t_keys_type is
             table of app_messages.message_key%type;
         l_keys t_keys_type := t_keys_type('OFFER_SEARCH_DISTANCE_WITHOUT_COMMUNE', 'OFFER_SEARCH_BORDERING_WITHOUT_DEPARTMENT', 'OFFER_SEARCH_SALARY_WITHOUT_PERIOD'
-        , 'OFFER_SEARCH_PERIOD_WITHOUT_SALARY');
+        , 'OFFER_SEARCH_PERIOD_WITHOUT_SALARY', 'OFFER_SEARCH_REJECTED');
     begin
         << message_keys >> for i in 1..l_keys.count loop
             ut.expect(
@@ -160,6 +160,94 @@ create or replace package body jobtracker.test_ft_offer_search is
             ).to_be_true;
         end loop message_keys;
     end messages_in_catalog;
+
+    procedure total_parsed is
+    begin
+        ut.expect(ft_offer_search.parse_total('offres 0-149/14888')).to_equal(14888);
+        ut.expect(ft_offer_search.parse_total('offres 150-299/151')).to_equal(151);
+    end total_parsed;
+
+    procedure total_unreadable is
+    begin
+        ut.expect(ft_offer_search.parse_total(null)).to_be_null;
+        ut.expect(ft_offer_search.parse_total('offres 0-149')).to_be_null;
+        ut.expect(ft_offer_search.parse_total('offres 0-149/*')).to_be_null;
+    end total_unreadable;
+
+    /**
+     * Page de résultats fictive, au format de l'API.
+     * @param in_ids identifiants des offres, une offre par identifiant
+     */
+    function fixture_page (
+        in_ids in apex_t_varchar2
+    ) return clob is
+        l_offers json_array_t := json_array_t();
+        l_offer  json_object_t;
+    begin
+        << ids >> for i in 1..in_ids.count loop
+            l_offer := json_object_t();
+            l_offer.put('id',
+                        in_ids(i));
+            l_offer.put('intitule',
+                        'Offre fictive ' || in_ids(i));
+            l_offers.append(l_offer);
+        end loop ids;
+
+        l_offer := json_object_t();
+        l_offer.put('resultats', l_offers);
+        return l_offer.to_clob;
+    end fixture_page;
+
+    procedure offers_loaded is
+        l_external_id varchar2(4000 char);
+        l_title       varchar2(4000 char);
+    begin
+        apex_collection.create_or_truncate_collection(ft_offer_search.co_collection_name);
+        ut.expect(ft_offer_search.load_offers(fixture_page(apex_t_varchar2('TEST001', 'TEST002')))).to_equal(2);
+
+        select
+            c001,
+            json_value(clob001, '$.intitule')
+        into
+            l_external_id,
+            l_title
+        from
+            apex_collections
+        where
+                collection_name = ft_offer_search.co_collection_name
+            and c001 = 'TEST002';
+
+        ut.expect(l_external_id).to_equal('TEST002');
+        ut.expect(l_title).to_equal('Offre fictive TEST002');
+    end offers_loaded;
+
+    procedure no_offer_loaded is
+    begin
+        apex_collection.create_or_truncate_collection(ft_offer_search.co_collection_name);
+        ut.expect(ft_offer_search.load_offers(fixture_page(apex_t_varchar2()))).to_equal(0);
+
+        ut.expect(ft_offer_search.load_offers(null)).to_equal(0);
+        ut.expect(apex_collection.collection_member_count(ft_offer_search.co_collection_name)).to_equal(0);
+
+    end no_offer_loaded;
+
+    procedure offers_appended is
+        l_count pls_integer;
+    begin
+        apex_collection.create_or_truncate_collection(ft_offer_search.co_collection_name);
+        l_count := ft_offer_search.load_offers(fixture_page(apex_t_varchar2('TEST001', 'TEST002')));
+        l_count := ft_offer_search.load_offers(fixture_page(apex_t_varchar2('TEST003')));
+        ut.expect(l_count).to_equal(1);
+        ut.expect(apex_collection.collection_member_count(ft_offer_search.co_collection_name)).to_equal(3);
+
+    end offers_appended;
+
+    procedure invalid_body is
+        l_count pls_integer;
+    begin
+        apex_collection.create_or_truncate_collection(ft_offer_search.co_collection_name);
+        l_count := ft_offer_search.load_offers('<html>Bad Gateway</html>');
+    end invalid_body;
 
 end test_ft_offer_search;
 /

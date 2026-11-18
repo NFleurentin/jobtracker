@@ -151,7 +151,7 @@ create or replace package body jobtracker.test_ft_offer_search is
         type t_keys_type is
             table of app_messages.message_key%type;
         l_keys t_keys_type := t_keys_type('OFFER_SEARCH_DISTANCE_WITHOUT_COMMUNE', 'OFFER_SEARCH_BORDERING_WITHOUT_DEPARTMENT', 'OFFER_SEARCH_SALARY_WITHOUT_PERIOD'
-        , 'OFFER_SEARCH_PERIOD_WITHOUT_SALARY', 'OFFER_SEARCH_REJECTED');
+        , 'OFFER_SEARCH_PERIOD_WITHOUT_SALARY', 'OFFER_SEARCH_REJECTED', 'OFFER_SEARCH_INVALID_BOOLEAN');
     begin
         << message_keys >> for i in 1..l_keys.count loop
             ut.expect(
@@ -160,6 +160,98 @@ create or replace package body jobtracker.test_ft_offer_search is
             ).to_be_true;
         end loop message_keys;
     end messages_in_catalog;
+
+    procedure page_no_filter_null is
+        l_filters ft_offer_search.t_filters_type := ft_offer_search.to_filters;
+    begin
+        ut.expect(l_filters.keywords).to_be_null;
+        ut.expect(l_filters.commune_codes is null).to_be_true;
+        ut.expect(l_filters.department_codes is null).to_be_true;
+        ut.expect(l_filters.contract_type_codes is null).to_be_true;
+        ut.expect(l_filters.include_bordering).to_be_null;
+        ut.expect(l_filters.is_lacking_candidates).to_be_null;
+        ut.expect(l_filters.country_continent_code).to_be_null;
+    end page_no_filter_null;
+
+    procedure page_filters_mapped is
+        l_filters ft_offer_search.t_filters_type;
+    begin
+        l_filters := ft_offer_search.to_filters(
+            in_keywords                    => 'sql, pl/sql',
+            in_distance_km                 => 20,
+            in_include_bordering           => true,
+            in_region_code                 => '84',
+            in_country_code                => '01',
+            in_experience_code             => '1',
+            in_experience_requirement_code => 'D',
+            in_min_salary                  => 1500.5,
+            in_salary_period_code          => 'M',
+            in_posting_period_code         => '7',
+            in_offer_origin_code           => '2'
+        );
+
+        ut.expect(l_filters.keywords).to_equal('sql, pl/sql');
+        ut.expect(l_filters.distance_km).to_equal(20);
+        ut.expect(l_filters.include_bordering).to_be_true;
+        ut.expect(l_filters.region_code).to_equal('84');
+        ut.expect(l_filters.country_continent_code).to_equal('01');
+        ut.expect(l_filters.experience_code).to_equal('1');
+        ut.expect(l_filters.experience_requirement_code).to_equal('D');
+        ut.expect(l_filters.min_salary).to_equal(1500.5);
+        ut.expect(l_filters.salary_period_code).to_equal('M');
+        ut.expect(l_filters.posting_period_code).to_equal('7');
+        ut.expect(l_filters.offer_origin_code).to_equal('2');
+        -- Non exposé par la page
+        ut.expect(l_filters.is_full_time).to_be_null;
+    end page_filters_mapped;
+
+    procedure page_lists_split is
+        l_filters ft_offer_search.t_filters_type;
+    begin
+        l_filters := ft_offer_search.to_filters(
+            in_commune_codes       => '75056:69123',
+            in_department_codes    => '75',
+            in_contract_type_codes => 'CDI:CDD:MIS'
+        );
+
+        ut.expect(l_filters.commune_codes.count).to_equal(2);
+        ut.expect(l_filters.commune_codes(1)).to_equal('75056');
+        ut.expect(l_filters.commune_codes(2)).to_equal('69123');
+        ut.expect(l_filters.department_codes.count).to_equal(1);
+        ut.expect(l_filters.department_codes(1)).to_equal('75');
+        ut.expect(l_filters.contract_type_codes.count).to_equal(3);
+        ut.expect(l_filters.contract_type_codes(3)).to_equal('MIS');
+    end page_lists_split;
+
+    procedure page_booleans_converted is
+    begin
+        ut.expect(ft_offer_search.to_filters(in_is_lacking_candidates => 'TRUE').is_lacking_candidates).to_be_true;
+        ut.expect(ft_offer_search.to_filters(in_is_lacking_candidates => 'FALSE').is_lacking_candidates).to_be_false;
+    end page_booleans_converted;
+
+    procedure page_invalid_boolean is
+        l_filters ft_offer_search.t_filters_type;
+    begin
+        l_filters := ft_offer_search.to_filters(in_is_lacking_candidates => 'Y');
+    end page_invalid_boolean;
+
+    procedure page_params_built is
+        l_params json_object_t;
+    begin
+        -- Élément vide en fin de liste : ignoré par build_params
+        l_params := params(ft_offer_search.to_filters(
+            in_department_codes     => '75:92:',
+            in_include_bordering    => true,
+            in_contract_type_codes  => 'CDI:CDD',
+            in_is_lacking_candidates => 'FALSE'
+        ));
+
+        ut.expect(l_params.get_string('departement')).to_equal('75,92');
+        ut.expect(l_params.get_boolean('inclureLimitrophes')).to_be_true;
+        ut.expect(l_params.get_string('typeContrat')).to_equal('CDI,CDD');
+        ut.expect(l_params.get_boolean('offresManqueCandidats')).to_be_false;
+        ut.expect(l_params.get_size).to_equal(4);
+    end page_params_built;
 
     procedure total_parsed is
     begin

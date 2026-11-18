@@ -1,0 +1,718 @@
+page 200 (
+    name: Offres France Travail
+    alias: OFFRES-FRANCE-TRAVAIL
+    title: Offres France Travail
+    pageGroup: @offres
+    appearance {
+        pageTemplate: @/standard
+        templateOptions: #DEFAULT#
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region breadcrumb (
+        name: Breadcrumb
+        type: breadcrumb
+        source {
+            breadcrumb: @breadcrumb
+        }
+        layout {
+            sequence: 10
+            slot: breadcrumbBar
+        }
+        appearance {
+            template: @/title-bar
+            templateOptions: [
+                #DEFAULT#
+                t-BreadcrumbRegion--useBreadcrumbTitle
+            ]
+        }
+        componentAppearance {
+            breadcrumbTemplate: @/breadcrumb
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region search (
+        name: search
+        title: Recherche
+        type: staticContent
+        layout {
+            sequence: 10
+            slot: body
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-advance (
+        name: search-advance
+        title: Avancé
+        type: staticContent
+        layout {
+            sequence: 60
+            parentRegion: @search
+            slot: subRegions
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-collapsed
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-contract (
+        name: search-contract
+        title: Contrat
+        type: staticContent
+        layout {
+            sequence: 30
+            parentRegion: @search
+            slot: subRegions
+            columnSpan: 4
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-period (
+        name: search-period
+        title: Période
+        type: staticContent
+        layout {
+            sequence: 50
+            parentRegion: @search
+            slot: subRegions
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-salary (
+        name: search-salary
+        title: Salaire
+        type: staticContent
+        layout {
+            sequence: 40
+            parentRegion: @search
+            slot: subRegions
+            startNewRow: false
+            columnSpan: 4
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-what (
+        name: search-what
+        title: Quoi
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @search
+            slot: subRegions
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region search-where (
+        name: search-where
+        title: Où
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @search
+            slot: subRegions
+            columnSpan: 6
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    pageItem P200_COMMUNES (
+        type: popupLov
+        label {
+            label: Communes
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_communes_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Toutes
+        }
+        multipleValues {
+            type: delimitedList
+        }
+        layout {
+            sequence: 10
+            region: @search-where
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P200_CONTRACT_TYPES (
+        type: checkboxGroup
+        label {
+            label: Types de contrat
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_contract_types_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+        }
+        layout {
+            sequence: 10
+            region: @search-contract
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    pageItem P200_COUNTRY (
+        type: selectList
+        label {
+            label: Pays
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_countries_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Tous
+        }
+        layout {
+            sequence: 60
+            region: @search-where
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_DEPARTMENTS (
+        type: popupLov
+        label {
+            label: Départements
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_departments_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Tous
+        }
+        multipleValues {
+            type: delimitedList
+        }
+        layout {
+            sequence: 30
+            region: @search-where
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P200_DISTANCE_KM (
+        type: numberField
+        label {
+            label: Distance (km)
+            alignment: left
+        }
+        settings {
+            minValue: 0
+        }
+        layout {
+            sequence: 20
+            region: @search-where
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P200_EXPERIENCE (
+        type: selectList
+        label {
+            label: Expérience
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_experiences_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Toutes
+        }
+        layout {
+            sequence: 20
+            region: @search-what
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_EXPERIENCE_REQUIREMENT (
+        type: selectList
+        label {
+            label: Expérience requise
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_experience_requirements_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Toutes
+        }
+        layout {
+            sequence: 10
+            region: @search-advance
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_FAILURE_REASON (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 40
+            region: @search
+            slot: regionBody
+        }
+    )
+
+    pageItem P200_INCLUDE_BORDERING (
+        type: switch
+        label {
+            label: Inclure les départements limitrophes
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @search-where
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        sessionState {
+            dataType: boolean
+        }
+    )
+
+    pageItem P200_IS_LACKING_CANDIDATES (
+        type: selectList
+        label {
+            label: Offres manquant de candidats
+            alignment: left
+        }
+        lov {
+            type: staticValues
+            staticValues: STATIC:Oui;TRUE,Non;FALSE
+            displayExtraValues: false
+            nullDisplayValue: Indifférent
+        }
+        layout {
+            sequence: 20
+            region: @search-advance
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_KEYWORDS (
+        type: textField
+        label {
+            label: Mots-clés
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @search-what
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+        help {
+            helpText: Mots-clés séparés par des virgules, tous exigés
+        }
+    )
+
+    pageItem P200_LOADED_COUNT (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 20
+            region: @search
+            slot: regionBody
+        }
+    )
+
+    pageItem P200_MIN_SALARY (
+        type: numberField
+        label {
+            label: Salaire (min)
+            alignment: left
+        }
+        settings {
+            minValue: 0
+        }
+        layout {
+            sequence: 10
+            region: @search-salary
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            width: 30
+        }
+    )
+
+    pageItem P200_OFFER_ORIGIN (
+        type: selectList
+        label {
+            label: Origine
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_offer_origins_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Toutes
+        }
+        layout {
+            sequence: 30
+            region: @search-advance
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_POSTING_PERIOD (
+        type: selectList
+        label {
+            label: Publiée depuis
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_posting_periods_lov
+                 order by display_order
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Tous
+        }
+        layout {
+            sequence: 10
+            region: @search-period
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_REGION (
+        type: selectList
+        label {
+            label: Région
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_regions_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Toutes
+        }
+        layout {
+            sequence: 50
+            region: @search-where
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_SALARY_PERIOD (
+        type: selectList
+        label {
+            label: Période
+            alignment: left
+        }
+        lov {
+            type: sqlQuery
+            sqlQuery:
+                ```sql
+                select display_value, return_value
+                  from ui_ft_salary_periods_lov
+                 order by display_value
+                ```
+            displayExtraValues: false
+            nullDisplayValue: Toutes
+        }
+        layout {
+            sequence: 20
+            region: @search-salary
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+            height: 1
+        }
+    )
+
+    pageItem P200_STATUS (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 30
+            region: @search
+            slot: regionBody
+        }
+    )
+
+    pageItem P200_TOTAL_COUNT (
+        type: hidden
+        settings {
+            valueProtected: false
+        }
+        layout {
+            sequence: 10
+            region: @search
+            slot: regionBody
+        }
+    )
+
+    button search (
+        buttonName: SEARCH
+        label: Rechercher
+        layout {
+            sequence: 10
+            region: @search
+            slot: next
+        }
+        appearance {
+            buttonTemplate: @/text-with-icon
+            hot: true
+            templateOptions: [
+                #DEFAULT#
+                t-Button--iconLeft
+            ]
+            icon: fa-search
+        }
+        behavior {
+            warnOnUnsavedChanges: doNotCheck
+        }
+    )
+
+    process rechercher-les-offres (
+        name: Rechercher les offres
+        type: executeCode
+        source {
+            plsqlCode:
+                ```plsql
+                ft_offer_search.search(
+                    in_keywords                    => :P200_KEYWORDS,
+                    in_commune_codes               => :P200_COMMUNES,
+                    in_distance_km                 => :P200_DISTANCE_KM,
+                    in_department_codes            => :P200_DEPARTMENTS,
+                    in_include_bordering           => :P200_INCLUDE_BORDERING,
+                    in_region_code                 => :P200_REGION,
+                    in_country_code                => :P200_COUNTRY,
+                    in_contract_type_codes         => :P200_CONTRACT_TYPES,
+                    in_experience_code             => :P200_EXPERIENCE,
+                    in_experience_requirement_code => :P200_EXPERIENCE_REQUIREMENT,
+                    in_min_salary                  => :P200_MIN_SALARY,
+                    in_salary_period_code          => :P200_SALARY_PERIOD,
+                    in_posting_period_code         => :P200_POSTING_PERIOD,
+                    in_is_lacking_candidates       => :P200_IS_LACKING_CANDIDATES,
+                    in_offer_origin_code           => :P200_OFFER_ORIGIN,
+                    out_total_count                => :P200_TOTAL_COUNT,
+                    out_loaded_count               => :P200_LOADED_COUNT,
+                    out_status                     => :P200_STATUS,
+                    out_failure_reason             => :P200_FAILURE_REASON
+                );
+                ```
+        }
+        execution {
+            sequence: 10
+        }
+        advanced {
+            executionMappingIdentifier: 20015343888564801
+        }
+        serverSideCondition {
+            whenButtonPressed: @search
+        }
+    )
+
+    branch (
+        execution {
+            sequence: 10
+        }
+        behavior {
+            target: {
+                page: 200
+            }
+        }
+    )
+
+)
+

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="_custom/offer_search_messages_data.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/app_errors.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/tables/ft_posting_periods.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/ft_offer_search.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/views/ui_ft_posting_periods_lov.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/ft_offer_search.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/comments/ft_posting_periods.sql" relativeToChangelogFile="true"/>
+<include file="_custom/ft_posting_periods_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

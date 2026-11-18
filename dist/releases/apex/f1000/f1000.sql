@@ -20,7 +20,7 @@ begin
 wwv_flow_imp.import_begin (
  p_version_yyyy_mm_dd=>'2026.03.30'
 ,p_release=>'26.1.0'
-,p_default_workspace_id=>5545883586040021
+,p_default_workspace_id=>6800164315863072
 ,p_default_application_id=>1000
 ,p_default_id_offset=>0
 ,p_default_owner=>'JOBTRACKER'
@@ -64,7 +64,7 @@ prompt APPLICATION 1000 - JobTracker
 --       E-Mail:
 --     Supporting Objects:  Excluded
 --   Version:         26.1.0
---   Instance ID:     1745857762556088
+--   Instance ID:     2400139363144436
 --
 
 prompt --application/delete_application
@@ -6648,38 +6648,6 @@ wwv_flow_imp_page.create_report_region(
 ,p_query_no_data_found=>'Aucun chargement.'
 ,p_csv_output=>'N'
 ,p_prn_output=>'N'
-,p_prn_format=>'PDF'
-,p_prn_output_link_text=>'Print'
-,p_prn_content_disposition=>'ATTACHMENT'
-,p_prn_units=>'MILLIMETERS'
-,p_prn_paper_size=>'A4'
-,p_prn_width_units=>'PERCENTAGE'
-,p_prn_width=>297
-,p_prn_height=>210
-,p_prn_orientation=>'HORIZONTAL'
-,p_prn_page_header=>unistr('Dernier chargement des r\00E9f\00E9rentiels')
-,p_prn_page_header_font_color=>'#000000'
-,p_prn_page_header_font_family=>'Helvetica'
-,p_prn_page_header_font_weight=>'normal'
-,p_prn_page_header_font_size=>'12'
-,p_prn_page_footer_font_color=>'#000000'
-,p_prn_page_footer_font_family=>'Helvetica'
-,p_prn_page_footer_font_weight=>'normal'
-,p_prn_page_footer_font_size=>'12'
-,p_prn_header_bg_color=>'#EEEEEE'
-,p_prn_header_font_color=>'#000000'
-,p_prn_header_font_family=>'Helvetica'
-,p_prn_header_font_weight=>'bold'
-,p_prn_header_font_size=>'10'
-,p_prn_body_bg_color=>'#FFFFFF'
-,p_prn_body_font_color=>'#000000'
-,p_prn_body_font_family=>'Helvetica'
-,p_prn_body_font_weight=>'normal'
-,p_prn_body_font_size=>'10'
-,p_prn_border_width=>.5
-,p_prn_page_header_alignment=>'CENTER'
-,p_prn_page_footer_alignment=>'CENTER'
-,p_prn_border_color=>'#666666'
 ,p_sort_null=>'L'
 ,p_plug_query_strip_html=>'N'
 );
@@ -7040,4 +7008,4 @@ prompt  ...done
 
 
 
--- sqlcl_snapshot {"hash":"e649218b94ac2f9f05131586d0281491b90fec3f","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"8cc380fa347696eb24a12e3d15e6a173be76f779","type":"APEX","name":"f1000.sql","schemaName":"JOBTRACKER","sxml":""}

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.3.xsd">
+<include file="jobtracker/package_specs/france_travail_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_specs/ft_offer_search.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/france_travail_api.sql" relativeToChangelogFile="true"/>
+<include file="jobtracker/package_bodies/ft_offer_search.sql" relativeToChangelogFile="true"/>
+<include file="_custom/offer_search_rejected_messages_data.sql" relativeToChangelogFile="true"/>
+</databaseChangeLog>

@@ -40,5 +40,6 @@
 <include file="changes/feat/ft-search-filter-lovs/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/apex-reload-ft-referentials/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/offer-search-filters/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/collect-offer-search/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

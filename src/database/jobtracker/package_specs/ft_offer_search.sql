@@ -61,8 +61,73 @@ create or replace package jobtracker.ft_offer_search authid definer is
         in_filters in t_filters_type
     ) return json;
 
+    -- Collection APEX des résultats de la dernière recherche de la session :
+    -- c001 identifiant de l'offre (external_id), clob001 offre en JSON brut
+    co_collection_name constant varchar2(30 char) := 'FT_OFFER_SEARCH';
+
+    -- Statuts d'une recherche (t_search_result_type.status)
+    -- Toutes les offres sont chargées (aucune offre compris)
+    co_status_complete constant varchar2(10 char) := 'COMPLETE';
+    -- Chargement arrêté au plafond du package : total > offres chargées
+    co_status_capped constant varchar2(10 char) := 'CAPPED';
+    -- Échec d'une page après la première : offres déjà reçues conservées
+    co_status_partial constant varchar2(10 char) := 'PARTIAL';
+
+    /** Résultat d'une recherche, rendu à l'appelant (page APEX). */
+    type t_search_result_type is record (
+            -- Nombre d'offres trouvées par l'API, 0 si aucune
+            total_count    pls_integer,
+            -- Nombre d'offres chargées dans la collection
+            loaded_count   pls_integer,
+            -- co_status_
+            status         varchar2(10 char),
+            -- Motif technique d'un échec partiel, null sinon
+            failure_reason varchar2(4000 char)
+    );
+
+    /**
+     * Recherche d'offres : une fois la première page reçue, vide la
+     * collection co_collection_name, puis y charge les résultats page par
+     * page, jusqu'au total de la recherche ou au plafond du package. Une
+     * recherche refusée ou en échec dès la première page laisse la
+     * collection intacte. Les pages partagent un correlation_id dans le
+     * journal des échanges. Exige une session APEX. Aucun COMMIT.
+     * @param in_filters filtres saisis, voir build_params
+     * @return total, nombre chargé et statut ; une recherche sans résultat
+     *         rend un total de 0, au statut co_status_complete
+     * @throws app_errors.co_invalid_input filtre incohérent (build_params),
+     *         ou recherche refusée par l'API (400) : le message relaie le
+     *         motif de l'API
+     * @throws app_errors.co_http_error échec de la première page
+     * @throws app_errors.co_invalid_response total illisible (Content-Range)
+     */
+    function search (
+        in_filters in t_filters_type
+    ) return t_search_result_type;
+
+    /**
+     * Total d'une recherche, lu dans l'en-tête Content-Range d'une réponse
+     * partielle (206) : "offres 0-149/1234" donne 1234.
+     * @return null si l'en-tête est absent ou illisible
+     */
+    function parse_total (
+        in_content_range in varchar2
+    ) return pls_integer;
+
+    /**
+     * Ajoute à la collection co_collection_name les offres d'une page de
+     * résultats ({"resultats": [...]}), sans la vider. Exige une session
+     * APEX et une collection existante.
+     * @param in_response corps de la réponse de l'API
+     * @return nombre d'offres ajoutées, 0 si in_response est null ou sans
+     *         offre
+     */
+    function load_offers (
+        in_response in clob
+    ) return pls_integer;
+
 end ft_offer_search;
 /
 
 
--- sqlcl_snapshot {"hash":"fb807caba9e2e4c786f5d79c26e37ce699436bec","type":"PACKAGE_SPEC","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"64cf6540604780937742f65769838c3e51749f86","type":"PACKAGE_SPEC","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}

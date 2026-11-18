@@ -7,6 +7,34 @@ create or replace package body jobtracker.france_travail_api is
     co_token_url            constant varchar2(200 char) := 'https://entreprise.francetravail.fr/connexion/oauth2/access_token?realm=/partenaire'
     ;
 
+    -- Motif de la dernière réponse en erreur, voir last_error_message
+    g_last_error_message    varchar2(4000 char);
+
+    /**
+     * Champ "message" d'un corps de réponse en erreur.
+     * @return null si le corps n'est pas du JSON ou n'a pas ce champ
+     */
+    function error_message (
+        in_body in clob
+    ) return varchar2 is
+        l_message varchar2(4000 char);
+    begin
+        -- null on error : un corps HTML ou vide (passerelle, 5xx) ne doit pas
+        -- masquer l'erreur HTTP que l'appelant va lever
+        select
+            json_value(in_body, '$.message' returning varchar2(4000 char) truncate null on error)
+        into l_message
+        from
+            dual;
+
+        return l_message;
+    end error_message;
+
+    function last_error_message return varchar2 is
+    begin
+        return g_last_error_message;
+    end last_error_message;
+
     function endpoint_url (
         in_endpoint in varchar2
     ) return varchar2 is
@@ -31,6 +59,7 @@ create or replace package body jobtracker.france_travail_api is
         l_body         clob;
         l_status_code  pls_integer;
     begin
+        g_last_error_message := null;
         << attempts >> for l_attempt in 1..l_max_attempts loop
             -- Erreur sans réponse déjà journalisée et tracée par http_util
             l_body := http_util.make_rest_request(
@@ -62,6 +91,7 @@ create or replace package body jobtracker.france_travail_api is
 
         end loop attempts;
 
+        g_last_error_message := error_message(l_body);
         raise_application_error(app_errors.co_http_error,
                                 'HTTP '
                                 || l_status_code
@@ -74,4 +104,4 @@ end france_travail_api;
 /
 
 
--- sqlcl_snapshot {"hash":"cd9d3e876161dd8aa140fa32ab4717f3c7b10525","type":"PACKAGE_BODY","name":"FRANCE_TRAVAIL_API","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"4b1aa98ad337e8cf9e61e59cfe2df2a80d9bf437","type":"PACKAGE_BODY","name":"FRANCE_TRAVAIL_API","schemaName":"JOBTRACKER","sxml":""}

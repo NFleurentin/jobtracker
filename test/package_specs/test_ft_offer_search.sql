@@ -1,7 +1,9 @@
 create or replace package jobtracker.test_ft_offer_search authid definer is
     -- =========================================================================
-    -- Tests de ft_offer_search.build_params, sans appel réseau : contrôle des
-    -- filtres et paramètres produits.
+    -- Tests de ft_offer_search, sans appel réseau : contrôle des filtres et
+    -- paramètres produits (build_params), lecture du total (parse_total) et
+    -- chargement d'une page dans la collection (load_offers, sur fixtures).
+    -- search enchaîne les appels à l'API : vérifiée à la main en dev.
     -- =========================================================================
 
     --%suite(ft_offer_search)
@@ -48,6 +50,35 @@ create or replace package jobtracker.test_ft_offer_search authid definer is
 
     --%test(trouve chaque message de refus dans le catalogue)
     procedure messages_in_catalog;
+
+    --%endcontext
+
+    --%context(total lu dans Content-Range)
+
+    --%test(lit le total après la barre oblique)
+    procedure total_parsed;
+
+    --%test(rend null sans en-tête ou sur un en-tête illisible)
+    procedure total_unreadable;
+
+    --%endcontext
+
+    --%context(chargement d'une page dans la collection)
+    --%beforeeach(test_helpers.start_english_session)
+    --%aftereach(test_helpers.end_english_session)
+
+    --%test(charge chaque offre : identifiant dans c001, JSON brut dans clob001)
+    procedure offers_loaded;
+
+    --%test(rend 0 pour une page sans offre ou sans corps)
+    procedure no_offer_loaded;
+
+    --%test(ajoute les offres d'une page à celles déjà chargées)
+    procedure offers_appended;
+
+    --%test(refuse un corps qui n'est pas du JSON)
+    --%throws(-40441)
+    procedure invalid_body;
 
     --%endcontext
 end test_ft_offer_search;

@@ -53,6 +53,19 @@ breadcrumb breadcrumb (
         }
     )
 
+    entry offres-france-travail (
+        name: Offres France Travail
+        pageNumber: 200
+        execution {
+            sequence: 10
+        }
+        link {
+            target: {
+                page: 200
+            }
+        }
+    )
+
     entry paramètres (
         name: Paramètres
         pageNumber: 9000

@@ -53,6 +53,29 @@ create or replace package jobtracker.test_ft_offer_search authid definer is
 
     --%endcontext
 
+    --%context(filtres saisis dans une page APEX)
+
+    --%test(rend tous les filtres nuls sans aucune saisie)
+    procedure page_no_filter_null;
+
+    --%test(rend chaque filtre dans son champ du record, le pays dans paysContinent)
+    procedure page_filters_mapped;
+
+    --%test(découpe les listes au séparateur des items multivalués)
+    procedure page_lists_split;
+
+    --%test(convertit TRUE et FALSE en booléens)
+    procedure page_booleans_converted;
+
+    --%test(refuse une valeur hors de TRUE et FALSE)
+    --%throws(app_errors.co_invalid_input)
+    procedure page_invalid_boolean;
+
+    --%test(produit les paramètres de l'API depuis la saisie de la page)
+    procedure page_params_built;
+
+    --%endcontext
+
     --%context(total lu dans Content-Range)
 
     --%test(lit le total après la barre oblique)

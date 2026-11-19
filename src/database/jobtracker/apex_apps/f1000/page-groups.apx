@@ -23,3 +23,10 @@ pageGroup contacts (
     }
 )
 
+pageGroup offres (
+    name: Offres
+    description {
+        description: Recherche et consultation des offres
+    }
+)
+

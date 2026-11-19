@@ -30,13 +30,13 @@ lov boolean (
 
     entry false (
         sequence: 2
-        display: No
+        display: Non
         return: FALSE
     )
 
     entry true (
         sequence: 1
-        display: Yes
+        display: Oui
         return: TRUE
     )
 

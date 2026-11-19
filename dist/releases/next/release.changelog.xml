@@ -42,5 +42,6 @@
 <include file="changes/feat/offer-search-filters/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/collect-offer-search/stage.changelog.xml" relativeToChangelogFile="true"/>
 <include file="changes/feat/offer-search-result-views/stage.changelog.xml" relativeToChangelogFile="true"/>
+<include file="changes/feat/ft-offer-search-page/stage.changelog.xml" relativeToChangelogFile="true"/>
 <!--CHANGES-->
 </databaseChangeLog>

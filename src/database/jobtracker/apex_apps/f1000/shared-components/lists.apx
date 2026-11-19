@@ -158,6 +158,22 @@ list navigation-menu (
         }
     )
 
+    entry france-travail (
+        label: France Travail
+        icon {
+            imageIconCssClasses: fa-briefcase
+        }
+        layout {
+            sequence: 16
+            parentEntry: @offres
+        }
+        link {
+            target: {
+                page: 200
+            }
+        }
+    )
+
     entry home (
         label: Accueil
         icon {
@@ -170,6 +186,16 @@ list navigation-menu (
             target: {
                 page: 1
             }
+        }
+    )
+
+    entry offres (
+        label: Offres
+        icon {
+            imageIconCssClasses: fa-briefcase
+        }
+        layout {
+            sequence: 15
         }
     )
 

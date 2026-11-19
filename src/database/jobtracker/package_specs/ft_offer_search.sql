@@ -106,6 +106,71 @@ create or replace package jobtracker.ft_offer_search authid definer is
     ) return t_search_result_type;
 
     /**
+     * Filtres d'une recherche saisis dans une page APEX, en record. Tous
+     * facultatifs : null pour un filtre absent. Les filtres que la page
+     * n'expose pas (continent, temps plein) restent nuls.
+     * @param in_commune_codes        codes séparés par ':' (séparateur des
+     *        items multivalués d'APEX), de même pour in_department_codes
+     *        et in_contract_type_codes
+     * @param in_country_code         rendu dans country_continent_code
+     * @param in_is_lacking_candidates 'TRUE', 'FALSE' ou null : une Select
+     *        List APEX ne prend pas le type BOOLEAN (constaté en APEX 26.1)
+     * @return filtres pour build_params et search
+     * @throws app_errors.co_invalid_input in_is_lacking_candidates hors de
+     *         'TRUE', 'FALSE' et null
+     */
+    function to_filters (
+        in_keywords                    in varchar2 default null,
+        in_commune_codes               in varchar2 default null,
+        in_distance_km                 in number default null,
+        in_department_codes            in varchar2 default null,
+        in_include_bordering           in boolean default null,
+        in_region_code                 in varchar2 default null,
+        in_country_code                in varchar2 default null,
+        in_contract_type_codes         in varchar2 default null,
+        in_experience_code             in varchar2 default null,
+        in_experience_requirement_code in varchar2 default null,
+        in_min_salary                  in number default null,
+        in_salary_period_code          in varchar2 default null,
+        in_posting_period_code         in varchar2 default null,
+        in_is_lacking_candidates       in varchar2 default null,
+        in_offer_origin_code           in varchar2 default null
+    ) return t_filters_type;
+
+    /**
+     * Recherche lancée depuis une page APEX : search(to_filters(...)), le
+     * résultat rendu en paramètres OUT, liés directement aux items de la
+     * page par un seul appel.
+     * @param in_keywords voir to_filters, de même pour les autres in_
+     * @param out_status  co_status_
+     * @param out_failure_reason motif technique d'un échec partiel, null
+     *        sinon
+     * @throws app_errors.co_invalid_input voir to_filters et search ;
+     *         autres erreurs : voir search
+     */
+    procedure search (
+        in_keywords                    in varchar2 default null,
+        in_commune_codes               in varchar2 default null,
+        in_distance_km                 in number default null,
+        in_department_codes            in varchar2 default null,
+        in_include_bordering           in boolean default null,
+        in_region_code                 in varchar2 default null,
+        in_country_code                in varchar2 default null,
+        in_contract_type_codes         in varchar2 default null,
+        in_experience_code             in varchar2 default null,
+        in_experience_requirement_code in varchar2 default null,
+        in_min_salary                  in number default null,
+        in_salary_period_code          in varchar2 default null,
+        in_posting_period_code         in varchar2 default null,
+        in_is_lacking_candidates       in varchar2 default null,
+        in_offer_origin_code           in varchar2 default null,
+        out_total_count                out pls_integer,
+        out_loaded_count               out pls_integer,
+        out_status                     out varchar2,
+        out_failure_reason             out varchar2
+    );
+
+    /**
      * Total d'une recherche, lu dans l'en-tête Content-Range d'une réponse
      * partielle (206) : "offres 0-149/1234" donne 1234.
      * @return null si l'en-tête est absent ou illisible
@@ -130,4 +195,4 @@ end ft_offer_search;
 /
 
 
--- sqlcl_snapshot {"hash":"64cf6540604780937742f65769838c3e51749f86","type":"PACKAGE_SPEC","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"2d8fb607b9ded6886fd0969fe9825d449be87f9f","type":"PACKAGE_SPEC","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}

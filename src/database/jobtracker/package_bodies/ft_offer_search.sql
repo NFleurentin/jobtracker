@@ -1,16 +1,17 @@
 create or replace package body jobtracker.ft_offer_search is
 
-    co_scope_prefix     constant varchar2(31 char) := lower($$plsql_unit)
+    co_scope_prefix            constant varchar2(31 char) := lower($$plsql_unit)
                                                   || '.';
     -- Offres par page : maximum accepté par l'API (en-tête Accept-Range)
-    co_page_size        constant pls_integer := 150;
+    co_page_size               constant pls_integer := 150;
     -- Offres chargées au plus par recherche, pour borner l'attente de
     -- l'utilisateur ; au plus 3150, limite de l'API (range 3000-3149).
     -- Provisoire : à ajuster d'après la durée mesurée d'une page.
-    co_max_offers       constant pls_integer := 450;
+    co_max_offers              constant pls_integer := 450;
     -- Essais par page : l'utilisateur attend la réponse
-    co_max_attempts     constant pls_integer := 2;
-    co_message_rejected constant app_messages.message_key%type := 'OFFER_SEARCH_REJECTED';
+    co_max_attempts            constant pls_integer := 2;
+    co_message_rejected        constant app_messages.message_key%type := 'OFFER_SEARCH_REJECTED';
+    co_message_invalid_boolean constant app_messages.message_key%type := 'OFFER_SEARCH_INVALID_BOOLEAN';
 
     /**
      * Éléments non vides d'une liste, sans leurs espaces de début et de fin.
@@ -310,8 +311,127 @@ create or replace package body jobtracker.ft_offer_search is
         return l_result;
     end search;
 
+    /**
+     * Liste de codes d'un item APEX multivalué.
+     * @return null si in_values est null (filtre absent)
+     */
+    function split_codes (
+        in_values in varchar2
+    ) return apex_t_varchar2 is
+    begin
+        return
+            case
+                when in_values is not null then
+                    apex_string.split(in_values, ':')
+            end;
+    end split_codes;
+
+    /**
+     * Booléen à trois états reçu d'une Select List APEX.
+     * @return null si in_value est null (filtre absent)
+     * @throws app_errors.co_invalid_input valeur hors de 'TRUE' et 'FALSE'
+     */
+    function to_boolean (
+        in_value in varchar2
+    ) return boolean is
+    begin
+        if in_value is null then
+            return null;
+        elsif in_value = 'TRUE' then
+            return true;
+        elsif in_value = 'FALSE' then
+            return false;
+        end if;
+
+        app_message.raise_error(app_errors.co_invalid_input, co_message_invalid_boolean, in_value);
+    end to_boolean;
+
+    function to_filters (
+        in_keywords                    in varchar2 default null,
+        in_commune_codes               in varchar2 default null,
+        in_distance_km                 in number default null,
+        in_department_codes            in varchar2 default null,
+        in_include_bordering           in boolean default null,
+        in_region_code                 in varchar2 default null,
+        in_country_code                in varchar2 default null,
+        in_contract_type_codes         in varchar2 default null,
+        in_experience_code             in varchar2 default null,
+        in_experience_requirement_code in varchar2 default null,
+        in_min_salary                  in number default null,
+        in_salary_period_code          in varchar2 default null,
+        in_posting_period_code         in varchar2 default null,
+        in_is_lacking_candidates       in varchar2 default null,
+        in_offer_origin_code           in varchar2 default null
+    ) return t_filters_type is
+        l_filters t_filters_type;
+    begin
+        l_filters.keywords := in_keywords;
+        l_filters.commune_codes := split_codes(in_commune_codes);
+        l_filters.distance_km := in_distance_km;
+        l_filters.department_codes := split_codes(in_department_codes);
+        l_filters.include_bordering := in_include_bordering;
+        l_filters.region_code := in_region_code;
+        l_filters.country_continent_code := in_country_code;
+        l_filters.contract_type_codes := split_codes(in_contract_type_codes);
+        l_filters.experience_code := in_experience_code;
+        l_filters.experience_requirement_code := in_experience_requirement_code;
+        l_filters.min_salary := in_min_salary;
+        l_filters.salary_period_code := in_salary_period_code;
+        l_filters.posting_period_code := in_posting_period_code;
+        l_filters.is_lacking_candidates := to_boolean ( in_is_lacking_candidates );
+        l_filters.offer_origin_code := in_offer_origin_code;
+        return l_filters;
+    end to_filters;
+
+    procedure search (
+        in_keywords                    in varchar2 default null,
+        in_commune_codes               in varchar2 default null,
+        in_distance_km                 in number default null,
+        in_department_codes            in varchar2 default null,
+        in_include_bordering           in boolean default null,
+        in_region_code                 in varchar2 default null,
+        in_country_code                in varchar2 default null,
+        in_contract_type_codes         in varchar2 default null,
+        in_experience_code             in varchar2 default null,
+        in_experience_requirement_code in varchar2 default null,
+        in_min_salary                  in number default null,
+        in_salary_period_code          in varchar2 default null,
+        in_posting_period_code         in varchar2 default null,
+        in_is_lacking_candidates       in varchar2 default null,
+        in_offer_origin_code           in varchar2 default null,
+        out_total_count                out pls_integer,
+        out_loaded_count               out pls_integer,
+        out_status                     out varchar2,
+        out_failure_reason             out varchar2
+    ) is
+        l_result t_search_result_type;
+    begin
+        l_result := search(to_filters(
+            in_keywords                    => in_keywords,
+            in_commune_codes               => in_commune_codes,
+            in_distance_km                 => in_distance_km,
+            in_department_codes            => in_department_codes,
+            in_include_bordering           => in_include_bordering,
+            in_region_code                 => in_region_code,
+            in_country_code                => in_country_code,
+            in_contract_type_codes         => in_contract_type_codes,
+            in_experience_code             => in_experience_code,
+            in_experience_requirement_code => in_experience_requirement_code,
+            in_min_salary                  => in_min_salary,
+            in_salary_period_code          => in_salary_period_code,
+            in_posting_period_code         => in_posting_period_code,
+            in_is_lacking_candidates       => in_is_lacking_candidates,
+            in_offer_origin_code           => in_offer_origin_code
+        ));
+
+        out_total_count := l_result.total_count;
+        out_loaded_count := l_result.loaded_count;
+        out_status := l_result.status;
+        out_failure_reason := l_result.failure_reason;
+    end search;
+
 end ft_offer_search;
 /
 
 
--- sqlcl_snapshot {"hash":"ffccf075daffa2f1778b0e79686f197ec2a9cf80","type":"PACKAGE_BODY","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}
+-- sqlcl_snapshot {"hash":"afa119856191db9a37dd9ab2cbec4cf89d30d4d0","type":"PACKAGE_BODY","name":"FT_OFFER_SEARCH","schemaName":"JOBTRACKER","sxml":""}

@@ -1,0 +1,1910 @@
+page 201 (
+    name: Offre France Travail
+    alias: OFFRE-FRANCE-TRAVAIL
+    title: Détail d'une offre
+    pageGroup: @offres
+    appearance {
+        pageMode: modalDialog
+        dialogTemplate: @/modal-dialog
+        templateOptions: #DEFAULT#
+    }
+    dialog {
+        width: 1000
+        chained: false
+    }
+    navigation {
+        cursorFocus: doNotFocusCursor
+    }
+    security {
+        pageAccessProtection: argumentsMustHaveChecksum
+        formAutoComplete: false
+    }
+
+    region buttons (
+        name: Buttons
+        type: staticContent
+        layout {
+            sequence: 20
+            slot: dialogFooter
+        }
+        appearance {
+            template: @/buttons-container
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region company (
+        name: Company
+        title: Entreprise
+        type: staticContent
+        layout {
+            sequence: 50
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region conditions-and-benefits (
+        name: Conditions and benefits
+        title: Conditions et avantages
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_CONTEXT_LIST
+            whereClause: external_id = :P201_EXTERNAL_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: item_type, item_position
+        }
+        layout {
+            sequence: 10
+            parentRegion: @contract-and-terms
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucune
+        }
+
+        column EXTERNAL_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ITEM_DESCRIPTION (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Précision
+            }
+            layout {
+                sequence: 50
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ITEM_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Élément
+            }
+            layout {
+                sequence: 40
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ITEM_POSITION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ITEM_TYPE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+    )
+
+    region contact-and-application (
+        name: Contact and application
+        title: Contact et candidature
+        type: staticContent
+        layout {
+            sequence: 60
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region contract-and-terms (
+        name: Contract and terms
+        title: Contrat et conditions
+        type: staticContent
+        layout {
+            sequence: 20
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+            columnSpan: 6
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region desired-profile (
+        name: Desired profile
+        title: Profil recherché
+        type: staticContent
+        layout {
+            sequence: 30
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+            startNewRow: false
+            columnSpan: 6
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region détail-d-une-offre (
+        name: Offer
+        title: Détail d'une offre
+        type: form
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_RESULTS_DETAIL
+        }
+        layout {
+            sequence: 10
+            slot: contentBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+    )
+
+    region educations (
+        name: Educations
+        title: Formations
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_TRAININGS_LIST
+            whereClause: external_id = :P201_EXTERNAL_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: item_position
+        }
+        layout {
+            sequence: 20
+            parentRegion: @desired-profile
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucune
+        }
+
+        column EXTERNAL_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ITEM_POSITION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUIREMENT_NAME (
+            reportColumnQueryId: 7
+            derivedColumn: N
+            heading {
+                heading: Exigence
+            }
+            layout {
+                sequence: 80
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TRAINING_CODE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column TRAINING_COMMENT (
+            reportColumnQueryId: 6
+            derivedColumn: N
+            heading {
+                heading: Précision
+            }
+            layout {
+                sequence: 70
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TRAINING_FIELD_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Domaine
+            }
+            layout {
+                sequence: 50
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column TRAINING_LEVEL_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Niveau
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region job_1 (
+        name: Job
+        title: Poste
+        type: staticContent
+        layout {
+            sequence: 10
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region languages-and-licenses (
+        name: Languages and licenses
+        title: Langues et permis
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_REQUIREMENTS_LIST
+            whereClause: external_id = :P201_EXTERNAL_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: item_type, item_position
+        }
+        layout {
+            sequence: 30
+            parentRegion: @desired-profile
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucune
+        }
+
+        column EXTERNAL_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ITEM_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Langue ou permis
+            }
+            layout {
+                sequence: 40
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column ITEM_POSITION (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column ITEM_TYPE (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUIREMENT_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Exigence
+            }
+            layout {
+                sequence: 50
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region location (
+        name: Location
+        title: Lieu
+        type: staticContent
+        layout {
+            sequence: 40
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+            columnSpan: 6
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region miscellaneous (
+        name: Miscellaneous
+        title: Divers
+        type: staticContent
+        layout {
+            sequence: 70
+            parentRegion: @détail-d-une-offre
+            slot: subRegions
+        }
+        appearance {
+            template: @/collapsible
+            templateOptions: [
+                #DEFAULT#
+                is-expanded
+                t-Region--scrollBody
+            ]
+        }
+    )
+
+    region partners (
+        name: Partners
+        title: Partenaires
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_PARTNERS_LIST
+            whereClause: external_id = :P201_EXTERNAL_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: item_position
+        }
+        layout {
+            sequence: 10
+            parentRegion: @miscellaneous
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucun
+        }
+
+        column EXTERNAL_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ITEM_POSITION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column LOGO_URL (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 50
+            }
+        )
+
+        column OFFER_URL (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Offre chez le partenaire
+            }
+            layout {
+                sequence: 40
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column PARTNER_NAME (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            heading {
+                heading: Partenaire
+            }
+            layout {
+                sequence: 30
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    region skills (
+        name: Skills
+        title: Compétences
+        type: classicReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_SKILLS_LIST
+            whereClause: external_id = :P201_EXTERNAL_ID
+        }
+        orderBy {
+            type: staticValue
+            orderByClause: item_position
+        }
+        layout {
+            sequence: 10
+            parentRegion: @desired-profile
+            slot: subRegions
+        }
+        appearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Region--noUI
+                t-Region--scrollBody
+            ]
+        }
+        componentAppearance {
+            template: @/standard
+            templateOptions: [
+                #DEFAULT#
+                t-Report--altRowsDefault
+                t-Report--rowHighlight
+            ]
+        }
+        messages {
+            whenNoDataFound: Aucune
+        }
+
+        column EXTERNAL_ID (
+            reportColumnQueryId: 1
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 10
+            }
+        )
+
+        column ITEM_POSITION (
+            reportColumnQueryId: 2
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 20
+            }
+        )
+
+        column REQUIREMENT_NAME (
+            reportColumnQueryId: 5
+            derivedColumn: N
+            heading {
+                heading: Exigence
+            }
+            layout {
+                sequence: 50
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+        column SKILL_CODE (
+            reportColumnQueryId: 3
+            derivedColumn: N
+            type: hidden
+            layout {
+                sequence: 30
+            }
+        )
+
+        column SKILL_NAME (
+            reportColumnQueryId: 4
+            derivedColumn: N
+            heading {
+                heading: Compétence
+            }
+            layout {
+                sequence: 40
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            sorting {
+                sortable: false
+            }
+        )
+
+    )
+
+    pageItem P201_AGENCY_EMAIL (
+        type: displayOnly
+        label {
+            label: E-mail de l'agence
+            alignment: left
+        }
+        layout {
+            sequence: 430
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: AGENCY_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_AGENCY_PHONE (
+        type: displayOnly
+        label {
+            label: Téléphone de l'agence
+            alignment: left
+        }
+        layout {
+            sequence: 440
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: AGENCY_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_APPLICATION_URL (
+        type: displayOnly
+        label {
+            label: Lien de candidature
+            alignment: left
+        }
+        layout {
+            sequence: 410
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: APPLICATION_URL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_COMPANY_DESCRIPTION (
+        type: displayOnly
+        label {
+            label: Présentation
+            alignment: left
+        }
+        layout {
+            sequence: 490
+            region: @company
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: COMPANY_DESCRIPTION
+            dataType: clob
+        }
+    )
+
+    pageItem P201_COMPANY_NAME (
+        type: displayOnly
+        label {
+            label: Entreprise
+            alignment: left
+        }
+        layout {
+            sequence: 130
+            region: @company
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: COMPANY_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_COMPANY_SIZE_NAME (
+        type: displayOnly
+        label {
+            label: Taille
+            alignment: left
+        }
+        layout {
+            sequence: 480
+            region: @company
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: COMPANY_SIZE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_COMPANY_URL (
+        type: displayOnly
+        label {
+            label: Site web
+            alignment: left
+        }
+        layout {
+            sequence: 500
+            region: @company
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: COMPANY_URL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_ADDRESS_1 (
+        type: displayOnly
+        label {
+            label: Adresse
+            alignment: left
+        }
+        layout {
+            sequence: 370
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_ADDRESS_1
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_ADDRESS_2 (
+        type: displayOnly
+        label {
+            alignment: left
+        }
+        layout {
+            sequence: 380
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_ADDRESS_2
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_ADDRESS_3 (
+        type: displayOnly
+        label {
+            alignment: left
+        }
+        layout {
+            sequence: 390
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_ADDRESS_3
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_COMMENT (
+        type: displayOnly
+        label {
+            label: Commentaire
+            alignment: left
+        }
+        layout {
+            sequence: 400
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_COMMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_EMAIL (
+        type: displayOnly
+        label {
+            label: E-mail
+            alignment: left
+        }
+        layout {
+            sequence: 360
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_EMAIL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_NAME (
+        type: displayOnly
+        label {
+            label: Contact
+            alignment: left
+        }
+        layout {
+            sequence: 310
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTACT_PHONE (
+        type: displayOnly
+        label {
+            label: Téléphone
+            alignment: left
+        }
+        layout {
+            sequence: 350
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTACT_PHONE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTRACT_NATURE_NAME (
+        type: displayOnly
+        label {
+            label: Nature du contrat
+            alignment: left
+        }
+        layout {
+            sequence: 190
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTRACT_NATURE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CONTRACT_TYPE_NAME (
+        type: displayOnly
+        label {
+            label: Type de contrat
+            alignment: left
+        }
+        layout {
+            sequence: 180
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CONTRACT_TYPE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_CREATED_AT (
+        type: displayOnly
+        label {
+            label: Publiée le
+            alignment: left
+        }
+        layout {
+            sequence: 10
+            region: @job_1
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: CREATED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+    )
+
+    pageItem P201_DESCRIPTION (
+        type: displayOnly
+        label {
+            label: Description
+            alignment: left
+        }
+        layout {
+            sequence: 90
+            region: @job_1
+            slot: regionBody
+            alignment: left
+            columnSpan: 12
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: DESCRIPTION
+            dataType: clob
+        }
+    )
+
+    pageItem P201_EXERCISE_COMPLEMENT (
+        type: displayOnly
+        label {
+            label: Complément
+            alignment: left
+        }
+        layout {
+            sequence: 340
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: EXERCISE_COMPLEMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_EXERCISE_CONDITION (
+        type: displayOnly
+        label {
+            label: Conditions d'exercice
+            alignment: left
+        }
+        layout {
+            sequence: 330
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: EXERCISE_CONDITION
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_EXPERIENCE_COMMENT (
+        type: displayOnly
+        label {
+            label: Précision sur l'expérience
+            alignment: left
+        }
+        layout {
+            sequence: 210
+            region: @desired-profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: EXPERIENCE_COMMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_EXPERIENCE_NAME (
+        type: displayOnly
+        label {
+            label: Expérience
+            alignment: left
+        }
+        layout {
+            sequence: 200
+            region: @desired-profile
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: EXPERIENCE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_EXTERNAL_ID (
+        type: hidden
+        layout {
+            sequence: 10
+            region: @détail-d-une-offre
+            slot: regionBody
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: EXTERNAL_ID
+            dataType: varchar2
+            primaryKey: true
+        }
+        security {
+            sessionStateProtection: checksumRequiredSessionLevel
+        }
+    )
+
+    pageItem P201_IS_ADAPTED_COMPANY (
+        type: displayOnly
+        label {
+            label: Entreprise adaptée
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @boolean
+        }
+        layout {
+            sequence: 510
+            region: @company
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: IS_ADAPTED_COMPANY
+            dataType: boolean
+        }
+    )
+
+    pageItem P201_IS_ADAPTED_EMPLOYER (
+        type: displayOnly
+        label {
+            label: Employeur handi-engagé
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @boolean
+        }
+        layout {
+            sequence: 520
+            region: @company
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: IS_ADAPTED_EMPLOYER
+            dataType: boolean
+        }
+    )
+
+    pageItem P201_IS_DISABILITY_ACCESSIBLE (
+        type: displayOnly
+        label {
+            label: Accessible aux travailleurs handicapés
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @boolean
+        }
+        layout {
+            sequence: 520
+            region: @miscellaneous
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: IS_DISABILITY_ACCESSIBLE
+            dataType: boolean
+        }
+    )
+
+    pageItem P201_IS_DISABILITY_COMMITTED (
+        type: displayOnly
+        label {
+            label: Employeur engagé handicap
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @boolean
+        }
+        layout {
+            sequence: 530
+            region: @company
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: IS_DISABILITY_COMMITTED_EMPLOYER
+            dataType: boolean
+        }
+    )
+
+    pageItem P201_IS_LACKING_CANDIDATES (
+        type: displayOnly
+        label {
+            label: Manque de candidats
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @boolean
+        }
+        layout {
+            sequence: 510
+            region: @miscellaneous
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: IS_LACKING_CANDIDATES
+            dataType: boolean
+        }
+    )
+
+    pageItem P201_IS_WORK_STUDY (
+        type: displayOnly
+        label {
+            label: Alternance
+            alignment: left
+        }
+        settings {
+            basedOn: lov
+        }
+        lov {
+            type: sharedComponent
+            lov: @boolean
+        }
+        layout {
+            sequence: 300
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: IS_WORK_STUDY
+            dataType: boolean
+        }
+    )
+
+    pageItem P201_OFFER_ORIGIN_NAME (
+        type: displayOnly
+        label {
+            label: Origine
+            alignment: left
+        }
+        layout {
+            sequence: 490
+            region: @miscellaneous
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: OFFER_ORIGIN_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_OFFER_ORIGIN_URL (
+        type: displayOnly
+        label {
+            label: Offre d'origine
+            alignment: left
+        }
+        layout {
+            sequence: 500
+            region: @miscellaneous
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: OFFER_ORIGIN_URL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_POSITION_COUNT (
+        type: displayOnly
+        label {
+            label: Postes à pourvoir
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @job_1
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: POSITION_COUNT
+            dataType: number
+        }
+    )
+
+    pageItem P201_QUALIFICATION_NAME (
+        type: displayOnly
+        label {
+            label: Qualification
+            alignment: left
+        }
+        layout {
+            sequence: 80
+            region: @job_1
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: QUALIFICATION_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_RECRUITER_URL (
+        type: displayOnly
+        label {
+            label: Site du recruteur
+            alignment: left
+        }
+        layout {
+            sequence: 420
+            region: @contact-and-application
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: RECRUITER_URL
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_ROME_JOB_TITLE_NAME (
+        type: displayOnly
+        label {
+            label: Appellation
+            alignment: left
+        }
+        layout {
+            sequence: 50
+            region: @job_1
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: ROME_JOB_TITLE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_ROME_NAME (
+        type: displayOnly
+        label {
+            label: Métier
+            alignment: left
+        }
+        layout {
+            sequence: 40
+            region: @job_1
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: ROME_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_SALARY_COMMENT (
+        type: displayOnly
+        label {
+            label: Commentaire sur le salaire
+            alignment: left
+        }
+        layout {
+            sequence: 360
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: SALARY_COMMENT
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_SALARY_COMPLEMENT_1 (
+        type: displayOnly
+        label {
+            label: Complément de salaire
+            alignment: left
+        }
+        layout {
+            sequence: 370
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: SALARY_COMPLEMENT_1
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_SALARY_COMPLEMENT_2 (
+        type: displayOnly
+        label {
+            label: Complément de salaire (2)
+            alignment: left
+        }
+        layout {
+            sequence: 380
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: SALARY_COMPLEMENT_2
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_SALARY_NAME (
+        type: displayOnly
+        label {
+            label: Salaire
+            alignment: left
+        }
+        layout {
+            sequence: 350
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: SALARY_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_SECTOR_NAME (
+        type: displayOnly
+        label {
+            label: Secteur
+            alignment: left
+        }
+        layout {
+            sequence: 470
+            region: @company
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: SECTOR_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_TITLE (
+        type: displayOnly
+        label {
+            label: Intitulé
+            alignment: left
+        }
+        layout {
+            sequence: 30
+            region: @job_1
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: TITLE
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_TRAVEL_NAME (
+        type: displayOnly
+        label {
+            label: Déplacements
+            alignment: left
+        }
+        layout {
+            sequence: 440
+            region: @location
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: TRAVEL_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_UPDATED_AT (
+        type: displayOnly
+        label {
+            label: Mise à jour le
+            alignment: left
+        }
+        layout {
+            sequence: 20
+            region: @job_1
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: UPDATED_AT
+            dataType: timestampWithLocalTimeZone
+        }
+    )
+
+    pageItem P201_WORKING_HOURS_NAME (
+        type: displayOnly
+        label {
+            label: Horaires
+            alignment: left
+        }
+        layout {
+            sequence: 320
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+            startNewRow: false
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: WORKING_HOURS_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_WORKING_TIME_NAME (
+        type: displayOnly
+        label {
+            label: Temps de travail
+            alignment: left
+        }
+        layout {
+            sequence: 310
+            region: @contract-and-terms
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: WORKING_TIME_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_WORKPLACE_NAME (
+        type: displayOnly
+        label {
+            label: Lieu de travail
+            alignment: left
+        }
+        layout {
+            sequence: 70
+            region: @location
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: WORKPLACE_NAME
+            dataType: varchar2
+        }
+    )
+
+    pageItem P201_WORKPLACE_POSTAL_CODE (
+        type: displayOnly
+        label {
+            label: Code postal
+            alignment: left
+        }
+        layout {
+            sequence: 100
+            region: @location
+            slot: regionBody
+            alignment: left
+        }
+        appearance {
+            template: @/optional-floating
+            templateOptions: #DEFAULT#
+        }
+        source {
+            formRegion: @détail-d-une-offre
+            column: WORKPLACE_POSTAL_CODE
+            dataType: varchar2
+        }
+    )
+
+    button cancel (
+        buttonName: CANCEL
+        label: Fermer
+        layout {
+            sequence: 10
+            region: @buttons
+            slot: close
+        }
+        appearance {
+            buttonTemplate: @/text
+            templateOptions: #DEFAULT#
+        }
+        behavior {
+            action: triggerAction
+        }
+
+        triggerAction native-dialog-cancel (
+            action: cancelDialog
+            execution {
+                sequence: 10
+            }
+        )
+
+    )
+
+    process initialize-form-détail-d-une-offre (
+        name: Initialize form Détail d'une offre
+        type: formInitialization
+        formRegion: @détail-d-une-offre
+        execution {
+            sequence: 10
+            point: beforeHeader
+        }
+        advanced {
+            executionMappingIdentifier: 20247645302900373
+        }
+    )
+
+)
+

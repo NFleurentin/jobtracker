@@ -15,6 +15,34 @@ page 200 (
         formAutoComplete: false
     }
 
+    region alert_1 (
+        name: no-search
+        title: Aucune recherche
+        type: staticContent
+        source {
+            htmlCode: Choisissez vos critères, puis lancez la recherche.
+        }
+        layout {
+            sequence: 10
+            slot: body
+            startNewRow: false
+        }
+        appearance {
+            template: @/alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--info
+                t-Alert--accessibleHeading
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNull
+            item: P200_STATUS
+        }
+    )
+
     region breadcrumb (
         name: Breadcrumb
         type: breadcrumb
@@ -38,12 +66,276 @@ page 200 (
         }
     )
 
+    region limit (
+        name: capped-results
+        title: Résultats plafonnés
+        type: staticContent
+        source {
+            htmlCode: &P200_TOTAL_COUNT. offres trouvées, &P200_LOADED_COUNT. chargées par ordre de pertinence. Affinez les critères pour les voir toutes.
+        }
+        layout {
+            sequence: 30
+            slot: body
+        }
+        appearance {
+            template: @/alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+                t-Alert--accessibleHeading
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P200_STATUS
+            value: CAPPED
+        }
+    )
+
+    region offers (
+        name: offers
+        title: Offres
+        type: interactiveReport
+        source {
+            location: localDatabase
+            tableName: UI_FT_OFFER_SEARCH_RESULTS_LIST
+        }
+        layout {
+            sequence: 50
+            slot: body
+        }
+        appearance {
+            template: @/interactive-report
+            templateOptions: [
+                #DEFAULT#
+                t-IRR-region--hideHeader js-addHiddenHeadingRoleDesc
+            ]
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P200_STATUS
+        }
+        pagination {
+            type: rowRangesXToY
+        }
+        messages {
+            whenNoDataFound: Aucune offre ne correspond à ces critères.
+        }
+        advanced {
+            savedReportMappingIdentifier: 20015665048564804
+        }
+
+        column COMPANY_NAME (
+            type: plainText
+            heading {
+                heading: Entreprise
+            }
+            layout {
+                sequence: 60
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: F
+            }
+        )
+
+        column CONTRACT_TYPE_NAME (
+            type: plainText
+            heading {
+                heading: Contrat
+            }
+            layout {
+                sequence: 70
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: G
+            }
+        )
+
+        column EXTERNAL_ID (
+            type: hidden
+            heading {
+                heading: Identifiant
+            }
+            layout {
+                sequence: 20
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: B
+            }
+        )
+
+        column SEARCH_RANK (
+            type: plainText
+            heading {
+                heading: Ordre
+            }
+            layout {
+                sequence: 10
+            }
+            source {
+                dataType: NUMBER
+            }
+            advanced {
+                endUserAlias: A
+            }
+        )
+
+        column TITLE (
+            type: link
+            heading {
+                heading: Intitulé
+            }
+            layout {
+                sequence: 30
+            }
+            accessibility {
+                valueIdentifiesRow: true
+            }
+            link {
+                target: {
+                    page: 201
+                    items: {
+                        P201_EXTERNAL_ID: #EXTERNAL_ID#
+                    }
+                    clearCache: 201
+                }
+                linkText: #TITLE#
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: C
+            }
+        )
+
+        column UPDATED_AT (
+            type: plainText
+            heading {
+                heading: Mise à jour
+            }
+            layout {
+                sequence: 40
+            }
+            source {
+                dataType: DATE
+                timezoneAware: Y
+            }
+            advanced {
+                endUserAlias: D
+            }
+        )
+
+        column WORKPLACE_NAME (
+            type: plainText
+            heading {
+                heading: Lieu
+            }
+            layout {
+                sequence: 50
+            }
+            source {
+                dataType: STRING
+            }
+            advanced {
+                endUserAlias: E
+            }
+        )
+
+        page {
+            size: a4
+            units: millimeters
+            width: 297
+            height: 210
+            borderWidth: 0.5
+            borderColor: #666666
+        }
+        pageHeader {
+            pageHeaderText: Offres
+        }
+
+        savedReport primary (
+            visibility: primaryDefault
+            view {
+                rowsPerPage: 50
+            }
+
+            displayColumn COMPANY_NAME (
+                sequence: 4
+            )
+
+            displayColumn CONTRACT_TYPE_NAME (
+                sequence: 5
+            )
+
+            displayColumn TITLE (
+                sequence: 1
+            )
+
+            displayColumn UPDATED_AT (
+                sequence: 2
+            )
+
+            displayColumn WORKPLACE_NAME (
+                sequence: 3
+            )
+
+            sort (
+                column: SEARCH_RANK
+                sort {
+                    sequence: 1
+                }
+            )
+
+        )
+
+    )
+
+    region partial (
+        name: partial-result
+        title: Résultat partiel
+        type: staticContent
+        source {
+            htmlCode: Résultat partiel : &P200_LOADED_COUNT. offres chargées sur &P200_TOTAL_COUNT. trouvées. France Travail n'a pas répondu pour la suite ; relancez la recherche. Le détail est dans le journal des échanges.
+        }
+        layout {
+            sequence: 40
+            slot: body
+        }
+        appearance {
+            template: @/alert
+            templateOptions: [
+                #DEFAULT#
+                t-Alert--horizontal
+                t-Alert--defaultIcons
+                t-Alert--warning
+                t-Alert--accessibleHeading
+            ]
+        }
+        serverSideCondition {
+            type: item=value
+            item: P200_STATUS
+            value: PARTIAL
+        }
+    )
+
     region search (
         name: search
         title: Recherche
         type: staticContent
         layout {
-            sequence: 10
+            sequence: 20
             slot: body
         }
         appearance {
@@ -423,8 +715,8 @@ page 200 (
             alignment: left
         }
         lov {
-            type: staticValues
-            staticValues: STATIC:Oui;TRUE,Non;FALSE
+            type: sharedComponent
+            lov: @boolean
             displayExtraValues: false
             nullDisplayValue: Indifférent
         }
@@ -710,6 +1002,7 @@ page 200 (
         behavior {
             target: {
                 page: 200
+                action: resetPagination
             }
         }
     )

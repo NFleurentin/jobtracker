@@ -9,7 +9,7 @@ page 101 (
         templateOptions: #DEFAULT#
     }
     dialog {
-        width: 900
+        width: 1100
         chained: false
     }
     navigation {
@@ -19,6 +19,27 @@ page 101 (
         pageAccessProtection: argumentsMustHaveChecksum
         formAutoComplete: false
     }
+
+    region audit-info (
+        name: audit-info
+        type: staticContent
+        source {
+            htmlCode: <p class="jt-audit-info">Créée le &P101_CREATED_AT!HTML. · Modifiée le &P101_UPDATED_AT!HTML.</p>
+        }
+        layout {
+            sequence: 10
+            parentRegion: @buttons
+            slot: regionBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P101_COMPANY_ID
+        }
+    )
 
     region buttons (
         name: Buttons
@@ -245,32 +266,6 @@ page 101 (
 
     )
 
-    region entreprise (
-        name: Entreprise
-        type: form
-        source {
-            location: localDatabase
-            tableName: UI_COMPANIES_FORM
-        }
-        layout {
-            sequence: 10
-            parentRegion: @onglets
-            slot: tabs
-        }
-        appearance {
-            template: @/blank-with-attributes
-            templateOptions: #DEFAULT#
-        }
-        edit {
-            enabled: true
-            allowedOperations: [
-                add
-                update
-                delete
-            ]
-        }
-    )
-
     region entreprise-generique (
         name: Entreprise générique
         type: staticContent
@@ -301,6 +296,33 @@ page 101 (
         }
     )
 
+    region general (
+        name: general
+        title: Général
+        type: form
+        source {
+            location: localDatabase
+            tableName: UI_COMPANIES_FORM
+        }
+        layout {
+            sequence: 10
+            parentRegion: @onglets
+            slot: tabs
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        edit {
+            enabled: true
+            allowedOperations: [
+                add
+                update
+                delete
+            ]
+        }
+    )
+
     region onglets (
         name: Onglets
         type: staticContent
@@ -321,11 +343,11 @@ page 101 (
         type: hidden
         layout {
             sequence: 10
-            region: @entreprise
+            region: @general
             slot: regionBody
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: COMPANY_ID
             dataType: number
             primaryKey: true
@@ -345,10 +367,11 @@ page 101 (
             alignment: left
         }
         layout {
-            sequence: 20
-            region: @entreprise
+            sequence: 50
+            region: @general
             slot: regionBody
             alignment: left
+            columnSpan: 9
         }
         appearance {
             template: @/required-floating
@@ -360,7 +383,7 @@ page 101 (
             maxLength: 200
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: COMPANY_NAME
             dataType: varchar2
         }
@@ -378,10 +401,11 @@ page 101 (
             nullDisplayValue: - Aucun -
         }
         layout {
-            sequence: 80
-            region: @entreprise
+            sequence: 110
+            region: @general
             slot: regionBody
             alignment: left
+            columnSpan: 3
         }
         appearance {
             template: @/optional-floating
@@ -389,7 +413,7 @@ page 101 (
             height: 1
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: COMPANY_SIZE_ID
             dataType: number
         }
@@ -407,10 +431,12 @@ page 101 (
             nullDisplayValue: - Aucun -
         }
         layout {
-            sequence: 60
-            region: @entreprise
+            sequence: 80
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 3
         }
         appearance {
             template: @/optional-floating
@@ -418,32 +444,24 @@ page 101 (
             height: 1
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: COMPANY_TYPE_ID
             dataType: number
         }
     )
 
     pageItem P101_CREATED_AT (
-        type: displayOnly
-        label {
-            label: Créée le
-            alignment: left
-        }
+        type: hidden
         layout {
-            sequence: 160
-            region: @entreprise
+            sequence: 20
+            region: @general
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: CREATED_AT
             dataType: timestampWithLocalTimeZone
+            queryOnly: true
         }
         serverSideCondition {
             type: itemIsNotNull
@@ -462,10 +480,12 @@ page 101 (
             maxValue: 2999
         }
         layout {
-            sequence: 150
-            region: @entreprise
+            sequence: 60
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 3
         }
         appearance {
             template: @/optional-floating
@@ -476,7 +496,7 @@ page 101 (
             maxLength: 255
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: CREATION_YEAR
             dataType: number
         }
@@ -485,12 +505,12 @@ page 101 (
     pageItem P101_DELETE_MODE (
         type: hidden
         layout {
-            sequence: 200
-            region: @entreprise
+            sequence: 220
+            region: @general
             slot: regionBody
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: DELETE_MODE
             dataType: varchar2
             queryOnly: true
@@ -507,10 +527,11 @@ page 101 (
             alignment: left
         }
         layout {
-            sequence: 30
-            region: @entreprise
+            sequence: 190
+            region: @general
             slot: regionBody
             alignment: left
+            columnCssClasses: margin-top-md
         }
         appearance {
             template: @/optional-floating
@@ -519,7 +540,7 @@ page 101 (
             height: 4
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: DESCRIPTION
             dataType: clob
         }
@@ -538,10 +559,13 @@ page 101 (
             subtype: email
         }
         layout {
-            sequence: 130
-            region: @entreprise
+            sequence: 160
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 9
+            columnCssClasses: margin-top-md
         }
         appearance {
             template: @/optional-floating
@@ -552,7 +576,7 @@ page 101 (
             maxLength: 254
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: EMAIL
             dataType: varchar2
         }
@@ -561,12 +585,12 @@ page 101 (
     pageItem P101_IS_GENERIC (
         type: hidden
         layout {
-            sequence: 190
-            region: @entreprise
+            sequence: 210
+            region: @general
             slot: regionBody
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: IS_GENERIC
             dataType: boolean
             queryOnly: true
@@ -579,14 +603,15 @@ page 101 (
     pageItem P101_LINKEDIN_SLUG (
         type: textField
         label {
-            label: Identifiant Linkedin
+            label: LinkedIn
             alignment: left
         }
         layout {
-            sequence: 120
-            region: @entreprise
+            sequence: 170
+            region: @general
             slot: regionBody
             alignment: left
+            columnSpan: 3
         }
         appearance {
             template: @/optional-floating
@@ -597,9 +622,12 @@ page 101 (
             maxLength: 100
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: LINKEDIN_SLUG
             dataType: varchar2
+        }
+        help {
+            helpText: Partie de l'URL après linkedin.com/company/
         }
     )
 
@@ -614,10 +642,12 @@ page 101 (
             lov: @locations-lov
         }
         layout {
-            sequence: 90
-            region: @entreprise
+            sequence: 130
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/optional-floating
@@ -628,7 +658,7 @@ page 101 (
             maxLength: 255
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: LOCATION_ID
             dataType: number
         }
@@ -641,8 +671,8 @@ page 101 (
             alignment: left
         }
         layout {
-            sequence: 40
-            region: @entreprise
+            sequence: 200
+            region: @general
             slot: regionBody
             alignment: left
         }
@@ -653,7 +683,7 @@ page 101 (
             height: 4
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: NOTE_TEXT
             dataType: clob
         }
@@ -673,10 +703,12 @@ page 101 (
             lov: @companies-lov
         }
         layout {
-            sequence: 50
-            region: @entreprise
+            sequence: 90
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/optional-floating
@@ -687,7 +719,7 @@ page 101 (
             maxLength: 255
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: PARENT_COMPANY_ID
             dataType: number
         }
@@ -703,10 +735,12 @@ page 101 (
             subtype: phone
         }
         layout {
-            sequence: 140
-            region: @entreprise
+            sequence: 150
+            region: @general
             slot: regionBody
             alignment: left
+            columnSpan: 3
+            columnCssClasses: margin-top-md
         }
         appearance {
             template: @/optional-floating
@@ -717,7 +751,7 @@ page 101 (
             maxLength: 30
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: PHONE
             dataType: varchar2
         }
@@ -735,10 +769,12 @@ page 101 (
             nullDisplayValue: - Aucun -
         }
         layout {
-            sequence: 70
-            region: @entreprise
+            sequence: 120
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 3
         }
         appearance {
             template: @/optional-floating
@@ -746,7 +782,7 @@ page 101 (
             height: 1
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: SECTOR_ID
             dataType: number
         }
@@ -759,10 +795,11 @@ page 101 (
             alignment: left
         }
         layout {
-            sequence: 100
-            region: @entreprise
+            sequence: 70
+            region: @general
             slot: regionBody
             alignment: left
+            columnSpan: 3
         }
         appearance {
             template: @/optional-floating
@@ -773,32 +810,24 @@ page 101 (
             maxLength: 9
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: SIREN
             dataType: varchar2
         }
     )
 
     pageItem P101_UPDATED_AT (
-        type: displayOnly
-        label {
-            label: Modifiée le
-            alignment: left
-        }
+        type: hidden
         layout {
-            sequence: 170
-            region: @entreprise
+            sequence: 30
+            region: @general
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: UPDATED_AT
             dataType: timestampWithLocalTimeZone
+            queryOnly: true
         }
         serverSideCondition {
             type: itemIsNotNull
@@ -816,10 +845,12 @@ page 101 (
             subtype: url
         }
         layout {
-            sequence: 110
-            region: @entreprise
+            sequence: 180
+            region: @general
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 9
         }
         appearance {
             template: @/optional-floating
@@ -830,7 +861,7 @@ page 101 (
             maxLength: 500
         }
         source {
-            formRegion: @entreprise
+            formRegion: @general
             column: WEBSITE_URL
             dataType: varchar2
         }
@@ -894,7 +925,10 @@ page 101 (
         }
         appearance {
             buttonTemplate: @/text
-            templateOptions: #DEFAULT#
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+            ]
         }
         behavior {
             executeValidations: false
@@ -923,7 +957,10 @@ page 101 (
         }
         appearance {
             buttonTemplate: @/text
-            templateOptions: #DEFAULT#
+            templateOptions: [
+                #DEFAULT#
+                t-Button--danger
+            ]
         }
         behavior {
             executeValidations: false
@@ -1023,7 +1060,7 @@ page 101 (
     process initialize-form-entreprise (
         name: Initialize form Entreprise
         type: formInitialization
-        formRegion: @entreprise
+        formRegion: @general
         execution {
             sequence: 10
             point: beforeHeader
@@ -1036,7 +1073,7 @@ page 101 (
     process process-form-entreprise (
         name: Process form Entreprise
         type: formAutoRowProcessing
-        formRegion: @entreprise
+        formRegion: @general
         target {
             targetType: plsqlCode
             plsqlCode:

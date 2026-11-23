@@ -2206,8 +2206,8 @@ a-workflow-diagram .a-Toolbar--simple .a-Toolbar-group .a-Button:hover {
   --oj-heading-text-color: var(--ut-component-text-title-color);
 }
 
-/* Zone de titre des pages : plus compacte que le défaut du Universal Theme.
-   Surcharge volontairement limitée à cette zone (voir README, choix techniques). */
+/* Zone de titre des pages : plus compacte que le défaut du Universal Theme
+   (voir README, choix techniques). */
 .t-Body-title .t-Breadcrumb-label {
   font-size: 1.25rem;
   line-height: 1.2;
@@ -2215,4 +2215,13 @@ a-workflow-diagram .a-Toolbar--simple .a-Toolbar-group .a-Button:hover {
 
 .t-Body-title .t-BreadcrumbRegion {
   padding-block: 0.5rem;
+}
+
+/* Ligne d'audit (création, modification) des formulaires en dialogue. */
+.jt-audit-info {
+  font-size: .75rem;
+  color: var(--ut-body-text-color);
+  opacity: .65;
+  margin: 0;
+  text-align: center;
 }

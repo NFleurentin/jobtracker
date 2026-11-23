@@ -13,13 +13,12 @@ app JOBTRACKER (
         }
     }
     navigationMenu {
-        listTemplate: @/side-navigation-menu
+        listTemplate: @/top-navigation-menu
         templateOptions: [
             #DEFAULT#
-            js-defaultCollapsed
-            js-navCollapsed--hidden
-            t-TreeNav--styleA
+            js-tabLike
         ]
+        listPosition: top
         list: @navigation-menu
     }
     navigationBar {
@@ -31,6 +30,7 @@ app JOBTRACKER (
         currentTheme: @universal-theme
         globalPage: 0
         addBuiltWithApexToFooter: false
+        autoDismissSuccessMessages: true
     }
     appFormatMasks {
         date: DS

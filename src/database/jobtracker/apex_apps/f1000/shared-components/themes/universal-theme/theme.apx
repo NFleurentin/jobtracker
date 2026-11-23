@@ -3,7 +3,7 @@ theme universal-theme (
     themeNumber: 42
     baseTheme: ut-26.1
     style {
-        currentThemeStyle: @/iris
+        currentThemeStyle: @jobtracker
     }
     javaScript {
         fileUrls: [
@@ -53,5 +53,22 @@ theme universal-theme (
         filePrefix: #APEX_FILES#themes/theme_42/26.1/
         identifier: UNIVERSAL_THEME
     }
+
+    style jobtracker (
+        name: JobTracker
+        css {
+            fileUrls: #APEX_FILES#libraries/oracle-fonts/oraclesans-apex#MIN#.css?v=#APEX_VERSION#
+        }
+        themeRollerAttributes {
+            inputParameterFileUrls: #THEME_FILES#less/theme/Iris.less
+            outputCssFileUrl: #THEME_DB_FILES#20814627429231067.css
+            jsonConfig: "{\"classes\":[],\"vars\":{\"@g_Header_Style\":\"pillar\",\"@g_Nav_Style\":\"light\",\"@g_Accent-Pillar\":\"plum\",\"@g_FontFamily\":\"system\",\"@Head-Height\":\"48px\",\"@Nav-Exp\":\"15rem\",\"@Actions-Exp\":\"12.5rem\",\"@Side-Exp\":\"15rem\"},\"customCSS\":\"/* Zone de titre des pages : plus compacte que le défaut du Universal Theme.\\n   Surcharge volontairement limitée à cette zone (voir README, choix techniques). */\\n.t-Body-title .t-Breadcrumb-label {\\n  font-size: 1.25rem;\\n  line-height: 1.2;\\n}\\n\\n.t-Body-title .t-BreadcrumbRegion {\\n  padding-block: 0.5rem;\\n}\",\"useCustomLess\":\"N\"}"
+        }
+        advanced {
+            endUserCanPick: true
+            accessibilityTested: true
+        }
+    )
+
 )
 

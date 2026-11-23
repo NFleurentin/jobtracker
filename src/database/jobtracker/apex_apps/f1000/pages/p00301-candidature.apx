@@ -9,6 +9,7 @@ page 301 (
         templateOptions: #DEFAULT#
     }
     dialog {
+        width: 1100
         chained: false
     }
     navigation {
@@ -55,21 +56,8 @@ page 301 (
                 delete
             ]
         }
-        toolbar {
-            controls: [
-                searchCol
-                searchField
-                actionsMenu
-                resetButton
-            ]
-        }
-        download {
-            formats: [
-                csv
-                html
-                excel
-                pdf
-            ]
+        enableUsersTo {
+            download: false
         }
         componentAdvanced {
             initJavaScriptFunction:
@@ -272,24 +260,13 @@ page 301 (
             }
         )
 
-        page {
-            size: a4
-            units: millimeters
-            width: 297
-            height: 210
-            borderWidth: 0.5
-            borderColor: #666666
-        }
-        pageHeader {
-            pageHeaderText: Historique des statuts
-        }
     )
 
     region buttons (
         name: Buttons
         type: staticContent
         layout {
-            sequence: 20
+            sequence: 10
             slot: dialogFooter
         }
         appearance {
@@ -323,6 +300,27 @@ page 301 (
         }
     )
 
+    region new (
+        name: audit-info
+        type: staticContent
+        source {
+            htmlCode: <p class="jt-audit-info">Créée le &P301_CREATED_AT!HTML. · Modifiée le &P301_UPDATED_AT!HTML.</p>
+        }
+        layout {
+            sequence: 10
+            parentRegion: @buttons
+            slot: regionBody
+        }
+        appearance {
+            template: @/blank-with-attributes
+            templateOptions: #DEFAULT#
+        }
+        serverSideCondition {
+            type: itemIsNotNull
+            item: P301_APPLICATION_ID
+        }
+    )
+
     pageItem P301_ANN_SALARY_PROPOSED_EUROS (
         type: numberField
         label {
@@ -333,14 +331,16 @@ page 301 (
             minValue: 1
         }
         layout {
-            sequence: 90
+            sequence: 110
             region: @candidature
             slot: regionBody
             alignment: left
+            columnSpan: 4
         }
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+            formatMask: 999G999G999
             width: 32
         }
         validation {
@@ -356,7 +356,7 @@ page 301 (
     pageItem P301_APPLICATION_ID (
         type: hidden
         layout {
-            sequence: 50
+            sequence: 80
             region: @candidature
             slot: regionBody
         }
@@ -386,10 +386,11 @@ page 301 (
             nullDisplayValue: - Choisir -
         }
         layout {
-            sequence: 70
+            sequence: 90
             region: @candidature
             slot: regionBody
             alignment: left
+            columnSpan: 6
         }
         appearance {
             template: @/required-floating
@@ -426,10 +427,12 @@ page 301 (
             nullDisplayValue: - Choisir -
         }
         layout {
-            sequence: 30
+            sequence: 60
             region: @candidature
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/required-floating
@@ -458,10 +461,11 @@ page 301 (
             displayNullValue: false
         }
         layout {
-            sequence: 40
+            sequence: 50
             region: @candidature
             slot: regionBody
             alignment: left
+            columnSpan: 6
         }
         appearance {
             template: @/required-floating
@@ -480,25 +484,17 @@ page 301 (
     )
 
     pageItem P301_CREATED_AT (
-        type: displayOnly
-        label {
-            label: Créée le
-            alignment: left
-        }
+        type: hidden
         layout {
-            sequence: 10
+            sequence: 20
             region: @candidature
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
         }
         source {
             formRegion: @candidature
             column: CREATED_AT
             dataType: timestampWithLocalTimeZone
+            queryOnly: true
         }
         serverSideCondition {
             type: itemIsNotNull
@@ -516,14 +512,17 @@ page 301 (
             minValue: 1
         }
         layout {
-            sequence: 100
+            sequence: 120
             region: @candidature
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 4
         }
         appearance {
             template: @/optional-floating
             templateOptions: #DEFAULT#
+            formatMask: 999G999G999
             width: 32
         }
         validation {
@@ -543,9 +542,11 @@ page 301 (
             alignment: left
         }
         layout {
-            sequence: 110
+            sequence: 130
             region: @candidature
             slot: regionBody
+            startNewRow: false
+            columnSpan: 4
         }
         appearance {
             template: @/optional-floating
@@ -565,7 +566,7 @@ page 301 (
             alignment: left
         }
         layout {
-            sequence: 60
+            sequence: 40
             region: @candidature
             slot: regionBody
             alignment: left
@@ -593,7 +594,7 @@ page 301 (
             alignment: left
         }
         layout {
-            sequence: 120
+            sequence: 140
             region: @candidature
             slot: regionBody
             alignment: left
@@ -621,10 +622,12 @@ page 301 (
             alignment: left
         }
         layout {
-            sequence: 80
+            sequence: 100
             region: @candidature
             slot: regionBody
             alignment: left
+            startNewRow: false
+            columnSpan: 6
         }
         appearance {
             template: @/required-floating
@@ -655,25 +658,17 @@ page 301 (
     )
 
     pageItem P301_UPDATED_AT (
-        type: displayOnly
-        label {
-            label: Modifiée le
-            alignment: left
-        }
+        type: hidden
         layout {
-            sequence: 20
+            sequence: 30
             region: @candidature
             slot: regionBody
-            alignment: left
-        }
-        appearance {
-            template: @/optional-floating
-            templateOptions: #DEFAULT#
         }
         source {
             formRegion: @candidature
             column: UPDATED_AT
             dataType: timestampWithLocalTimeZone
+            queryOnly: true
         }
         serverSideCondition {
             type: itemIsNotNull
